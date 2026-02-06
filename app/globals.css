@@ -1,0 +1,250 @@
+@import "tailwindcss";
+
+@theme {
+  /* Aesthetic Studio Light Design System */
+  --color-studio-bg: #f8fafc;
+  --color-studio-surface: #ffffff;
+  --color-studio-border: #e2e8f0;
+
+  /* Primary Accents */
+  --color-electric-indigo: #6366f1;
+  --color-electric-blue: #0ea5e9;
+
+  /* Text Mapping */
+  --color-primary: var(--color-studio-bg);
+  --color-secondary: var(--color-studio-surface);
+  --color-accent: var(--color-electric-indigo);
+  --color-text-main: #0f172a;
+  --color-text-dim: #64748b;
+
+  /* Luxury Light Effects */
+  --color-fs-glass-bg: rgba(255, 255, 255, 0.7);
+  --color-fs-glass-border: rgba(255, 255, 255, 0.5);
+
+  /* Premium Shadows */
+  --shadow-luxury: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+
+  /* Typography */
+  --font-heading: var(--font-fira-code);
+  --font-body: var(--font-fira-sans);
+}
+
+@layer base {
+  body {
+    background: #f8fafc;
+    color: #0f172a;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Aesthetic Light Card */
+@utility card-aesthetic {
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 1.5rem;
+  padding: 1.75rem;
+  box-shadow: var(--shadow-card);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-6px);
+    border-color: #6366f133;
+    box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.1);
+  }
+}
+
+/* Luxury Light Buttons */
+@utility btn-aesthetic {
+  background: linear-gradient(135deg, #6366f1 0%, #0ea5e9 100%);
+  color: white;
+  padding: 0.875rem 2.25rem;
+  border-radius: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.075em;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.3);
+
+  &:hover {
+    box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.4);
+    transform: translateY(-2px);
+  }
+}
+
+@utility btn-aesthetic-secondary {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  color: #0f172a;
+  padding: 0.875rem 2.25rem;
+  border-radius: 1rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.075em;
+
+  &:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+  }
+}
+
+/* Sleek Light Inputs */
+@utility input-aesthetic {
+  width: 100%;
+  min-height: 2.75rem;
+  background: #ffffff;
+  border: 2px solid #f1f5f9;
+  border-radius: 0.75rem;
+  padding: 0 1.25rem;
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1.25rem center;
+  background-size: 1.1rem;
+  cursor: pointer;
+
+  &:focus {
+    background: #ffffff;
+    border-color: #6366f1;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.08), 0 10px 15px -3px rgba(99, 102, 241, 0.1);
+    transform: translateY(-1px);
+  }
+
+  &:hover:not(:focus) {
+    border-color: #cbd5e1;
+    background-color: #f8fafc;
+  }
+
+  &::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  &:not(select) {
+    background-image: none;
+    cursor: text;
+  }
+}
+
+/* Luxury Light Navigation */
+@utility nav-aesthetic {
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1.25rem;
+  margin: 0.5rem 0;
+  border-radius: 1rem;
+  color: #64748b;
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+
+  &:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    padding-left: 1.5rem;
+  }
+
+  &.active {
+    background: rgba(99, 102, 241, 0.08);
+    color: #6366f1;
+    border-right: 4px solid #6366f1;
+    border-radius: 1rem 0 0 1rem;
+    padding-left: 1.5rem;
+  }
+}
+
+/* Aesthetic Modals */
+@utility modal-aesthetic-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+@utility modal-aesthetic {
+  background: #ffffff;
+  border-radius: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 32rem;
+  padding: 2.5rem;
+  position: relative;
+  z-index: 60;
+}
+
+@layer components {
+
+  /* Aliases for compatibility */
+  .card-static {
+    @apply card-aesthetic;
+  }
+
+  .input {
+    @apply input-aesthetic;
+  }
+
+  .btn-primary {
+    @apply btn-aesthetic;
+  }
+
+  .btn-secondary {
+    @apply btn-aesthetic-secondary;
+  }
+
+  .label {
+    @apply block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2 ml-1;
+  }
+}
+
+@utility font-heading {
+  font-family: var(--font-heading);
+}
+
+@utility font-body {
+  font-family: var(--font-body);
+}
+
+@utility animate-slide-up {
+  animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@utility animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
