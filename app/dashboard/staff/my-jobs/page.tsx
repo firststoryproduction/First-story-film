@@ -132,110 +132,90 @@ export default function MyJobsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] lg:ml-72 p-8 lg:p-14">
+        <div className="min-h-screen bg-[#f8fafc] lg:ml-72 p-6 lg:p-10 text-slate-900 font-body">
             <div className="max-w-6xl mx-auto">
-                <div className="mb-12 animate-slide-up">
-                    <div className="h-1 w-20 bg-indigo-600 rounded-full mb-6" />
-                    <h1 className="text-4xl font-bold text-slate-900 font-heading tracking-tight mb-2 uppercase flex items-center gap-4">
+                <div className="mb-6 animate-slide-up">
+                    <h1 className="text-3xl font-bold text-slate-900 font-heading tracking-tight uppercase flex items-center gap-4">
                         My Production Queue
                         {debugCount !== null && (
-                            <span className="text-xs bg-indigo-100 text-indigo-600 px-4 py-1.5 rounded-full font-black tracking-widest">
+                            <span className="text-[10px] bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full font-black tracking-widest">
                                 {debugCount} ASSIGNED
                             </span>
                         )}
                     </h1>
-                    <p className="text-slate-500 font-medium">Track your active tasks and manage delivery benchmarks.</p>
                 </div>
 
-                <div className="mb-10 group animate-slide-up [animation-delay:200ms]">
+                <div className="mb-6 group animate-slide-up [animation-delay:200ms]">
                     <div className="relative">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
                         <input
                             type="text"
                             placeholder="Search by job name or instructions..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="input-aesthetic pl-14 h-16 bg-white shadow-sm w-full"
+                            className="input-aesthetic pl-12 h-12 bg-white shadow-sm w-full text-sm rounded-2xl"
                         />
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-10 animate-slide-up [animation-delay:400ms]">
+                <div className="grid grid-cols-1 gap-6 animate-slide-up [animation-delay:400ms]">
                     {paginatedJobs.map((job) => (
-                        <div key={job.id} className={`card-aesthetic group relative bg-white border-l-8 ${job.status === 'COMPLETED' ? 'border-l-emerald-500' :
+                        <div key={job.id} className={`card-aesthetic group relative bg-white border-l-4 p-5 rounded-3xl ${job.status === 'COMPLETED' ? 'border-l-emerald-500' :
                             job.status === 'IN_PROGRESS' ? 'border-l-indigo-600' : 'border-l-slate-200'
                             }`}>
-                            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 relative z-10">
+                            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10 font-body">
                                 <div className="flex-1">
-                                    <div className="mb-6">
-                                        <div className="flex flex-wrap items-center gap-4 mb-2">
-                                            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight font-heading">{job.service?.name || 'Manual Project'}</h3>
-                                            <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${job.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                    <div className="mb-4">
+                                        <div className="flex flex-wrap items-center gap-3 mb-2">
+                                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight font-heading">{job.service?.name || 'Manual Project'}</h3>
+                                            <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${job.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                                                 job.status === 'PENDING' ? 'bg-amber-50 text-amber-600 border-amber-100' :
                                                     'bg-indigo-50 text-indigo-600 border-indigo-100'
                                                 }`}>
                                                 {job.status}
                                             </div>
                                         </div>
-                                        <p className="text-slate-600 text-lg font-medium leading-relaxed max-w-2xl bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                            <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest block mb-1">Mission Brief / Description</span>
+                                        <p className="text-slate-600 text-sm font-medium leading-relaxed max-w-2xl bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                            <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest block mb-0.5">Brief / Description</span>
                                             {job.description}
                                         </p>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="flex items-center space-x-3">
-                                            <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
-                                                <Building2 size={18} />
+                                            <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
+                                                <Building2 size={16} />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-0.5">Studio</p>
-                                                <p className="font-bold text-slate-700 text-sm">{job.vendor?.studio_name || 'Individual'}</p>
+                                                <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Studio</p>
+                                                <p className="font-bold text-slate-700 text-xs">{job.vendor?.studio_name || 'Individual'}</p>
                                             </div>
                                         </div>
 
                                         <div className="flex items-center space-x-3">
-                                            <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
-                                                <Calendar size={18} />
+                                            <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
+                                                <Calendar size={16} />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-0.5">Due Date</p>
-                                                <p className="font-bold text-slate-700 text-sm">{new Date(job.job_due_date).toLocaleDateString()}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center space-x-3">
-                                            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-400">
-                                                <ExternalLink size={18} />
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-0.5">Raw Files</p>
-                                                {job.data_location ? (
-                                                    <a href={job.data_location} target="_blank" className="text-indigo-600 font-bold text-sm hover:underline">View Intel</a>
-                                                ) : (
-                                                    <p className="text-slate-400 font-bold text-sm italic">Not provided</p>
-                                                )}
+                                                <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Due Date</p>
+                                                <p className="font-bold text-slate-700 text-xs">{new Date(job.job_due_date).toLocaleDateString()}</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col gap-3 min-w-[240px]">
-                                    <div className="space-y-4">
-                                        <div>
-                                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 ml-1">Update Status</p>
-                                            <AestheticSelect
-                                                options={[
-                                                    { id: 'PENDING', name: 'PENDING' },
-                                                    { id: 'IN_PROGRESS', name: 'IN PROGRESS' },
-                                                    { id: 'COMPLETED', name: 'COMPLETED' }
-                                                ]}
-                                                value={job.status}
-                                                disabled={actionLoading === job.id}
-                                                onChange={(val) => handleUpdateStatus(job.id, val)}
-                                            />
-                                        </div>
-                                    </div>
+                                <div className="flex flex-col gap-2 min-w-[200px]">
+                                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest ml-1">Update Status</p>
+                                    <AestheticSelect
+                                        options={[
+                                            { id: 'PENDING', name: 'PENDING' },
+                                            { id: 'IN_PROGRESS', name: 'IN PROGRESS' },
+                                            { id: 'COMPLETED', name: 'COMPLETED' }
+                                        ]}
+                                        value={job.status}
+                                        disabled={actionLoading === job.id}
+                                        onChange={(val) => handleUpdateStatus(job.id, val)}
+                                    />
                                 </div>
                             </div>
                         </div>
