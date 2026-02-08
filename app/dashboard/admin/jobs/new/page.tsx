@@ -30,31 +30,11 @@ export default function NewJobPage() {
         final_location: '',
         job_due_date: '',
         amount: 0,
+        status: 'PENDING'
     })
 
     useEffect(() => {
-        const checkAuth = async () => {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) {
-                router.push('/login')
-                return
-            }
-
-            // Fetch user role from public.users
-            const { data: profile } = await supabase
-                .from('users')
-                .select('role')
-                .eq('id', user.id)
-                .single()
-
-            if (profile?.role !== 'ADMIN' && profile?.role !== 'MANAGER') {
-                router.push('/dashboard')
-                return
-            }
-
-            fetchFormData()
-        }
-        checkAuth()
+        fetchFormData()
     }, [router])
 
     const fetchFormData = async () => {
@@ -147,7 +127,7 @@ export default function NewJobPage() {
                     data_location: formData.data_location,
                     final_location: formData.final_location,
                     job_due_date: new Date(formData.job_due_date).toISOString(),
-                    status: 'PENDING',
+                    status: formData.status,
                     amount: formData.amount,
                     commission_amount: commission,
                 }])
@@ -163,31 +143,29 @@ export default function NewJobPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] lg:ml-72 p-8 lg:p-12">
-            <div className="max-w-5xl mx-auto">
+        <div className="min-h-screen bg-[#f8fafc] lg:ml-72 p-4 lg:p-8">
+            <div className="max-w-6xl mx-auto">
                 <button
                     onClick={() => router.push('/dashboard/admin/jobs')}
-                    className="flex items-center text-slate-500 hover:text-indigo-600 mb-8 transition-colors group cursor-pointer font-bold text-sm"
+                    className="flex items-center text-slate-500 hover:text-indigo-600 mb-6 transition-colors group cursor-pointer font-bold text-[11px] uppercase tracking-widest"
                 >
-                    <ArrowLeft size={18} className="mr-2 group-hover:-translate-x-1 transition-transform" />
+                    <ArrowLeft size={14} className="mr-2 group-hover:-translate-x-1 transition-transform" />
                     Back to Jobs
                 </button>
 
-                <div className="mb-10">
-                    <div className="h-1 w-20 bg-indigo-600 rounded-full mb-6" />
-                    <h1 className="text-4xl font-bold text-slate-900 mb-2 font-heading tracking-tight">Post New Production Job</h1>
-                    <p className="text-slate-500 font-medium">Initialize a new production cycle and assign creative leads.</p>
+                <div className="mb-8">
+                    <h1 className="text-3xl font-black text-slate-900 mb-1 font-heading tracking-tight uppercase leading-none">Post New Production Job</h1>
                 </div>
 
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
                     {/* Main Info */}
-                    <div className="lg:col-span-2 space-y-8">
-                        <section className="card-aesthetic">
-                            <div className="flex items-center space-x-3 mb-8 border-b border-slate-100 pb-6">
-                                <h2 className="text-xl font-bold text-slate-900 font-heading">General Details</h2>
+                    <div className="space-y-6">
+                        <section className="bg-white rounded-[1.5rem] border border-slate-100 shadow-xl overflow-hidden p-6 lg:p-8">
+                            <div className="flex items-center space-x-3 mb-6 border-b border-slate-50 pb-4">
+                                <h2 className="text-lg font-black text-slate-900 font-heading uppercase tracking-tight">General Details</h2>
                             </div>
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-5">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <AestheticSelect
                                         label="Production Studio (Vendor)"
                                         required
@@ -206,10 +184,46 @@ export default function NewJobPage() {
                                     />
                                 </div>
 
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
+                                    <AestheticSelect
+                                        label="Assign User"
+                                        required
+                                        disabled={!selectedService}
+                                        options={filteredStaffList.map(s => ({ id: s.id, name: s.name }))}
+                                        value={selectedStaff}
+                                        onChange={setSelectedStaff}
+                                        placeholder={selectedService ? 'Select Assigned User...' : 'Choose Service First'}
+                                    />
+
+                                    <div>
+                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block ml-1">Job Due Date <span className="text-rose-500">*</span></label>
+                                        <input
+                                            type="datetime-local"
+                                            className="w-full h-8 bg-white border-2 border-slate-100 rounded-full px-4 text-[10px] font-black uppercase tracking-widest text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-50 transition-all duration-300"
+                                            value={formData.job_due_date}
+                                            onChange={e => setFormData({ ...formData, job_due_date: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+
+                                    <AestheticSelect
+                                        label="Job Status"
+                                        required
+                                        options={[
+                                            { id: 'PENDING', name: 'PENDING' },
+                                            { id: 'IN_PROGRESS', name: 'IN PROGRESS' },
+                                            { id: 'PAUSE', name: 'PAUSE' },
+                                            { id: 'COMPLETED', name: 'COMPLETED' }
+                                        ]}
+                                        value={formData.status}
+                                        onChange={(val) => setFormData({ ...formData, status: val })}
+                                    />
+                                </div>
+
                                 <div>
-                                    <label className="label">Work Description <span className="text-rose-500">*</span></label>
+                                    <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Work Description <span className="text-rose-500">*</span></label>
                                     <textarea
-                                        className="input-aesthetic min-h-[160px] resize-none"
+                                        className="input-aesthetic min-h-[100px] resize-none text-sm p-4"
                                         placeholder="Provide clear instructions for the staff..."
                                         value={formData.description}
                                         onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -217,83 +231,57 @@ export default function NewJobPage() {
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="label">Data Location (Source)</label>
-                                    <textarea
-                                        className="input-aesthetic min-h-[80px] py-4 resize-none"
-                                        placeholder="Paste source folder path or raw data link..."
-                                        value={formData.data_location}
-                                        onChange={e => setFormData({ ...formData, data_location: e.target.value })}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="label">Final Location (Destination)</label>
-                                    <textarea
-                                        className="input-aesthetic min-h-[80px] py-4 resize-none"
-                                        placeholder="Intended destination for finished files..."
-                                        value={formData.final_location}
-                                        onChange={e => setFormData({ ...formData, final_location: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-                        </section>
-                    </div>
-
-                    {/* Right Panel: Assignment & Financials */}
-                    <div className="space-y-8">
-                        <section className="card-aesthetic border-t-4 border-t-indigo-600">
-                            <h2 className="text-xl font-bold text-slate-900 mb-8 font-heading">Assignment</h2>
-                            <div className="space-y-8">
-                                <AestheticSelect
-                                    label="Assign User"
-                                    required
-                                    disabled={!selectedService}
-                                    options={filteredStaffList.map(s => ({ id: s.id, name: s.name }))}
-                                    value={selectedStaff}
-                                    onChange={setSelectedStaff}
-                                    placeholder={selectedService ? 'Select Assigned User...' : 'Choose Service First'}
-                                />
-
-                                {selectedStaff && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
-                                        <label className="label">Job Due Date (Date & Time) <span className="text-rose-500">*</span></label>
+                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Data Location (Source)</label>
                                         <input
-                                            type="datetime-local"
-                                            className="input-aesthetic"
-                                            value={formData.job_due_date}
-                                            onChange={e => setFormData({ ...formData, job_due_date: e.target.value })}
-                                            required
+                                            type="text"
+                                            className="input-aesthetic h-12 px-4 text-sm"
+                                            placeholder="Source folder path..."
+                                            value={formData.data_location}
+                                            onChange={e => setFormData({ ...formData, data_location: e.target.value })}
                                         />
                                     </div>
-                                )}
 
-                                <div className="pt-8 border-t border-slate-100">
-                                    <label className="label">Job Total Amount (Base) <span className="text-rose-500">*</span></label>
-                                    <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                                    <div>
+                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Final Location (Destination)</label>
                                         <input
-                                            type="number"
-                                            className="input-aesthetic pl-10 font-bold text-xl text-slate-900"
-                                            placeholder="0"
-                                            value={formData.amount || ''}
-                                            onFocus={(e) => e.target.select()}
-                                            onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })}
-                                            required
-                                            min="0"
+                                            type="text"
+                                            className="input-aesthetic h-12 px-4 text-sm"
+                                            placeholder="Final destination path..."
+                                            value={formData.final_location}
+                                            onChange={e => setFormData({ ...formData, final_location: e.target.value })}
                                         />
                                     </div>
                                 </div>
 
+                                <div className="pt-6 border-t border-slate-50 grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
+                                    <div>
+                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Job Total Amount (Base) <span className="text-rose-500">*</span></label>
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                                            <input
+                                                type="number"
+                                                className="input-aesthetic h-12 pl-10 font-bold text-lg text-slate-900 border-2 border-slate-50"
+                                                placeholder="0"
+                                                value={formData.amount || ''}
+                                                onFocus={(e) => e.target.select()}
+                                                onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })}
+                                                required
+                                                min="0"
+                                            />
+                                        </div>
+                                    </div>
 
-                                <button
-                                    type="submit"
-                                    disabled={loading || Boolean(selectedStaff && staffPercentage === null)}
-                                    className="btn-aesthetic w-full flex justify-center items-center h-16"
-                                >
-                                    <Save size={20} className="mr-2" />
-                                    {loading ? 'Processing...' : 'Official Post Job'}
-                                </button>
+                                    <button
+                                        type="submit"
+                                        disabled={loading || Boolean(selectedStaff && staffPercentage === null)}
+                                        className="w-full bg-indigo-600 hover:bg-slate-900 text-white rounded-[1rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center h-12 shadow-lg shadow-indigo-100"
+                                    >
+                                        <Save size={16} className="mr-2" />
+                                        {loading ? 'Processing...' : 'Official Post Job'}
+                                    </button>
+                                </div>
                             </div>
                         </section>
                     </div>

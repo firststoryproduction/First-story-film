@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Edit2, Trash2, Search, Percent, Smartphone, Mail, Users, X, Save, ArrowLeft, Calendar, ChevronDown, Building2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, Search, Percent, Smartphone, Mail, Users, X, Save, ArrowLeft, Calendar, ChevronDown, Building2, AlertTriangle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { User, Service, StaffServiceConfig } from '@/types/database'
 import Pagination from '@/components/Pagination'
@@ -18,6 +18,9 @@ export default function StaffPage() {
 
     // Modal & Form State
     const [showModal, setShowModal] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [memberToDelete, setMemberToDelete] = useState<User | null>(null)
+    const [deleteLoading, setDeleteLoading] = useState(false)
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
     const [editingId, setEditingId] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
@@ -34,30 +37,14 @@ export default function StaffPage() {
     const [showPasswordField, setShowPasswordField] = useState(false)
 
     useEffect(() => {
-        const checkAuth = async () => {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) {
-                router.push('/login')
-                return
-            }
-
-            // Fetch user role from public.users
-            const { data: profile } = await supabase
-                .from('users')
-                .select('role')
-                .eq('id', user.id)
-                .single()
-
-            if (profile?.role !== 'ADMIN') {
-                router.push('/dashboard')
-                return
-            }
-
-            setCurrentUser(user)
-            fetchStaff()
-            fetchServices()
-        }
-        checkAuth()
+        // Fire these immediately to reduce wait time
+        fetchStaff()
+        fetchServices()
+        
+        // Fetch user in background for form data
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) setCurrentUser(user)
+        })
     }, [router])
 
     const fetchServices = async () => {
@@ -253,20 +240,33 @@ export default function StaffPage() {
         }
     }
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this user?')) return
+    const confirmDelete = (member: User) => {
+        setMemberToDelete(member)
+        setShowDeleteModal(true)
+    }
+
+    const handleDelete = async () => {
+        if (!memberToDelete) return
+        setDeleteLoading(true)
 
         try {
-            const { error } = await supabase
-                .from('users')
-                .delete()
-                .eq('id', id)
+            const response = await fetch('/api/admin/delete-user', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: memberToDelete.id })
+            })
 
-            if (error) throw error
+            const result = await response.json()
+            if (!response.ok) throw new Error(result.error || 'Failed to delete user')
+
+            setShowDeleteModal(false)
+            setMemberToDelete(null)
             fetchStaff()
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error deleting staff:', error)
-            alert('Error deleting staff. Please try again.')
+            alert(error.message || 'Error deleting staff. Please try again.')
+        } finally {
+            setDeleteLoading(false)
         }
     }
 
@@ -288,110 +288,117 @@ export default function StaffPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="lg:ml-72 min-h-screen flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0369A1]"></div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] lg:ml-72 px-3 py-4 lg:px-4 lg:py-6">
-            <div className="w-full">
+        <div className="min-h-screen bg-[#f8fafc] text-slate-800 lg:ml-72">
+            <div className="w-full px-2 py-4 lg:px-4 lg:py-8">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-4 animate-slide-up">
-                    <div>
-                        <div className="flex items-center space-x-3 mb-2">
-                            <div className="p-3 bg-indigo-50 rounded-2xl">
-                                <Users size={24} className="text-indigo-600" />
-                            </div>
-                            <h1 className="text-4xl font-bold text-slate-900 font-heading tracking-tight">System Users</h1>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 animate-slide-up px-2">
+                    <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-indigo-600 rounded-[1.25rem] shadow-lg shadow-indigo-100 flex items-center justify-center">
+                            <Users size={20} className="text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-black text-slate-900 font-heading tracking-tight leading-tight uppercase">System Users</h1>
                         </div>
                     </div>
                 </div>
 
-                {/* Search */}
-                <div className="mb-4 flex flex-col md:flex-row items-center justify-between gap-4 animate-slide-up [animation-delay:200ms]">
-                    <div className="relative w-full md:w-auto md:min-w-[400px]">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={20} />
-                        <input
-                            type="text"
-                            placeholder="Search by name, email, or role..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="input-aesthetic pl-12 h-9 text-xs bg-white shadow-sm w-full"
-                        />
+                {/* Main Operations Card */}
+                <div className="bg-white rounded-[1.5rem] border border-slate-100 shadow-xl overflow-hidden animate-slide-up [animation-delay:200ms]">
+                    
+                    {/* Toolbar Inside Card */}
+                    <div className="px-12 py-5 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="relative w-full md:w-[350px] group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors" size={14} />
+                            <input
+                                type="text"
+                                placeholder="Search by name, email, or role..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 h-9 bg-slate-50/50 border-none rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-300 shadow-inner"
+                            />
+                        </div>
+                        <button 
+                            onClick={handleOpenCreate} 
+                            className="w-full md:w-auto px-5 h-9 bg-indigo-600 hover:bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center space-x-2 group shrink-0 shadow-lg shadow-indigo-100"
+                        >
+                            <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
+                            <span>Register User</span>
+                        </button>
                     </div>
-                    <button
-                        onClick={handleOpenCreate}
-                        className="btn-aesthetic h-9 px-4 flex items-center space-x-2 group shrink-0"
-                    >
-                        <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-                        <span className="tracking-widest text-xs">Register New User</span>
-                    </button>
-                </div>
 
-                {/* Staff Table List */}
-                <div className="card-aesthetic p-0 overflow-hidden bg-white border-none shadow-xl animate-slide-up [animation-delay:400ms]">
+                    {/* Table */}
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-50/50 border-b border-slate-100">
-                                    <th className="px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">User Profile</th>
-                                    <th className="px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Email</th>
-                                    <th className="px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Mobile Number</th>
-                                    <th className="px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">System Role</th>
-                                    <th className="px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Actions</th>
+                                <tr className="bg-slate-50/30">
+                                    <th className="px-12 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">User Profile</th>
+                                    <th className="px-12 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Email</th>
+                                    <th className="px-12 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Mobile Number</th>
+                                    <th className="px-12 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 text-center">System Role</th>
+                                    <th className="px-12 py-3 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
                                 {paginatedStaff.length === 0 ? (
                                     <tr>
                                         <td colSpan={5} className="py-20 text-center">
-                                            <Users size={48} className="mx-auto text-slate-200 mb-4" />
-                                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No staff members detected</p>
+                                            <div className="inline-flex p-5 bg-slate-50 rounded-full mb-3">
+                                                <Users size={28} className="text-slate-200" />
+                                            </div>
+                                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">No staff members detected</p>
                                         </td>
                                     </tr>
                                 ) : (
                                     paginatedStaff.map((member) => (
-                                        <tr key={member.id} className="hover:bg-indigo-50/30 transition-colors group/row">
-                                            <td className="px-2 py-1">
-                                                <div className="text-sm font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors uppercase tracking-tight">
+                                        <tr key={member.id} className="hover:bg-slate-50/50 transition-colors group/row">
+                                            <td className="px-12 py-0.5">
+                                                <div className="text-sm font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors flex items-center">
+                                                    <div className="w-1 h-1 rounded-full bg-indigo-200 mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100" />
                                                     {member.name}
                                                 </div>
                                             </td>
-                                            <td className="px-2 py-1">
-                                                <div className="text-xs text-slate-500 font-bold lowercase tracking-tight">
+                                            <td className="px-12 py-0.5">
+                                                <div className="text-[10px] text-slate-400 font-bold flex items-center">
+                                                    <Mail size={10} className="mr-2 text-indigo-300" />
                                                     {member.email}
                                                 </div>
                                             </td>
-                                            <td className="px-2 py-1">
-                                                <div className="text-xs text-slate-500 font-bold tracking-widest">
+                                            <td className="px-12 py-0.5">
+                                                <div className="text-[10px] text-slate-400 font-bold flex items-center">
+                                                    <Smartphone size={10} className="mr-2 text-indigo-300" />
                                                     {member.mobile || 'N/A'}
                                                 </div>
                                             </td>
-                                            <td className="px-2 py-1">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${member.role === 'ADMIN' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                                            <td className="px-12 py-0.5 text-center">
+                                                <span className={`inline-flex items-center px-2 py-0 rounded-full text-[8px] font-black uppercase tracking-[0.2em] border ${member.role === 'ADMIN' ? 'bg-rose-50 text-rose-600 border-rose-100' :
                                                     member.role === 'MANAGER' ? 'bg-amber-50 text-amber-600 border-amber-100' :
                                                         'bg-indigo-50 text-indigo-600 border-indigo-100'
                                                     }`}>
                                                     {member.role}
                                                 </span>
                                             </td>
-                                            <td className="px-2 py-1">
-                                                <div className="flex items-center space-x-2">
+                                            <td className="px-12 py-0.5">
+                                                <div className="flex items-center justify-end space-x-1">
                                                     <button
                                                         onClick={() => handleEdit(member)}
-                                                        className="p-1 text-slate-300 hover:text-indigo-600 hover:bg-white rounded-lg transition-all cursor-pointer bg-slate-50 border border-transparent hover:border-indigo-100"
+                                                        className="w-7 h-7 flex items-center justify-center text-slate-300 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100"
                                                         title="Edit / Manage Commissions"
                                                     >
-                                                        <Edit2 size={16} />
+                                                        <Edit2 size={12} />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDelete(member.id)}
-                                                        className="p-1 text-slate-300 hover:text-rose-500 hover:bg-white rounded-lg transition-all cursor-pointer bg-slate-50 border border-transparent hover:border-rose-100"
+                                                        onClick={() => confirmDelete(member)}
+                                                        className="w-7 h-7 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100"
                                                         title="Delete User"
                                                     >
-                                                        <Trash2 size={16} />
+                                                        <Trash2 size={12} />
                                                     </button>
                                                 </div>
                                             </td>
@@ -401,13 +408,16 @@ export default function StaffPage() {
                             </tbody>
                         </table>
                     </div>
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={setCurrentPage}
-                    />
+                    
+                    {/* Pagination Container */}
+                    <div className="p-4 border-t border-slate-50 bg-slate-50/20">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={setCurrentPage}
+                        />
+                    </div>
                 </div>
-
             </div>
 
             {/* Registration Modal */}
@@ -573,6 +583,42 @@ export default function StaffPage() {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Deletion Confirmation Modal */}
+            {showDeleteModal && memberToDelete && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                        <div className="p-8 text-center">
+                            <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6 scale-110">
+                                <AlertTriangle size={32} />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 font-heading mb-2 uppercase tracking-tight">Delete Account?</h3>
+                            <p className="text-slate-500 text-sm leading-relaxed mb-8">
+                                You are about to permanently remove <span className="font-bold text-slate-900">{memberToDelete.name}</span>'s access. This action cannot be undone.
+                            </p>
+                            
+                            <div className="space-y-3">
+                                <button
+                                    onClick={handleDelete}
+                                    disabled={deleteLoading}
+                                    className="w-full h-12 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-lg shadow-rose-100 flex items-center justify-center"
+                                >
+                                    {deleteLoading ? 'Processing...' : 'Delete Permanently'}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowDeleteModal(false)
+                                        setMemberToDelete(null)
+                                    }}
+                                    className="w-full h-12 bg-slate-50 hover:bg-slate-100 text-slate-400 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] transition-all"
+                                >
+                                    No, Keep User
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

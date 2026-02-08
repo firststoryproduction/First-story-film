@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { createClient as createServerClient } from '@/lib/supabase-server'
 
 // Create a direct admin client for this route using service role
 const supabaseAdmin = createClient(
@@ -15,6 +16,24 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: Request) {
     try {
+        // 0. Verify Session and Admin Role
+        const supabase = await createServerClient()
+        const { data: { user: requester } } = await supabase.auth.getUser()
+
+        if (!requester) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const { data: requesterProfile } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', requester.id)
+            .single()
+
+        if (requesterProfile?.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 })
+        }
+
         const body = await request.json()
         const { id, password } = body
 

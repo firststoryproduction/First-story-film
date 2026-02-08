@@ -208,7 +208,7 @@ export default function DashboardLayout({
                             <button
                                 onClick={async () => {
                                     await supabase.auth.signOut()
-                                    router.push('/login')
+                                    router.push('/login?message=Signed out successfully')
                                 }}
                                 className="w-full p-4 flex items-center justify-between text-rose-600 hover:bg-rose-50 rounded-xl transition-colors group/logout"
                             >
@@ -221,17 +221,17 @@ export default function DashboardLayout({
                     {/* Profile Toggle */}
                     <button
                         onClick={() => setShowLogout(!showLogout)}
-                        className={`w-full p-4 border rounded-3xl flex items-center space-x-4 transition-all duration-300 text-left ${showLogout ? 'bg-indigo-50 border-indigo-200 ring-2 ring-indigo-100' : 'bg-slate-50 border-slate-100 hover:bg-white hover:border-slate-200 hover:shadow-md'
+                        className={`w-full p-2.5 border rounded-2xl flex items-center space-x-3 transition-all duration-300 text-left ${showLogout ? 'bg-indigo-50 border-indigo-200 ring-2 ring-indigo-100' : 'bg-slate-50 border-slate-100 hover:bg-white hover:border-slate-200 hover:shadow-md'
                             }`}
                     >
                         <div className="relative">
-                            <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md">
+                            <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md text-xs">
                                 {userName?.charAt(0).toUpperCase() || 'U'}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
+                            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
                         </div>
                         <div className="overflow-hidden flex-1">
-                            <p className="font-bold text-xs text-slate-900 truncate">
+                            <p className="font-bold text-[10px] text-slate-900 truncate uppercase tracking-tight">
                                 {userName || 'User'}
                             </p>
                         </div>

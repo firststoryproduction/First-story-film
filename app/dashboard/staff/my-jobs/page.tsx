@@ -25,22 +25,14 @@ export default function MyJobsPage() {
     const [debugCount, setDebugCount] = useState<number | null>(null)
 
     useEffect(() => {
-        const checkUser = async () => {
-            try {
-                const { data: { user } } = await supabase.auth.getUser()
-                if (!user) {
-                    router.push('/login')
-                    return
-                }
+        const init = async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
                 setCurrentUser(user)
                 await fetchMyJobs(user.id)
-            } catch (err) {
-                console.error('MyJobs: Error in checkUser:', err)
-            } finally {
-                setLoading(false)
             }
         }
-        checkUser()
+        init()
     }, [])
 
     const fetchMyJobs = async (userId: string) => {
@@ -158,83 +150,88 @@ export default function MyJobsPage() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 animate-slide-up [animation-delay:400ms]">
-                    {paginatedJobs.map((job) => (
-                        <div key={job.id} className={`card-aesthetic group relative bg-white border-l-4 p-5 rounded-3xl ${job.status === 'COMPLETED' ? 'border-l-emerald-500' :
-                            job.status === 'IN_PROGRESS' ? 'border-l-indigo-600' : 'border-l-slate-200'
-                            }`}>
-                            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10 font-body">
-                                <div className="flex-1">
-                                    <div className="mb-4">
-                                        <div className="flex flex-wrap items-center gap-3 mb-2">
-                                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight font-heading">{job.service?.name || 'Manual Project'}</h3>
-                                            <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${job.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                                job.status === 'PENDING' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                                    'bg-indigo-50 text-indigo-600 border-indigo-100'
-                                                }`}>
-                                                {job.status}
+                <div className="card-aesthetic p-0 bg-white border-none shadow-xl animate-slide-up [animation-delay:400ms] relative z-10">
+                    <div className="overflow-visible pb-12">
+                        <table className="w-full text-left border-collapse min-w-[700px]">
+                            <thead>
+                                <tr className="bg-slate-50/50 border-b border-slate-100">
+                                    <th className="px-4 py-1 text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Job Details</th>
+                                    <th className="px-4 py-1 text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Studio</th>
+                                    <th className="px-4 py-1 text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Status</th>
+                                    <th className="px-4 py-1 text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Due Date</th>
+                                    <th className="px-4 py-1 text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 text-right pr-6">Update</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {paginatedJobs.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="py-20 text-center">
+                                            <div className="animate-pulse">
+                                                <CheckCircle2 size={72} className="mx-auto text-slate-100 mb-8" />
+                                                <h2 className="text-3xl font-black text-slate-200 uppercase tracking-[0.2em] font-heading">Clear Skies</h2>
+                                                <p className="text-slate-400 mt-4 text-sm font-bold uppercase tracking-widest">No assigned benchmarks in your production roster.</p>
                                             </div>
-                                        </div>
-                                        <p className="text-slate-600 text-sm font-medium leading-relaxed max-w-2xl bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                            <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest block mb-0.5">Brief / Description</span>
-                                            {job.description}
-                                        </p>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="flex items-center space-x-3">
-                                            <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
-                                                <Building2 size={16} />
-                                            </div>
-                                            <div>
-                                                <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Studio</p>
-                                                <p className="font-bold text-slate-700 text-xs">{job.vendor?.studio_name || 'Individual'}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center space-x-3">
-                                            <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
-                                                <Calendar size={16} />
-                                            </div>
-                                            <div>
-                                                <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Due Date</p>
-                                                <p className="font-bold text-slate-700 text-xs">{new Date(job.job_due_date).toLocaleDateString()}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col gap-2 min-w-[200px]">
-                                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest ml-1">Update Status</p>
-                                    <AestheticSelect
-                                        options={[
-                                            { id: 'PENDING', name: 'PENDING' },
-                                            { id: 'IN_PROGRESS', name: 'IN PROGRESS' },
-                                            { id: 'COMPLETED', name: 'COMPLETED' }
-                                        ]}
-                                        value={job.status}
-                                        disabled={actionLoading === job.id}
-                                        onChange={(val) => handleUpdateStatus(job.id, val)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-
-                    {filteredJobs.length === 0 && (
-                        <div className="text-center py-40 animate-pulse">
-                            <CheckCircle2 size={72} className="mx-auto text-slate-100 mb-8" />
-                            <h2 className="text-3xl font-black text-slate-200 uppercase tracking-[0.2em] font-heading">Clear Skies</h2>
-                            <p className="text-slate-400 mt-4 text-sm font-bold uppercase tracking-widest">No assigned benchmarks in your production roster.</p>
-                        </div>
-                    )}
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    paginatedJobs.map((job) => (
+                                        <tr key={job.id} className="hover:bg-indigo-50/10 transition-colors group/row">
+                                            <td className="px-4 py-0.5">
+                                                <div className="font-bold text-slate-900 text-[11px] group-hover/row:text-indigo-600 transition-colors leading-tight mb-0.5">{job.service?.name || 'Manual Project'}</div>
+                                                <div className="text-[8px] text-slate-400 line-clamp-1 font-medium">{job.description}</div>
+                                            </td>
+                                            <td className="px-4 py-0.5">
+                                                <div className="flex items-center text-[10px] font-bold text-slate-600">
+                                                    <div className="w-5 h-5 bg-slate-100 rounded-lg flex items-center justify-center mr-2 group-hover/row:bg-indigo-600 group-hover/row:text-white transition-colors">
+                                                        <Building2 size={10} />
+                                                    </div>
+                                                    {job.vendor?.studio_name || 'Individual'}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-0.5">
+                                                <div className={`inline-flex px-1.5 py-0 rounded-full text-[8px] font-black uppercase tracking-widest border ${job.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                    job.status === 'PENDING' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                                        'bg-indigo-50 text-indigo-600 border-indigo-100'
+                                                    }`}>
+                                                    {job.status}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-0.5">
+                                                <div className="flex items-center text-[8px] font-bold text-slate-500 tracking-wider">
+                                                    <Calendar size={10} className="mr-1.5 text-indigo-400" />
+                                                    {new Date(job.job_due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-0.5 w-[180px]">
+                                                <div className="flex justify-end pr-2">
+                                                    <AestheticSelect
+                                                        options={[
+                                                            { id: 'PENDING', name: 'PENDING' },
+                                                            { id: 'IN_PROGRESS', name: 'IN PROGRESS' },
+                                                            { id: 'PAUSE', name: 'PAUSE' },
+                                                            { id: 'COMPLETED', name: 'COMPLETED' }
+                                                        ]}
+                                                        value={job.status}
+                                                        disabled={actionLoading === job.id}
+                                                        onChange={(val) => handleUpdateStatus(job.id, val)}
+                                                    />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
 
                     {paginatedJobs.length > 0 && (
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            onPageChange={setCurrentPage}
-                        />
+                        <div className="p-6 border-t border-slate-50">
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={setCurrentPage}
+                            />
+                        </div>
                     )}
                 </div>
             </div>

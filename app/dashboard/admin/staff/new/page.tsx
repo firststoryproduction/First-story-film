@@ -25,29 +25,12 @@ export default function NewUserPage() {
     const [commissions, setCommissions] = useState<{ serviceId: string, percentage: number }[]>([])
 
     useEffect(() => {
-        const checkAuth = async () => {
+        const init = async () => {
             const { data: { user } } = await supabase.auth.getUser()
-            if (!user) {
-                router.push('/login')
-                return
-            }
-
-            // Fetch user role from public.users
-            const { data: profile } = await supabase
-                .from('users')
-                .select('role')
-                .eq('id', user.id)
-                .single()
-
-            if (profile?.role !== 'ADMIN') {
-                router.push('/dashboard')
-                return
-            }
-
             setCurrentUser(user)
             fetchServices()
         }
-        checkAuth()
+        init()
     }, [router])
 
     const fetchServices = async () => {
@@ -124,33 +107,32 @@ export default function NewUserPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] lg:ml-72 p-4 lg:p-6">
-            <div className="max-w-4xl mx-auto">
+        <div className="min-h-screen bg-[#f8fafc] lg:ml-72 p-4 lg:p-8">
+            <div className="max-w-6xl mx-auto">
                 <button
                     onClick={() => router.back()}
-                    className="flex items-center text-slate-500 hover:text-indigo-600 mb-2 transition-colors group cursor-pointer font-bold text-[10px]"
+                    className="flex items-center text-slate-500 hover:text-indigo-600 mb-6 transition-colors group cursor-pointer font-bold text-[11px] uppercase tracking-widest"
                 >
-                    <ArrowLeft size={12} className="mr-1.5 group-hover:-translate-x-1 transition-transform" />
+                    <ArrowLeft size={14} className="mr-2 group-hover:-translate-x-1 transition-transform" />
                     Back to Users
                 </button>
 
-                <div className="mb-4">
-                    <h1 className="text-2xl font-bold text-slate-900 mb-0.5 font-heading tracking-tight">Register New User</h1>
-                    <p className="text-slate-400 text-[10px] font-medium uppercase tracking-widest">Onboard a new creative member to the studio team.</p>
+                <div className="mb-8">
+                    <h1 className="text-3xl font-black text-slate-900 mb-1 font-heading tracking-tight uppercase leading-none">Register New User</h1>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
                     {/* Profile Section */}
-                    <section className="card-aesthetic p-5">
-                        <div className="flex items-center space-x-3 mb-4 border-b border-slate-100 pb-3">
-                            <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] font-heading">Personal Information</h2>
+                    <section className="bg-white rounded-[1.5rem] border border-slate-100 shadow-xl overflow-hidden p-6 lg:p-8">
+                        <div className="flex items-center space-x-3 mb-6 border-b border-slate-50 pb-4">
+                            <h2 className="text-lg font-black text-slate-900 font-heading uppercase tracking-tight">Personal Information</h2>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label className="label text-[9px] mb-1.5">Full Name</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Full Name</label>
                                 <input
                                     type="text"
-                                    className="input-aesthetic h-10 py-0"
+                                    className="input-aesthetic h-12 px-4 text-sm"
                                     placeholder="Enter full name"
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -158,10 +140,10 @@ export default function NewUserPage() {
                                 />
                             </div>
                             <div>
-                                <label className="label text-[9px] mb-1.5">Email Address</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Email Address</label>
                                 <input
                                     type="email"
-                                    className="input-aesthetic h-10 py-0"
+                                    className="input-aesthetic h-12 px-4 text-sm"
                                     placeholder="name@firststory.com"
                                     value={formData.email}
                                     onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -169,10 +151,10 @@ export default function NewUserPage() {
                                 />
                             </div>
                             <div>
-                                <label className="label text-[9px] mb-1.5">Mobile Number</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Mobile Number</label>
                                 <input
                                     type="tel"
-                                    className="input-aesthetic h-10 py-0"
+                                    className="input-aesthetic h-12 px-4 text-sm"
                                     placeholder="+91 00000 00000"
                                     value={formData.mobile}
                                     onChange={e => setFormData({ ...formData, mobile: e.target.value })}
@@ -180,10 +162,10 @@ export default function NewUserPage() {
                                 />
                             </div>
                             <div>
-                                <label className="label text-[9px] mb-1.5">Initial Password</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Initial Password</label>
                                 <input
                                     type="password"
-                                    className="input-aesthetic h-10 py-0"
+                                    className="input-aesthetic h-12 px-4 text-sm"
                                     placeholder="Set temporary password"
                                     value={formData.password}
                                     onChange={e => setFormData({ ...formData, password: e.target.value })}
@@ -194,30 +176,30 @@ export default function NewUserPage() {
                     </section>
 
                     {/* Commission Configuration Section */}
-                    <section className="card-aesthetic p-5">
-                        <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
-                            <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] font-heading">Service Commissions</h2>
+                    <section className="bg-white rounded-[1.5rem] border border-slate-100 shadow-xl overflow-hidden p-6 lg:p-8">
+                        <div className="flex justify-between items-center mb-6 border-b border-slate-50 pb-4">
+                            <h2 className="text-lg font-black text-slate-900 font-heading uppercase tracking-tight">Service Commissions</h2>
                             <button
                                 type="button"
                                 onClick={handleAddCommission}
-                                className="inline-flex items-center px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all cursor-pointer"
+                                className="inline-flex items-center px-4 h-8 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all cursor-pointer"
                             >
-                                <Plus size={12} className="mr-1.5" /> Add Service
+                                <Plus size={14} className="mr-2" /> Add Service
                             </button>
                         </div>
 
                         {commissions.length === 0 ? (
-                            <div className="text-center py-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-slate-400 italic text-[10px]">
+                            <div className="text-center py-8 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-slate-400 italic text-xs">
                                 No commissions configured. Add services to define rates.
                             </div>
                         ) : (
-                            <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                                 {commissions.map((comm, index) => (
                                     <div key={index} className="flex items-end space-x-3 animate-in fade-in slide-in-from-top-1">
                                         <div className="flex-1">
-                                            <label className="label text-[9px] mb-1">Select Service</label>
+                                            <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Select Service</label>
                                             <select
-                                                className="input-aesthetic h-10 py-0"
+                                                className="input-aesthetic h-12 px-4 text-sm w-full"
                                                 value={comm.serviceId}
                                                 onChange={e => updateCommission(index, 'serviceId', e.target.value)}
                                                 required
@@ -228,13 +210,13 @@ export default function NewUserPage() {
                                                 ))}
                                             </select>
                                         </div>
-                                        <div className="w-28">
-                                            <label className="label text-[9px] mb-1">Percentage (%)</label>
+                                        <div className="w-32">
+                                            <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Percentage (%)</label>
                                             <div className="relative">
                                                 <input
                                                     type="number"
                                                     step="0.01"
-                                                    className="input-aesthetic h-10 py-0 pr-8"
+                                                    className="input-aesthetic h-12 px-4 pr-10 text-sm font-bold w-full"
                                                     value={comm.percentage || ''}
                                                     onFocus={(e) => e.target.select()}
                                                     onChange={e => updateCommission(index, 'percentage', e.target.value)}
@@ -242,15 +224,15 @@ export default function NewUserPage() {
                                                     min="0"
                                                     max="100"
                                                 />
-                                                <Percent size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                <Percent size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                             </div>
                                         </div>
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveCommission(index)}
-                                            className="p-2.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
+                                            className="h-12 w-12 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer border border-transparent hover:border-rose-100"
                                         >
-                                            <X size={16} />
+                                            <X size={20} />
                                         </button>
                                     </div>
                                 ))}
@@ -259,21 +241,21 @@ export default function NewUserPage() {
                     </section>
 
                     {/* Form Actions */}
-                    <div className="flex space-x-3 pt-2">
+                    <div className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
                         <button
                             type="submit"
                             disabled={loading}
-                            className="btn-aesthetic flex-1 flex justify-center items-center h-11 text-xs"
+                            className="w-full bg-indigo-600 hover:bg-slate-900 text-white rounded-[1rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center h-12 shadow-lg shadow-indigo-100"
                         >
                             <Save size={16} className="mr-2" />
-                            {loading ? 'Processing...' : 'Save User Profile'}
+                            {loading ? 'Processing...' : 'Official Save User'}
                         </button>
                         <button
                             type="button"
                             onClick={() => router.push('/dashboard/admin/staff')}
-                            className="btn-aesthetic-secondary flex-1 h-11 text-xs"
+                            className="w-full bg-white text-slate-400 hover:text-slate-600 rounded-[1rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center h-12 border border-slate-100"
                         >
-                            Cancel
+                            Cancel Onboarding
                         </button>
                     </div>
                 </form>

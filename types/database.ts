@@ -1,7 +1,7 @@
 // TypeScript type definitions for database tables
 
 export type UserRole = 'ADMIN' | 'MANAGER' | 'USER'
-export type JobStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
+export type JobStatus = 'PENDING' | 'IN_PROGRESS' | 'PAUSE' | 'COMPLETED'
 
 export interface User {
     id: string

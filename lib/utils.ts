@@ -57,9 +57,9 @@ export function formatWorkingTime(
  */
 export function isJobOverdue(
     dueDate: Date,
-    status: 'PENDING' | 'IN_PROGRESS' | 'PAUSE' | 'COMPLETE'
+    status: 'PENDING' | 'IN_PROGRESS' | 'PAUSE' | 'COMPLETED'
 ): boolean {
-    if (status === 'COMPLETE') return false
+    if (status === 'COMPLETED') return false
     return new Date() > dueDate
 }
 
@@ -82,13 +82,13 @@ export function formatCurrency(amount: number): string {
  * @returns Tailwind color class
  */
 export function getStatusColor(
-    status: 'PENDING' | 'IN_PROGRESS' | 'PAUSE' | 'COMPLETE'
+    status: 'PENDING' | 'IN_PROGRESS' | 'PAUSE' | 'COMPLETED'
 ): string {
     const colors = {
         PENDING: 'bg-yellow-100 text-yellow-800',
         IN_PROGRESS: 'bg-blue-100 text-blue-800',
         PAUSE: 'bg-orange-100 text-orange-800',
-        COMPLETE: 'bg-green-100 text-green-800'
+        COMPLETED: 'bg-green-100 text-green-800'
     }
     return colors[status]
 }
@@ -99,13 +99,13 @@ export function getStatusColor(
  * @returns Human-readable status label
  */
 export function getStatusLabel(
-    status: 'PENDING' | 'IN_PROGRESS' | 'PAUSE' | 'COMPLETE'
+    status: 'PENDING' | 'IN_PROGRESS' | 'PAUSE' | 'COMPLETED'
 ): string {
     const labels = {
         PENDING: 'Pending',
         IN_PROGRESS: 'In Progress',
         PAUSE: 'Paused',
-        COMPLETE: 'Complete'
+        COMPLETED: 'Completed'
     }
     return labels[status]
 }

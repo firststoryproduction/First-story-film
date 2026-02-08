@@ -39,44 +39,46 @@ export default function DashboardPage() {
                 setSession(session)
 
                 if (session?.user?.id) {
-                    console.log('Dashboard: Fetching profile for user:', session.user.id)
-                    // Use limit(1) instead of maybeSingle to avoid 406/PGRST116 issues
-                    const { data: profileList, error } = await (supabase as any)
+                    // 1. Fetch profile first to determine roles
+                    const { data: profileList } = await (supabase as any)
                         .from('users')
                         .select('role, name')
                         .eq('id', session.user.id)
                         .limit(1)
 
                     let profileData = null
-                    if (error) {
-                        console.error('Dashboard: Error fetching profile:', error)
-                    } else if (profileList && profileList.length > 0) {
+                    if (profileList && profileList.length > 0) {
                         profileData = profileList[0] as { role: string; name: string }
-                        console.log('Dashboard: Profile found:', profileData)
                         setUserRole(profileData.role)
                         setUserName(profileData.name)
                     } else {
-                        console.warn('Dashboard: Profile record not found for ID:', session.user.id)
                         setUserName(session.user.email?.split('@')[0] || 'Member')
                     }
 
-                    // Fetch Real Stats
+                    // 2. Prepare queries based on role
                     let jobsQuery = (supabase as any).from('jobs').select('status', { count: 'exact' })
-                    let usersQuery = (supabase as any).from('users').select('id', { count: 'exact', head: true })
+                    
+                    const isSystemAdmin = profileData && profileData.role === 'ADMIN'
+                    let usersQuery = isSystemAdmin 
+                        ? (supabase as any).from('users').select('id', { count: 'exact', head: true })
+                        : null
 
                     // If not admin/manager, filter jobs by staff_id
                     const isSystemStaff = profileData && profileData.role === 'USER'
                     if (isSystemStaff) {
                         jobsQuery = jobsQuery.eq('staff_id', session.user.id)
                     } else if (!profileData) {
-                        // Fallback: If no profile record, assume USER role and filter by ID to be safe
                         jobsQuery = jobsQuery.eq('staff_id', session.user.id)
                     }
 
-                    const [
-                        { data: jobs, count: totalJobs },
-                        { count: totalUsers }
-                    ] = await Promise.all([jobsQuery, usersQuery])
+                    // 3. Fetch stats in parallel
+                    const [jobsResponse, usersResponse] = await Promise.all([
+                        jobsQuery,
+                        usersQuery || Promise.resolve({ count: 0 })
+                    ])
+
+                    const { data: jobs, count: totalJobs } = jobsResponse
+                    const { count: totalUsers } = usersResponse
 
                     const safeJobs = (jobs || []) as { status: string }[]
 
@@ -96,21 +98,27 @@ export default function DashboardPage() {
         init()
     }, [])
 
-    if (loading) return null
+    if (loading) {
+        return (
+            <div className="lg:ml-72 min-h-screen bg-[#f8fafc] flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-indigo-500/10 border-t-indigo-600 rounded-full animate-spin"></div>
+            </div>
+        )
+    }
     if (!session) return null
 
     const isAdmin = userRole === 'ADMIN'
 
     return (
-        <main className="lg:ml-72 min-h-screen p-8 lg:p-14">
+        <main className="lg:ml-72 min-h-screen p-6 lg:p-10">
             <div className="max-w-6xl mx-auto">
                 {/* Welcome Header */}
-                <div className="mb-16 animate-slide-up">
-                    <div className="h-1 w-20 bg-indigo-600 rounded-full mb-8" />
-                    <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 font-heading tracking-tight mb-4 leading-tight">
+                <div className="mb-8 animate-slide-up">
+                    <div className="h-1 w-16 bg-indigo-600 rounded-full mb-4" />
+                    <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 font-heading tracking-tight mb-2 leading-tight">
                         Welcome back, <span className="text-indigo-600">{userName || 'Studio Member'}!</span>
                     </h2>
-                    <p className="text-slate-500 text-lg max-w-2xl font-medium">
+                    <p className="text-slate-500 text-base max-w-2xl font-medium">
                         {isAdmin
                             ? 'Manage your team, jobs, and track commissions'
                             : 'View and manage your assigned jobs'}
@@ -118,54 +126,56 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16 animate-slide-up [animation-delay:200ms]">
-                    <div className="card-aesthetic overflow-hidden group hover:bg-slate-50 transition-colors">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-slide-up [animation-delay:200ms]">
+                    <div className="card-aesthetic p-6 overflow-hidden group hover:bg-slate-50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Total Jobs</p>
-                                <p className="text-4xl font-bold font-heading text-slate-900">{stats.totalJobs}</p>
+                                <p className="text-3xl font-bold font-heading text-slate-900">{stats.totalJobs}</p>
                             </div>
-                            <div className="p-4 bg-indigo-50 rounded-2xl text-indigo-600 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
-                                <ClipboardList size={24} />
+                            <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                                <ClipboardList size={22} />
                             </div>
                         </div>
                     </div>
 
-                    <div className="card-aesthetic group hover:bg-slate-50 transition-colors">
+                    <div className="card-aesthetic p-6 group hover:bg-slate-50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">In Progress</p>
-                                <p className="text-4xl font-bold font-heading text-slate-900">{stats.inProgress}</p>
+                                <p className="text-3xl font-bold font-heading text-slate-900">{stats.inProgress}</p>
                             </div>
-                            <div className="p-4 bg-amber-50 rounded-2xl text-amber-600 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
-                                <Clock size={24} />
+                            <div className="p-3 bg-amber-50 rounded-2xl text-amber-600 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
+                                <Clock size={22} />
                             </div>
                         </div>
                     </div>
 
-                    <div className="card-aesthetic group hover:bg-slate-50 transition-colors">
+                    <div className="card-aesthetic p-6 group hover:bg-slate-50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Completed</p>
-                                <p className="text-4xl font-bold font-heading text-slate-900">{stats.completed}</p>
+                                <p className="text-3xl font-bold font-heading text-slate-900">{stats.completed}</p>
                             </div>
-                            <div className="p-4 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
-                                <CheckCircle2 size={24} />
+                            <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
+                                <CheckCircle2 size={22} />
                             </div>
                         </div>
                     </div>
 
-                    <div className="card-aesthetic group hover:bg-slate-50 transition-colors">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Total Users</p>
-                                <p className="text-4xl font-bold font-heading text-slate-900">{stats.totalUsers}</p>
-                            </div>
-                            <div className="p-4 bg-blue-50 rounded-2xl text-blue-600 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-                                <Users size={24} />
+                    {isAdmin && (
+                        <div className="card-aesthetic p-6 group hover:bg-slate-50 transition-colors">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Total Users</p>
+                                    <p className="text-3xl font-bold font-heading text-slate-900">{stats.totalUsers}</p>
+                                </div>
+                                <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                                    <Users size={22} />
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Quick Actions Center */}
