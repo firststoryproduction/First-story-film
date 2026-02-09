@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   service_id UUID NOT NULL REFERENCES services(id),
   vendor_id UUID REFERENCES vendors(id),
-  staff_id UUID NOT NULL REFERENCES users(id),
+  staff_id UUID REFERENCES users(id) ON DELETE CASCADE, -- Delete job if staff is deleted
   description TEXT NOT NULL,
   data_location TEXT,
   final_location TEXT,

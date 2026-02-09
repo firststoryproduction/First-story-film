@@ -11,4 +11,4 @@ ALTER TABLE jobs
 ADD CONSTRAINT jobs_staff_id_fkey 
 FOREIGN KEY (staff_id) 
 REFERENCES users(id) 
-ON DELETE SET NULL;
+ON DELETE CASCADE;

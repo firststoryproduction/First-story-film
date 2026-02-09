@@ -47,6 +47,27 @@ DROP POLICY IF EXISTS "Jobs: Staff Update Assigned" ON public.jobs;
 CREATE POLICY "Jobs: Staff Update Assigned" ON public.jobs FOR UPDATE 
 USING (auth.uid() = staff_id OR is_privileged());
 
+-- 4b. Update Missing Privileged Policies (Modernize is_admin -> is_privileged)
+DROP POLICY IF EXISTS "Users: Admins View All" ON public.users;
+CREATE POLICY "Users: Admins View All" ON public.users FOR SELECT
+USING ( is_privileged() );
+
+DROP POLICY IF EXISTS "Services: Admin Edit" ON public.services;
+CREATE POLICY "Services: Admin Edit" ON public.services FOR ALL
+USING ( is_privileged() );
+
+DROP POLICY IF EXISTS "Configs: Admin Manage" ON public.staff_service_configs;
+CREATE POLICY "Configs: Admin Manage" ON public.staff_service_configs FOR ALL
+USING ( is_privileged() );
+
+DROP POLICY IF EXISTS "Vendors: Admin Manage" ON public.vendors;
+CREATE POLICY "Vendors: Admin Manage" ON public.vendors FOR ALL
+USING ( is_privileged() );
+
+DROP POLICY IF EXISTS "Jobs: Admin Manage All" ON public.jobs;
+CREATE POLICY "Jobs: Admin Manage All" ON public.jobs FOR ALL
+USING ( is_privileged() );
+
 -- 5. Improved User Sync Trigger
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$

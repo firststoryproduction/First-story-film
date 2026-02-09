@@ -46,7 +46,7 @@ export interface Job {
     id: string
     service_id: string
     vendor_id: string | null
-    staff_id: string
+    staff_id: string | null
     description: string
     data_location: string | null
     final_location: string | null

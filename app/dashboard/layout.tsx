@@ -46,7 +46,7 @@ export default function DashboardLayout({
             }
 
             if (profileList && profileList.length > 0) {
-                const profile = profileList[0]
+                const profile = profileList[0] as { role?: string; name?: string }
                 setUserRole(profile.role || 'USER')
                 setUserName(profile.name || '')
             }

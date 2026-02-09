@@ -30,7 +30,9 @@ export async function POST(request: Request) {
             .eq('id', requester.id)
             .single()
 
-        if (requesterProfile?.role !== 'ADMIN') {
+        const profile = requesterProfile as { role: string } | null
+
+        if (profile?.role !== 'ADMIN') {
             return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 })
         }
 

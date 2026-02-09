@@ -6,7 +6,7 @@ A professional job management and commission tracking system for First Story Fil
 
 - **Frontend:** Next.js 15 (App Router)
 - **Database:** Supabase PostgreSQL
-- **Authentication:** NextAuth v5
+- **Authentication:** Supabase Auth (SSR)
 - **Styling:** Tailwind CSS
 - **UI Components:** Shadcn/UI
 
@@ -50,7 +50,6 @@ Update `.env.local` with your Supabase credentials:
 - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anon key
 - `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key
-- `NEXTAUTH_SECRET`: Generate with `openssl rand -base64 32`
 
 ### 4. Run Development Server
 
@@ -93,16 +92,15 @@ first-story-films/
 │   │   └── staff/          # Staff modules
 │   │       └── my-jobs/    # Assigned jobs
 │   └── api/
-│       └── auth/           # NextAuth API routes
+│       └── test/           # Test routes
 ├── components/
 │   ├── ui/                 # Shadcn UI components
 │   └── dashboard/          # Dashboard components
 ├── lib/
-│   ├── prisma.ts          # Prisma client
 │   ├── supabase.ts        # Supabase client
-│   └── auth.ts            # NextAuth configuration
-└── prisma/
-    └── schema.prisma      # Database schema
+│   └── utils.ts           # Utility functions
+└── supabase/
+    └── schema.sql         # Database schema
 ```
 
 ## Design System

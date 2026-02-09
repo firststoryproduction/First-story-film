@@ -13,8 +13,7 @@
 |-------|------------|--------|
 | Frontend | Next.js 15 (App Router) | ✅ Installing |
 | Database | Supabase PostgreSQL | ✅ Configured |
-| ORM | Prisma | ✅ Schema Created |
-| Auth | NextAuth v5 | ✅ Configured |
+| Auth | Supabase Auth (SSR) | ✅ Configured |
 | Styling | Tailwind CSS | ✅ Installing |
 | Design System | Exaggerated Minimalism | ✅ Generated |
 

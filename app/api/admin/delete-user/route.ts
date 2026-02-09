@@ -12,11 +12,13 @@ export async function DELETE(request: Request) {
         }
 
         // 2. Check Admin Role
-        const { data: profile } = await supabase
+        const { data: profileData } = await supabase
             .from('users')
             .select('role')
             .eq('id', user.id)
             .single()
+
+        const profile = profileData as { role: string } | null
 
         if (profile?.role !== 'ADMIN') {
             return NextResponse.json({ error: 'Access Denied: Admin privileges required' }, { status: 403 })
@@ -41,28 +43,8 @@ export async function DELETE(request: Request) {
         )
 
         // 4. Cleanup dependencies BEFORE Auth deletion
-        // Delete staff service configurations
-        await supabaseAdmin
-            .from('staff_service_configs')
-            .delete()
-            .eq('staff_id', id)
-
-        // Set jobs to unassigned (null) for this user
-        const { error: updateError } = await supabaseAdmin
-            .from('jobs')
-            .update({ staff_id: null })
-            .eq('staff_id', id)
-
-        if (updateError) {
-            console.error('Cleanup Error (Jobs):', updateError)
-            // If the database has a NOT NULL constraint, we can't set it to null.
-            // We must either delete the jobs or reassign them.
-            if (updateError.message.includes('null value in column "staff_id"')) {
-                return NextResponse.json({ 
-                    error: 'DATABASE CONSTRAINT: Cannot delete user because they have active jobs. To fix this, go to Supabase SQL Editor and run: ALTER TABLE jobs ALTER COLUMN staff_id DROP NOT NULL;' 
-                }, { status: 400 })
-            }
-        }
+        // Note: staff_service_configs and jobs are set to ON DELETE CASCADE in the database.
+        // They will be deleted automatically when the user is deleted.
 
         // 5. Delete from Auth
         const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(id)

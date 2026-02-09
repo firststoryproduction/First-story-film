@@ -95,7 +95,9 @@ export default function MyJobsPage() {
 
             setCompletingJobId(null)
             setFinalLocation('')
-            await fetchMyJobs()
+            if (currentUser?.id) {
+                await fetchMyJobs(currentUser.id)
+            }
         } catch (error: any) {
             console.error('Error updating status:', error.message || error)
         } finally {
