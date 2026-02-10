@@ -2,21 +2,22 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase-server'
 
-// Create a direct admin client for this route using service role
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-        auth: {
-            autoRefreshToken: false,
-            persistSession: false
-        }
-    }
-)
-
 export async function POST(request: Request) {
+    // Initialize Admin Client inside the handler
+    const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false
+            }
+        }
+    )
+
     try {
-        // 0. Verify Session and Admin Role
+        console.log('API: [UPDATE_USER] Starting request...')
+        // 1. Verify Session and Admin Role
         const supabase = await createServerClient()
         const { data: { user: requester } } = await supabase.auth.getUser()
 
@@ -30,9 +31,7 @@ export async function POST(request: Request) {
             .eq('id', requester.id)
             .single()
 
-        const profile = requesterProfile as { role: string } | null
-
-        if (profile?.role !== 'ADMIN') {
+        if (!requesterProfile || (requesterProfile as any).role !== 'ADMIN') {
             return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 })
         }
 
@@ -46,7 +45,9 @@ export async function POST(request: Request) {
             )
         }
 
-        // 1. Update User in Supabase Auth if password/email provided
+        console.log('API: [UPDATE_USER] Updating user ID:', id)
+
+        // 2. Update User in Supabase Auth if password/email provided
         const authUpdates: any = {}
         if (password) authUpdates.password = password
         if (email) authUpdates.email = email
@@ -56,10 +57,13 @@ export async function POST(request: Request) {
                 id,
                 authUpdates
             )
-            if (authError) throw authError
+            if (authError) {
+                console.error('API: [UPDATE_USER] Auth Update Error:', authError)
+                return NextResponse.json({ error: authError.message }, { status: 400 })
+            }
         }
 
-        // 2. Update User in public.users table
+        // 3. Update User in public.users table
         const publicUpdates: any = {}
         if (name !== undefined) publicUpdates.name = name
         if (email !== undefined) publicUpdates.email = email
@@ -72,11 +76,15 @@ export async function POST(request: Request) {
             .update(publicUpdates)
             .eq('id', id)
 
-        if (publicError) throw publicError
+        if (publicError) {
+            console.error('API: [UPDATE_USER] Profile Update Error:', publicError)
+            throw publicError
+        }
 
+        console.log('API: [UPDATE_USER] Success!')
         return NextResponse.json({ success: true, message: 'User updated successfully' })
     } catch (error: any) {
-        console.error('Update password error:', error)
+        console.error('API: [UPDATE_USER] Internal Error:', error)
         return NextResponse.json(
             { error: error.message || 'Internal Server Error' },
             { status: 500 }

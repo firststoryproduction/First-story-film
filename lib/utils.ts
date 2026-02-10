@@ -1,3 +1,13 @@
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+/**
+ * Utility to merge tailwind classes
+ */
+export function cn(...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs))
+}
+
 /**
  * Calculate commission amount based on job amount and staff percentage
  * @param amount - Job amount

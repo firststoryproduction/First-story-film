@@ -22,7 +22,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
 
     return (
         <div className="flex items-center justify-between px-4 py-2 border-t border-slate-50 mt-2">
-            <div className="flex items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                 Page <span className="text-indigo-600 mx-1">{currentPage}</span> of <span className="text-slate-600 ml-1">{totalPages}</span>
             </div>
 

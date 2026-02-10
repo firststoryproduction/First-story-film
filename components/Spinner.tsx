@@ -3,12 +3,13 @@
 interface SpinnerProps {
     fullScreen?: boolean;
     withSidebar?: boolean;
+    className?: string;
 }
 
-export default function Spinner({ fullScreen = false, withSidebar = false }: SpinnerProps) {
+export default function Spinner({ fullScreen = false, withSidebar = false, className = "" }: SpinnerProps) {
     const containerClasses = fullScreen 
         ? `fixed inset-0 bg-[#f1f5f9] flex items-center justify-center z-[9999] ${withSidebar ? 'lg:pl-72' : ''}`
-        : `py-12 flex items-center justify-center w-full ${withSidebar ? 'lg:pl-72' : ''}`;
+        : `flex items-center justify-center w-full ${className}`;
 
     return (
         <div className={containerClasses}>

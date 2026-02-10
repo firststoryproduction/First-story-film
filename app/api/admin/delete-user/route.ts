@@ -4,10 +4,13 @@ import { createClient as createServerClient } from '@/lib/supabase-server'
 
 export async function DELETE(request: Request) {
     try {
+        console.log('API: [DELETE_USER] Starting request...')
         const supabase = await createServerClient()
+        
         // 1. Check Authentication
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
+            console.warn('API: [DELETE_USER] Unauthorized')
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
@@ -18,17 +21,19 @@ export async function DELETE(request: Request) {
             .eq('id', user.id)
             .single()
 
-        const profile = profileData as { role: string } | null
-
-        if (profile?.role !== 'ADMIN') {
+        if (!profileData || (profileData as any).role !== 'ADMIN') {
+            console.warn('API: [DELETE_USER] Forbidden - Not an admin')
             return NextResponse.json({ error: 'Access Denied: Admin privileges required' }, { status: 403 })
         }
 
-        const { id } = await request.json()
+        const body = await request.json()
+        const { id } = body
 
         if (!id) {
             return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
         }
+
+        console.log('API: [DELETE_USER] Deleting user ID:', id)
 
         // 3. Direct Admin Client for deletion
         const supabaseAdmin = createClient(
@@ -42,16 +47,13 @@ export async function DELETE(request: Request) {
             }
         )
 
-        // 4. Cleanup dependencies BEFORE Auth deletion
-        // Note: staff_service_configs and jobs are set to ON DELETE CASCADE in the database.
-        // They will be deleted automatically when the user is deleted.
-
-        // 5. Delete from Auth
+        // 4. Delete from Auth
         const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(id)
 
         if (authError) {
+            console.error('API: [DELETE_USER] Auth Error:', authError)
+            
             // If user is not found in Auth, they might still exist in public.users (ghost record)
-            // In this case, we should attempt to delete from public.users directly.
             if (authError.message.toLowerCase().includes('user not found')) {
                 const { error: dbError } = await supabaseAdmin
                     .from('users')
@@ -71,15 +73,16 @@ export async function DELETE(request: Request) {
 
             if (authError.message.toLowerCase().includes('foreign key')) {
                 return NextResponse.json({ 
-                    error: 'Cannot delete user: This user is referenced in existing jobs. Please ensure all jobs are reassigned or deleted first.' 
+                    error: 'Cannot delete user: This user is referenced in existing jobs.' 
                 }, { status: 400 })
             }
             throw authError
         }
 
+        console.log('API: [DELETE_USER] Success!')
         return NextResponse.json({ message: 'User deleted successfully' })
     } catch (error: any) {
-        console.error('API [DELETE_USER] Error:', error)
+        console.error('API: [DELETE_USER] Internal Error:', error)
         return NextResponse.json({ error: error.message || 'Failed to delete user' }, { status: 500 })
     }
 }

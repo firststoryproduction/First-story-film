@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Edit2, Trash2, Search, Percent, Smartphone, Mail, Users, X, Save, ArrowLeft, Calendar, ChevronDown, Building2, AlertTriangle, ExternalLink, CheckCircle, XCircle } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import { User, Service, StaffServiceConfig } from '@/types/database'
-import Pagination from '@/components/Pagination'
-import Spinner from '@/components/Spinner'
-import AestheticSelect from '@/components/AestheticSelect'
+import { supabase } from '../../../../lib/supabase'
+import { User, Service, StaffServiceConfig } from '../../../../types/database'
+import Pagination from '../../../../components/Pagination'
+import Spinner from '../../../../components/Spinner'
+import AestheticSelect from '../../../../components/AestheticSelect'
+import Tooltip from '../../../../components/Tooltip'
 
 export default function StaffPage() {
     const router = useRouter()
@@ -310,13 +311,13 @@ export default function StaffPage() {
                     {/* Toolbar Inside Card */}
                     <div className="px-6 py-4 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="relative w-full md:w-[320px] group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={14} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-600 transition-colors" size={14} />
                             <input
                                 type="text"
                                 placeholder="Search by name, email, or role..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 h-9 bg-slate-100/80 border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-400 shadow-inner"
+                                className="w-full pl-10 pr-4 h-9 bg-slate-100/80 border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-500 shadow-inner"
                             />
                         </div>
                         <button 
@@ -331,11 +332,11 @@ export default function StaffPage() {
                     {/* Table */}
                     <div className="overflow-x-auto relative">
                         {loading && staff.length === 0 ? (
-                            <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] flex items-center justify-center z-10">
+                            <div className="h-32 flex items-center justify-center w-full">
                                 <Spinner />
                             </div>
-                        ) : null}
-                        <table className="w-full text-left border-collapse">
+                        ) : (
+                            <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-100/80 border-b border-slate-200">
                                     <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">User Profile</th>
@@ -352,7 +353,7 @@ export default function StaffPage() {
                                             <div className="inline-flex p-5 bg-slate-50 rounded-full mb-3">
                                                 <Users size={28} className="text-slate-200" />
                                             </div>
-                                            <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.2em]">No users detected</p>
+                                            <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">No users detected</p>
                                         </td>
                                     </tr>
                                 ) : (
@@ -369,13 +370,13 @@ export default function StaffPage() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-1.5">
-                                                <div className="text-[11px] text-slate-400 font-bold flex items-center">
+                                                <div className="text-[11px] text-slate-500 font-bold flex items-center">
                                                     <Mail size={12} className="mr-2 text-indigo-300" />
                                                     {member.email}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-1.5">
-                                                <div className="text-[11px] text-slate-400 font-bold flex items-center">
+                                                <div className="text-[11px] text-slate-500 font-bold flex items-center">
                                                     <Smartphone size={12} className="mr-2 text-indigo-300" />
                                                     {member.mobile || 'N/A'}
                                                 </div>
@@ -390,20 +391,22 @@ export default function StaffPage() {
                                             </td>
                                             <td className="px-6 py-1.5">
                                                 <div className="flex items-center justify-end space-x-1.5" onClick={(e) => e.stopPropagation()}>
-                                                    <button
-                                                        onClick={() => handleEdit(member)}
-                                                        className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
-                                                        title="Edit / Manage Commissions"
-                                                    >
-                                                        <Edit2 size={13} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => confirmDelete(member)}
-                                                        className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
-                                                        title="Delete User"
-                                                    >
-                                                        <Trash2 size={13} />
-                                                    </button>
+                                                    <Tooltip text="Edit">
+                                                        <button
+                                                            onClick={() => handleEdit(member)}
+                                                            className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                        >
+                                                            <Edit2 size={13} />
+                                                        </button>
+                                                    </Tooltip>
+                                                    <Tooltip text="Delete">
+                                                        <button
+                                                            onClick={() => confirmDelete(member)}
+                                                            className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                        >
+                                                            <Trash2 size={13} />
+                                                        </button>
+                                                    </Tooltip>
                                                 </div>
                                             </td>
                                         </tr>
@@ -411,6 +414,7 @@ export default function StaffPage() {
                                 )}
                             </tbody>
                         </table>
+                        )}
                     </div>
                     
                     {/* Pagination Container */}
@@ -435,9 +439,9 @@ export default function StaffPage() {
                                     <h3 className="text-xl font-bold text-slate-900 font-heading">
                                         {modalMode === 'create' ? 'Register New User' : 'Edit User Profile'}
                                     </h3>
-                                    <p className="text-slate-400 text-[10px] font-medium mt-0.5">Configure system access and profile settings.</p>
+                                    <p className="text-slate-500 text-[10px] font-medium mt-0.5">Configure system access and profile settings.</p>
                                 </div>
-                                <button onClick={() => setShowModal(false)} className="p-2 text-slate-300 hover:text-slate-900 transition-colors bg-slate-50 rounded-xl">
+                                <button onClick={() => setShowModal(false)} className="p-2 text-slate-500 hover:text-slate-900 transition-colors bg-slate-50 rounded-xl">
                                     <X size={20} />
                                 </button>
                             </div>
@@ -447,11 +451,11 @@ export default function StaffPage() {
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block ml-2">Full Name</label>
+                                            <label className="text-[9px] font-bold text-slate-500 uppercase mb-1 block ml-2">Full Name</label>
                                             <input type="text" className="input-aesthetic h-11 py-0 text-sm" placeholder="John Doe" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
                                         </div>
                                         <div>
-                                            <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block ml-2">Mobile Number</label>
+                                            <label className="text-[9px] font-bold text-slate-500 uppercase mb-1 block ml-2">Mobile Number</label>
                                             <input
                                                 type="tel"
                                                 pattern="[0-9]{10}"
@@ -470,11 +474,11 @@ export default function StaffPage() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block ml-2">Email Address</label>
+                                            <label className="text-[9px] font-bold text-slate-500 uppercase mb-1 block ml-2">Email Address</label>
                                             <input type="email" className="input-aesthetic h-11 py-0 text-sm" placeholder="john@example.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
                                         </div>
                                         <div>
-                                            <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block ml-2">Security Password</label>
+                                            <label className="text-[9px] font-bold text-slate-500 uppercase mb-1 block ml-2">Security Password</label>
                                             {!showPasswordField && modalMode === 'edit' ? (
                                                 <button
                                                     type="button"
@@ -518,7 +522,7 @@ export default function StaffPage() {
                                 {formData.role === 'USER' && (
                                     <div className="space-y-4 pt-4 border-t border-slate-50">
                                         <div className="flex justify-between items-center">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-2 border-indigo-600 pl-3">Service </p>
+                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-l-2 border-indigo-600 pl-3">Service </p>
                                             <button type="button" onClick={handleAddCommission} className="text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 flex items-center bg-indigo-50 px-2.5 py-1 rounded-lg">
                                                 <Plus size={14} className="mr-1" /> Add Service
                                             </button>
@@ -526,7 +530,7 @@ export default function StaffPage() {
 
                                         {commissions.length === 0 ? (
                                             <div className="bg-slate-50 rounded-2xl p-6 text-center border border-dashed border-slate-200">
-                                                <p className="text-xs text-slate-400 font-medium italic">No services configured yet.</p>
+                                                <p className="text-xs text-slate-500 font-medium italic">No services configured yet.</p>
                                             </div>
                                         ) : (
                                             <div className="space-y-3">
@@ -543,13 +547,13 @@ export default function StaffPage() {
                                                             />
                                                         </div>
                                                         <div>
-                                                            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2 ml-1">Rate (%)</label>
+                                                            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 ml-1">Rate (%)</label>
                                                             <div className="relative">
                                                                 <input type="number" step="0.01" className="input-aesthetic h-10 min-h-0 py-0 text-[10px] font-black uppercase tracking-widest bg-white pr-8 border-2 border-slate-100 rounded-full px-4" value={comm.percentage || ''} onFocus={e => e.target.select()} onChange={e => updateCommission(index, 'percentage', e.target.value)} required min="0" max="100" />
                                                                 <Percent size={10} className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-400" />
                                                             </div>
                                                         </div>
-                                                        <button type="button" onClick={() => handleRemoveCommission(index)} className="absolute -top-2 -right-2 w-6 h-6 bg-white shadow-md border border-slate-100 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all z-10">
+                                                        <button type="button" onClick={() => handleRemoveCommission(index)} className="absolute -top-2 -right-2 w-6 h-6 bg-white shadow-md border border-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:text-rose-500 transition-all z-10">
                                                             <X size={12} />
                                                         </button>
                                                     </div>
@@ -596,7 +600,7 @@ export default function StaffPage() {
                                         setShowDeleteModal(false)
                                         setMemberToDelete(null)
                                     }}
-                                    className="w-full h-12 bg-slate-50 hover:bg-slate-100 text-slate-400 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] transition-all"
+                                    className="w-full h-12 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] transition-all"
                                 >
                                     No, Keep User
                                 </button>

@@ -2,12 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Check } from 'lucide-react'
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
-
-function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs))
-}
+import { cn } from '@/lib/utils'
 
 interface Option {
     id: string
@@ -53,7 +48,7 @@ export default function AestheticSelect({
     return (
         <div className="relative w-full" ref={containerRef}>
             {label && (
-                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2 ml-1">
+                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 ml-1">
                     {label} {required && <span className="text-rose-500">*</span>}
                 </label>
             )}
@@ -68,10 +63,10 @@ export default function AestheticSelect({
                     "hover:border-slate-200 hover:bg-slate-50/50",
                     isOpen && "border-indigo-600 ring-2 ring-indigo-50 bg-white",
                     disabled && "opacity-50 cursor-not-allowed bg-slate-50",
-                    !selectedOption && "text-slate-400"
+                    !selectedOption && "text-slate-500"
                 )}
             >
-                <span className={cn("text-[9px] transition-all truncate font-black uppercase tracking-widest leading-none", selectedOption ? "text-slate-900" : "text-slate-400")}>
+                <span className={cn("text-[9px] transition-all truncate font-black uppercase tracking-widest leading-none", selectedOption ? "text-slate-900" : "text-slate-500")}>
                     {selectedOption ? selectedOption.name : placeholder}
                 </span>
                 <ChevronDown
@@ -88,7 +83,7 @@ export default function AestheticSelect({
                 <div className="absolute top-[calc(100%+4px)] left-0 w-full min-w-[160px] bg-white border border-slate-100 rounded-[1.25rem] shadow-2xl p-1.5 z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="max-h-40 overflow-y-auto custom-scrollbar text-[10px]">
                         {options.length === 0 ? (
-                            <div className="px-4 py-8 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">
+                            <div className="px-4 py-8 text-center text-slate-500 text-xs font-bold uppercase tracking-widest">
                                 No options available
                             </div>
                         ) : (

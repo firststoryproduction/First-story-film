@@ -184,13 +184,13 @@ export default function VendorsPage() {
                     {/* Toolbar Inside Card */}
                     <div className="px-6 py-4 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="relative w-full md:w-[320px] group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={14} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-600 transition-colors" size={14} />
                             <input
                                 type="text"
                                 placeholder="Search by studio or contact name..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 h-9 bg-slate-100/80 border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-400 shadow-inner"
+                                className="w-full pl-10 pr-4 h-9 bg-slate-100/80 border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-500 shadow-inner"
                             />
                         </div>
                         <button 
@@ -205,11 +205,11 @@ export default function VendorsPage() {
                     {/* Table */}
                     <div className="overflow-x-auto relative">
                         {loading && vendors.length === 0 ? (
-                            <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] flex items-center justify-center z-10">
+                            <div className="h-32 flex items-center justify-center w-full">
                                 <Spinner />
                             </div>
-                        ) : null}
-                        <table className="w-full text-left border-collapse">
+                        ) : (
+                            <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-100/80 border-b border-slate-200">
                                     <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Studio Details</th>
@@ -226,7 +226,7 @@ export default function VendorsPage() {
                                             <div className="inline-flex p-5 bg-slate-50 rounded-full mb-3">
                                                 <Building2 size={28} className="text-slate-200" />
                                             </div>
-                                            <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.2em]">No vendors found</p>
+                                            <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">No vendors found</p>
                                         </td>
                                     </tr>
                                 ) : (
@@ -239,25 +239,25 @@ export default function VendorsPage() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-1.5">
-                                                <div className="flex items-center text-[11px] font-black uppercase tracking-widest text-slate-400">
+                                                <div className="flex items-center text-[11px] font-black uppercase tracking-widest text-slate-500">
                                                     <MapPin size={13} className="mr-2 text-indigo-300" />
                                                     {vendor.location || 'N/A'}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-1.5">
-                                                <div className="text-[11px] text-slate-400 font-bold flex items-center">
+                                                <div className="text-[11px] text-slate-500 font-bold flex items-center">
                                                     <User size={12} className="mr-2 text-indigo-300" />
                                                     {vendor.contact_person}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-1.5">
                                                 <div className="flex flex-col space-y-0.5">
-                                                    <div className="text-[11px] text-slate-400 font-bold flex items-center">
+                                                    <div className="text-[11px] text-slate-500 font-bold flex items-center">
                                                         <Smartphone size={12} className="mr-2 text-indigo-300" />
                                                         {vendor.mobile}
                                                     </div>
                                                     {vendor.email && (
-                                                        <div className="text-[10px] text-slate-300 font-bold ml-5">
+                                                        <div className="text-[10px] text-slate-500 font-bold ml-5">
                                                             {vendor.email}
                                                         </div>
                                                     )}
@@ -286,6 +286,7 @@ export default function VendorsPage() {
                                 )}
                             </tbody>
                         </table>
+                        )}
                     </div>
                     
                     {/* Pagination Container */}
@@ -309,7 +310,7 @@ export default function VendorsPage() {
                         </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Studio Name</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Studio Name</label>
                                 <input
                                     type="text"
                                     required
@@ -320,7 +321,7 @@ export default function VendorsPage() {
                                 />
                             </div>
                             <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Contact Person</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Contact Person</label>
                                 <input
                                     type="text"
                                     required
@@ -332,7 +333,7 @@ export default function VendorsPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Mobile Number</label>
+                                    <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Mobile Number</label>
                                     <input
                                         type="tel"
                                         required
@@ -348,7 +349,7 @@ export default function VendorsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Email Address</label>
+                                    <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Email Address</label>
                                     <input
                                         type="email"
                                         className="input-aesthetic h-11 px-4 text-sm"
@@ -359,7 +360,7 @@ export default function VendorsPage() {
                                 </div>
                             </div>
                             <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Location</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Location</label>
                                 <input
                                     type="text"
                                     className="input-aesthetic h-11 px-4 text-sm"
@@ -369,7 +370,7 @@ export default function VendorsPage() {
                                 />
                             </div>
                             <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Notes / Description (Optional)</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Notes / Description (Optional)</label>
                                 <textarea
                                     className="input-aesthetic min-h-[60px] p-4 text-sm resize-none"
                                     value={formData.notes}
@@ -381,7 +382,7 @@ export default function VendorsPage() {
                                 <button type="submit" className="flex-1 h-11 bg-indigo-600 hover:bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-indigo-100 transition-all duration-300">
                                     {editingVendor ? 'Update' : 'Save'}
                                 </button>
-                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-11 bg-white text-slate-400 hover:text-slate-600 border border-slate-100 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all">
+                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-11 bg-white text-slate-500 hover:text-slate-600 border border-slate-100 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all">
                                     Cancel
                                 </button>
                             </div>

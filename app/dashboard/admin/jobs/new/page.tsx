@@ -206,7 +206,7 @@ export default function NewJobPage() {
                                     />
 
                                     <div>
-                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block ml-1">Job Due Date <span className="text-rose-500">*</span></label>
+                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block ml-1">Job Due Date <span className="text-rose-500">*</span></label>
                                         <input
                                             type="datetime-local"
                                             className="w-full h-8 bg-white border-2 border-slate-100 rounded-full px-4 text-[10px] font-black uppercase tracking-widest text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-50 transition-all duration-300"
@@ -230,7 +230,7 @@ export default function NewJobPage() {
                                 </div>
 
                                 <div>
-                                    <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Work Description <span className="text-rose-500">*</span></label>
+                                    <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Work Description <span className="text-rose-500">*</span></label>
                                     <textarea
                                         className="input-aesthetic min-h-[100px] resize-none text-sm p-4"
                                         placeholder="Provide clear instructions for the staff..."
@@ -242,7 +242,7 @@ export default function NewJobPage() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
-                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Data Location (Source)</label>
+                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Data Location (Source)</label>
                                         <input
                                             type="text"
                                             className="input-aesthetic h-12 px-4 text-sm"
@@ -253,7 +253,7 @@ export default function NewJobPage() {
                                     </div>
 
                                     <div>
-                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Final Location (Destination)</label>
+                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Final Location (Destination)</label>
                                         <input
                                             type="text"
                                             className="input-aesthetic h-12 px-4 text-sm"
@@ -266,9 +266,9 @@ export default function NewJobPage() {
 
                                 <div className="pt-6 border-t border-slate-50 grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
                                     <div>
-                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Job Total Amount (Base) <span className="text-rose-500">*</span></label>
+                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Job Total Amount (Base) <span className="text-rose-500">*</span></label>
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">₹</span>
                                             <input
                                                 type="number"
                                                 className="input-aesthetic h-12 pl-10 font-bold text-lg text-slate-900 border-2 border-slate-50"

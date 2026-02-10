@@ -59,7 +59,7 @@ function LoginForm() {
                 <h1 className="text-4xl font-bold text-slate-900 font-heading tracking-tight mb-2 uppercase">
                     FIRST STORY <span className="text-indigo-600">FILMS</span>
                 </h1>
-                <p className="text-slate-400 font-bold uppercase tracking-[0.3em] text-[10px]">Studio Management System</p>
+                <p className="text-slate-500 font-bold uppercase tracking-[0.3em] text-[10px]">Studio Management System</p>
             </div>
 
             {/* Aesthetic Login Card */}
@@ -85,11 +85,11 @@ function LoginForm() {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2 ml-1">
+                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 ml-1">
                             Email Address
                         </label>
                         <div className="relative group">
-                            <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+                            <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-600 transition-colors" />
                             <input
                                 type="email"
                                 value={email}
@@ -102,11 +102,11 @@ function LoginForm() {
                     </div>
 
                     <div>
-                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2 ml-1">
+                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 ml-1">
                             Password
                         </label>
                         <div className="relative group">
-                            <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+                            <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-600 transition-colors" />
                             <input
                                 type="password"
                                 value={password}

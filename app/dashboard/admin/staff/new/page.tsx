@@ -138,7 +138,7 @@ export default function NewUserPage() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Full Name</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Full Name</label>
                                 <input
                                     type="text"
                                     className="input-aesthetic h-12 px-4 text-sm"
@@ -149,7 +149,7 @@ export default function NewUserPage() {
                                 />
                             </div>
                             <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Mobile Number</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Mobile Number</label>
                                 <input
                                     type="tel"
                                     className="input-aesthetic h-12 px-4 text-sm"
@@ -160,7 +160,7 @@ export default function NewUserPage() {
                                 />
                             </div>
                             <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Email Address</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Email Address</label>
                                 <input
                                     type="email"
                                     className="input-aesthetic h-12 px-4 text-sm"
@@ -171,7 +171,7 @@ export default function NewUserPage() {
                                 />
                             </div>
                             <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Initial Password</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Initial Password</label>
                                 <input
                                     type="password"
                                     className="input-aesthetic h-12 px-4 text-sm"
@@ -182,7 +182,7 @@ export default function NewUserPage() {
                                 />
                             </div>
                             <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Role</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Role</label>
                                 <div className="relative">
                                     <div
                                         onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
@@ -238,7 +238,7 @@ export default function NewUserPage() {
                         </div>
 
                         {commissions.length === 0 ? (
-                            <div className="text-center py-8 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-slate-400 italic text-xs">
+                            <div className="text-center py-8 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-slate-500 italic text-xs">
                                 No commissions configured. Add services to define rates.
                             </div>
                         ) : (
@@ -246,7 +246,7 @@ export default function NewUserPage() {
                                 {commissions.map((comm, index) => (
                                     <div key={index} className="flex items-end space-x-3 animate-in fade-in slide-in-from-top-1">
                                         <div className="flex-1">
-                                            <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Select Service</label>
+                                            <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Select Service</label>
                                             <select
                                                 className="input-aesthetic h-12 px-4 text-sm w-full"
                                                 value={comm.serviceId}
@@ -260,7 +260,7 @@ export default function NewUserPage() {
                                             </select>
                                         </div>
                                         <div className="w-32">
-                                            <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Percentage (%)</label>
+                                            <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Percentage (%)</label>
                                             <div className="relative">
                                                 <input
                                                     type="number"
@@ -273,13 +273,13 @@ export default function NewUserPage() {
                                                     min="0"
                                                     max="100"
                                                 />
-                                                <Percent size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                <Percent size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500" />
                                             </div>
                                         </div>
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveCommission(index)}
-                                            className="h-12 w-12 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer border border-transparent hover:border-rose-100"
+                                            className="h-12 w-12 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all duration-200 cursor-pointer border border-transparent hover:border-rose-100"
                                         >
                                             <X size={20} />
                                         </button>
@@ -302,7 +302,7 @@ export default function NewUserPage() {
                         <button
                             type="button"
                             onClick={() => router.push('/dashboard/admin/staff')}
-                            className="w-full bg-white text-slate-400 hover:text-slate-600 rounded-[1rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center h-12 border border-slate-100"
+                            className="w-full bg-white text-slate-500 hover:text-slate-600 rounded-[1rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center h-12 border border-slate-100"
                         >
                             Cancel Onboarding
                         </button>

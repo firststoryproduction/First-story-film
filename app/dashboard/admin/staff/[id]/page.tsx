@@ -88,10 +88,10 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         fetchData()
     }, [id])
 
-    if (loading) return <Spinner />
+    if (loading) return <Spinner className="py-24" />
     if (!user) return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8fafc] lg:ml-72">
-            <p className="text-slate-400 font-black uppercase tracking-widest">User not found</p>
+            <p className="text-slate-500 font-black uppercase tracking-widest">User not found</p>
             <button onClick={() => router.back()} className="mt-4 text-indigo-600 font-bold flex items-center">
                 <ArrowLeft size={16} className="mr-2" /> Go Back
             </button>
@@ -105,7 +105,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                 <div className="mb-8 flex items-center justify-between">
                     <button 
                         onClick={() => router.back()}
-                        className="group flex items-center space-x-2 text-slate-400 hover:text-indigo-600 transition-colors"
+                        className="group flex items-center space-x-2 text-slate-500 hover:text-indigo-600 transition-colors"
                     >
                         <div className="w-8 h-8 rounded-full bg-white border border-slate-100 flex items-center justify-center group-hover:bg-indigo-50 group-hover:border-indigo-100 transition-all">
                             <ArrowLeft size={14} />
@@ -134,16 +134,16 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                                 </div>
                                 <div className="overflow-hidden">
                                     <h1 className="text-base font-black text-slate-900 uppercase tracking-tight leading-none truncate">{user.name}</h1>
-                                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">User</p>
+                                    <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1">User</p>
                                 </div>
                             </div>
 
                             <div className="flex flex-col space-y-1 pr-4 border-l border-slate-100 pl-6">
-                                <div className="flex items-center space-x-2 text-slate-400">
+                                <div className="flex items-center space-x-2 text-slate-500">
                                     <Mail size={10} className="shrink-0" />
                                     <span className="text-[10px] font-bold truncate">{user.email}</span>
                                 </div>
-                                <div className="flex items-center space-x-2 text-slate-400">
+                                <div className="flex items-center space-x-2 text-slate-500">
                                     <Smartphone size={10} className="shrink-0" />
                                     <span className="text-[10px] font-bold">{user.mobile || 'No Mobile'}</span>
                                 </div>
@@ -153,15 +153,15 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         {/* 2. Stats Summary */}
                         <div className="p-6 grid grid-cols-3 gap-0 bg-slate-50/20">
                             <div className="flex flex-col justify-center text-center">
-                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Projects</p>
+                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Projects</p>
                                 <p className="text-xl font-black text-slate-900">{stats.totalJobs}</p>
                             </div>
                             <div className="flex flex-col justify-center text-center border-l border-slate-200/50">
-                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Done</p>
+                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Done</p>
                                 <p className="text-xl font-black text-emerald-600 truncate">{stats.completedJobs}</p>
                             </div>
                             <div className="flex flex-col justify-center text-center border-l border-slate-200/50">
-                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Earnings</p>
+                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Earnings</p>
                                 <p className="text-xl font-black text-indigo-600 truncate">₹{stats.totalEarnt.toLocaleString()}</p>
                             </div>
                         </div>
@@ -174,7 +174,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                             </div>
                             <div className="flex flex-wrap gap-1.5 overflow-y-auto max-h-[64px] custom-scrollbar">
                                 {commissions.length === 0 ? (
-                                    <span className="text-[10px] font-bold text-slate-300 italic">None</span>
+                                    <span className="text-[10px] font-bold text-slate-500 italic">None</span>
                                 ) : (
                                     commissions.map((comm) => (
                                         <div key={comm.id} className="px-2.5 py-1 bg-slate-50 rounded-lg border border-slate-100 flex items-center space-x-2">
@@ -204,17 +204,17 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-slate-50/30">
-                                        <th className="px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Project / Studio</th>
-                                        <th className="px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Due Date</th>
-                                        <th className="px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Status</th>
-                                        <th className="px-8 py-3 text-right text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Earning</th>
+                                        <th className="px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Project / Studio</th>
+                                        <th className="px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Due Date</th>
+                                        <th className="px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Status</th>
+                                        <th className="px-8 py-3 text-right text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Earning</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
                                     {jobs.length === 0 ? (
                                         <tr>
                                             <td colSpan={4} className="py-20 text-center">
-                                                <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">No history records found</p>
+                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">No history records found</p>
                                             </td>
                                         </tr>
                                     ) : (
@@ -223,14 +223,23 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                                                 <td className="px-8 py-3">
                                                     <div className="flex flex-col">
                                                         <span className="text-[14px] font-bold text-slate-900 leading-none">{job.services?.name}</span>
-                                                        <div className="flex items-center text-[11px] text-slate-400 font-bold mt-1.5 uppercase tracking-tight">
-                                                            <Building2 size={12} className="mr-1 text-slate-300" />
+                                                        <div className="flex items-center text-[11px] text-slate-500 font-bold mt-1.5 uppercase tracking-tight">
+                                                            <Building2 size={12} className="mr-1 text-slate-500" />
                                                             {job.vendors?.studio_name}
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-3">
-                                                    <div className="flex items-center text-[11px] font-black uppercase tracking-widest text-slate-400">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[14px] font-bold text-slate-900 leading-none">{job.services?.name}</span>
+                                                        <div className="flex items-center text-[11px] text-slate-500 font-bold mt-1.5 uppercase tracking-tight">
+                                                            <Building2 size={12} className="mr-1 text-slate-500" />
+                                                            {job.vendors?.studio_name}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-3">
+                                                    <div className="flex items-center text-[11px] font-black uppercase tracking-widest text-slate-500">
                                                         <Clock size={14} className="mr-2 text-indigo-300" />
                                                         {new Date(job.job_due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                                     </div>
@@ -246,7 +255,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                                                 </td>
                                                 <td className="px-8 py-3 text-right">
                                                     <div className="text-base font-black text-slate-900 leading-tight">₹{Number(job.commission_amount).toLocaleString()}</div>
-                                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Base: ₹{Number(job.amount).toLocaleString()}</div>
+                                                    <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Base: ₹{Number(job.amount).toLocaleString()}</div>
                                                 </td>
                                             </tr>
                                         ))

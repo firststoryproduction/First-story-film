@@ -80,10 +80,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         }
     }
 
-    if (loading) return <Spinner />
+    if (loading) return <Spinner className="py-24" />
     if (!job) return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#f1f5f9] lg:ml-72">
-            <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Job assignment not found</p>
+            <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">Job assignment not found</p>
             <button onClick={() => router.back()} className="mt-4 text-indigo-600 font-bold flex items-center text-[10px] uppercase">
                 <ArrowLeft size={16} className="mr-2" /> Go Back
             </button>
@@ -100,12 +100,12 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                 <div className="mb-6 space-y-4">
                     <button 
                         onClick={() => router.back()}
-                        className="group flex items-center space-x-2 text-slate-400 hover:text-indigo-600 transition-colors"
+                        className="group flex items-center space-x-2 text-slate-500 hover:text-indigo-600 transition-colors"
                     >
                         <div className="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center group-hover:bg-indigo-50 group-hover:border-indigo-100 transition-all shadow-sm">
                             <ArrowLeft size={12} />
                         </div>
-                        <span className="text-[10px] uppercase font-black tracking-widest">Back to Dashboard</span>
+                        <span className="text-[10px] uppercase font-black tracking-widest">Back to jobs</span>
                     </button>
 
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -150,25 +150,25 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                     {/* Masthead Status */}
                     <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-10">
                         <div>
-                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Status</h2>
+                            <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Status</h2>
                             <div className="bg-white p-1 rounded-2xl flex items-center shadow-inner border border-slate-200 w-fit">
                                 <button 
                                     onClick={() => handleStatusUpdate('PENDING')}
-                                    className={`py-2 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 ${job.status === 'PENDING' ? 'bg-amber-400 text-white shadow-lg' : 'hover:bg-slate-50 text-slate-400 font-bold'}`}
+                                    className={`py-2 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 ${job.status === 'PENDING' ? 'bg-amber-400 text-white shadow-lg' : 'hover:bg-slate-50 text-slate-500 font-bold'}`}
                                 >
                                     <Clock size={14} />
                                     <span className="text-[10px] font-black uppercase tracking-wider whitespace-nowrap">Pending</span>
                                 </button>
                                 <button 
                                     onClick={() => handleStatusUpdate('IN_PROGRESS')}
-                                    className={`py-2 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 ${job.status === 'IN_PROGRESS' ? 'bg-indigo-600 text-white shadow-lg' : 'hover:bg-slate-50 text-slate-400 font-bold'}`}
+                                    className={`py-2 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 ${job.status === 'IN_PROGRESS' ? 'bg-indigo-600 text-white shadow-lg' : 'hover:bg-slate-50 text-slate-500 font-bold'}`}
                                 >
                                     <Zap size={14} />
                                     <span className="text-[10px] font-black uppercase tracking-wider whitespace-nowrap">In-Progress</span>
                                 </button>
                                 <button 
                                     onClick={() => handleStatusUpdate('COMPLETED')}
-                                    className={`py-2 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 ${job.status === 'COMPLETED' ? 'bg-emerald-500 text-white shadow-lg' : 'hover:bg-slate-50 text-slate-400 font-bold'}`}
+                                    className={`py-2 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 ${job.status === 'COMPLETED' ? 'bg-emerald-500 text-white shadow-lg' : 'hover:bg-slate-50 text-slate-500 font-bold'}`}
                                 >
                                     <CheckCircle2 size={14} />
                                     <span className="text-[10px] font-black uppercase tracking-wider whitespace-nowrap">Complete</span>
@@ -177,7 +177,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                         </div>
 
                         <div className="md:text-right">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Deadline Expectation</p>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Deadline Expectation</p>
                             <p className="text-xl font-black text-rose-600 font-mono tracking-tight">
                                 {new Date(job.job_due_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                             </p>
@@ -188,7 +188,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                         {/* Left Wing: Narrative & Data */}
                         <div className="lg:col-span-8 p-8 space-y-8 border-b lg:border-b-0 lg:border-r border-slate-100">
                             <div>
-                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center">
+                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center">
                                     <FileText size={16} className="mr-2 text-indigo-500" />
                                     Work Description
                                 </h3>
@@ -204,18 +204,18 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                     <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-l-4 border-indigo-500 pl-4">General Details</h3>
                                     <div className="space-y-4">
                                         <div>
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Assigned To</p>
+                                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Assigned To</p>
                                             <div className="flex items-center space-x-3">
-                                                <div className="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400">
+                                                <div className="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500">
                                                     <User size={12} />
                                                 </div>
                                                 <p className="text-sm font-bold text-slate-700">{job.staff?.name}</p>
                                             </div>
                                         </div>
                                         <div>
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Studio Contact</p>
+                                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Studio Contact</p>
                                             <div className="flex items-center space-x-3">
-                                                <div className="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400">
+                                                <div className="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500">
                                                     <Building2 size={12} />
                                                 </div>
                                                 <p className="text-sm font-bold text-slate-700">{job.vendor?.contact_person}</p>
@@ -228,12 +228,12 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                     <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-l-4 border-emerald-500 pl-4">Location</h3>
                                     <div className="space-y-3">
                                         <div className="flex items-center space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
-                                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors shadow-sm">
+                                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm">
                                                 <MapPin size={18} />
                                             </div>
                                             <div className="flex flex-col overflow-hidden">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Source Location</span>
-                                                <span className="text-sm font-bold text-slate-900 truncate">{job.data_location || "Check Internal"}</span>
+                                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Source Location</span>
+                                                <span className="text-sm font-bold text-slate-900 truncate">{job.data_location || "Pending"}</span>
                                             </div>
                                         </div>
 
@@ -255,14 +255,14 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                         <div className="lg:col-span-4 p-8 bg-slate-50/50 flex flex-col justify-between">
                             <div className="space-y-8">
                                 <div>
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">Financial Audit</h3>
+                                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-8">Financial Audit</h3>
                                     <div className="flex items-end justify-between">
                                         <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Job Amount</p>
+                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Job Amount</p>
                                             <p className="text-5xl font-black text-slate-900 tracking-tighter leading-none">{formatCurrency(job.amount)}</p>
                                         </div>
                                         <div className="text-right pb-1">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Commission Cost</p>
+                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Commission Cost</p>
                                             <div className="inline-flex items-center px-3 py-1 bg-rose-50 text-rose-600 rounded-lg border border-rose-100 font-black text-lg">
                                                 -{formatCurrency(job.commission_amount)}
                                             </div>
@@ -271,7 +271,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                 </div>
 
                                 <div className="space-y-4 pt-8 border-t border-slate-200/60">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Financial Summary</p>
+                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Financial Summary</p>
                                     <div className="flex justify-between items-center px-2">
                                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Balance</span>
                                         <span className="text-base font-black text-slate-900">{formatCurrency(Number(job.amount || 0) - Number(job.commission_amount || 0))}</span>

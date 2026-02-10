@@ -18,8 +18,8 @@ import {
     CheckCircle2,
     Sparkles
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import Spinner from '@/components/Spinner'
+import { supabase } from '../../lib/supabase'
+import Spinner from '../../components/Spinner'
 
 export default function DashboardPage() {
     const [session, setSession] = useState<any>(null)
@@ -124,7 +124,7 @@ export default function DashboardPage() {
     return (
         <main className="lg:ml-72 min-h-screen p-6 lg:p-10 relative">
             {loading && !session && (
-                <div className="absolute inset-0 bg-[#f1f5f9] z-50 flex items-center justify-center">
+                <div className="absolute inset-0 bg-[#f1f5f9] z-50 flex items-center justify-center py-20">
                     <Spinner />
                 </div>
             )}
@@ -135,7 +135,7 @@ export default function DashboardPage() {
                     <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 font-heading tracking-tight mb-2 leading-tight">
                         Welcome back, <span className="text-indigo-600">{userName || 'Studio Member'}!</span>
                     </h2>
-                    <p className="text-slate-500 text-base max-w-2xl font-medium">
+                    <p className="text-slate-500 text-sm font-medium mt-1">
                         {isAdmin
                             ? 'Manage your team, jobs, and track commissions'
                             : 'View and manage your assigned jobs'}
@@ -147,7 +147,7 @@ export default function DashboardPage() {
                     <div className="card-aesthetic p-6 overflow-hidden group hover:bg-slate-50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Total Jobs</p>
+                                <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Total Jobs</p>
                                 <p className="text-3xl font-bold font-heading text-slate-900">{stats.totalJobs}</p>
                             </div>
                             <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
@@ -159,7 +159,7 @@ export default function DashboardPage() {
                     <div className="card-aesthetic p-6 group hover:bg-slate-50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">In-Progress</p>
+                                <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">In-Progress</p>
                                 <p className="text-3xl font-bold font-heading text-slate-900">{stats.inProgress}</p>
                             </div>
                             <div className="p-3 bg-amber-50 rounded-2xl text-amber-600 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
@@ -171,7 +171,7 @@ export default function DashboardPage() {
                     <div className="card-aesthetic p-6 group hover:bg-slate-50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Completed</p>
+                                <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Completed</p>
                                 <p className="text-3xl font-bold font-heading text-slate-900">{stats.completed}</p>
                             </div>
                             <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
@@ -184,7 +184,7 @@ export default function DashboardPage() {
                         <div className="card-aesthetic p-6 group hover:bg-slate-50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Total Users</p>
+                                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Total Users</p>
                                     <p className="text-3xl font-bold font-heading text-slate-900">{stats.totalUsers}</p>
                                 </div>
                                 <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">

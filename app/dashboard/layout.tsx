@@ -14,8 +14,8 @@ import {
     X,
     Sparkles
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import Spinner from '@/components/Spinner'
+import { supabase } from '../../lib/supabase'
+import Spinner from '../../components/Spinner'
 
 export default function DashboardLayout({
     children,
@@ -173,7 +173,7 @@ export default function DashboardLayout({
 
                 {/* Navigation Menu */}
                 <nav className="space-y-1">
-                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-4 ml-4">Main Menu</p>
+                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-4 ml-4">Main Menu</p>
                     {navItems.map((item) => {
                         const Icon = item.icon
                         const isActive = pathname === item.href

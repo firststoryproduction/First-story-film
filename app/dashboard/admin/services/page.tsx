@@ -136,13 +136,13 @@ export default function ServicesPage() {
                     {/* Toolbar Inside Card */}
                     <div className="px-6 py-4 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="relative w-full md:w-[320px] group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={14} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-600 transition-colors" size={14} />
                             <input
                                 type="text"
                                 placeholder="Search by service name..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 h-9 bg-slate-100/80 border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-400 shadow-inner"
+                                className="w-full pl-10 pr-4 h-9 bg-slate-100/80 border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-500 shadow-inner"
                             />
                         </div>
                         <button 
@@ -157,11 +157,11 @@ export default function ServicesPage() {
                     {/* Table */}
                     <div className="overflow-x-auto relative">
                         {loading && services.length === 0 ? (
-                            <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] flex items-center justify-center z-10">
+                            <div className="h-32 flex items-center justify-center w-full">
                                 <Spinner />
                             </div>
-                        ) : null}
-                        <table className="w-full text-left border-collapse">
+                        ) : (
+                            <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-100/80 border-b border-slate-200">
                                     <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Service Name</th>
@@ -176,7 +176,7 @@ export default function ServicesPage() {
                                             <div className="inline-flex p-5 bg-slate-50 rounded-full mb-3">
                                                 <Briefcase size={28} className="text-slate-200" />
                                             </div>
-                                            <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.2em]">No services found</p>
+                                            <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">No services found</p>
                                         </td>
                                     </tr>
                                 ) : (
@@ -189,7 +189,7 @@ export default function ServicesPage() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-1.5">
-                                                <div className="flex items-center text-[11px] font-black uppercase tracking-widest text-slate-400">
+                                                <div className="flex items-center text-[11px] font-black uppercase tracking-widest text-slate-500">
                                                     <Calendar size={13} className="mr-2 text-indigo-300" />
                                                     {new Date(service.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                                 </div>
@@ -217,6 +217,7 @@ export default function ServicesPage() {
                                 )}
                             </tbody>
                         </table>
+                        )}
                     </div>
                     
                     {/* Pagination Container */}
@@ -241,7 +242,7 @@ export default function ServicesPage() {
                         </div>
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Service Name</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Service Name</label>
                                 <input
                                     type="text"
                                     value={serviceName}
@@ -259,7 +260,7 @@ export default function ServicesPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 h-11 bg-white text-slate-400 hover:text-slate-600 border border-slate-100 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all"
+                                    className="flex-1 h-11 bg-white text-slate-500 hover:text-slate-600 border border-slate-100 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all"
                                 >
                                     Cancel
                                 </button>
