@@ -125,17 +125,17 @@ export default function MyJobsPage() {
                     <Spinner />
                 </div>
             )}
-            <div className="w-full px-2 py-4 lg:px-4 lg:py-8">
+            <div className="w-full px-2 py-4 lg:px-4 lg:py-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
                     <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-indigo-600 rounded-[1.25rem] shadow-lg shadow-indigo-100 flex items-center justify-center">
-                            <Layout size={20} className="text-white" />
+                        <div className="w-10 h-10 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100 flex items-center justify-center">
+                            <Layout size={18} className="text-white" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-black text-slate-900 font-heading tracking-tight leading-tight uppercase flex items-center gap-4">
+                            <h1 className="text-2xl font-black text-slate-900 font-heading tracking-tight leading-tight uppercase flex items-center gap-4">
                                 My Jobs
                                 {debugCount !== null && (
-                                    <span className="text-[10px] bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full font-black tracking-widest">
+                                    <span className="text-[9px] bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full font-black tracking-widest">
                                         {debugCount} ASSIGNED
                                     </span>
                                 )}
@@ -144,11 +144,11 @@ export default function MyJobsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[1.5rem] border border-slate-100 shadow-xl overflow-hidden">
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden">
                     
                     {/* Toolbar Inside Card */}
-                    <div className="px-6 py-5 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div className="relative w-full md:w-[350px] group">
+                    <div className="px-6 py-4 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="relative w-full md:w-[320px] group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={14} />
                             <input
                                 type="text"
@@ -164,12 +164,12 @@ export default function MyJobsPage() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-100/80 border-b border-slate-200">
-                                    <th className="px-4 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Studio</th>
-                                    <th className="px-4 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Job Type</th>
-                                    <th className="px-4 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Work Description</th>
-                                    <th className="px-4 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 text-center">Status</th>
-                                    <th className="px-4 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Due Date</th>
-                                    <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Update</th>
+                                    <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Studio</th>
+                                    <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Job Type</th>
+                                    <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Work Description</th>
+                                    <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 text-center">Status</th>
+                                    <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Due Date</th>
+                                    <th className="px-4 py-3 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Update</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
@@ -178,8 +178,8 @@ export default function MyJobsPage() {
                                         <td colSpan={6} className="py-20 text-center">
                                             <div className="animate-pulse">
                                                 <CheckCircle2 size={72} className="mx-auto text-slate-100 mb-8" />
-                                                <h2 className="text-3xl font-black text-slate-200 uppercase tracking-[0.2em] font-heading">Clear Skies</h2>
-                                                <p className="text-slate-400 mt-4 text-sm font-bold uppercase tracking-widest">No assigned benchmarks in your production roster.</p>
+                                                <h2 className="text-2xl font-black text-slate-200 uppercase tracking-[0.2em] font-heading">Clear Skies</h2>
+                                                <p className="text-slate-400 mt-4 text-xs font-bold uppercase tracking-widest">No assigned benchmarks in your production roster.</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -190,26 +190,26 @@ export default function MyJobsPage() {
                                             onClick={() => router.push(`/dashboard/staff/my-jobs/view/${job.id}`)}
                                             className="hover:bg-indigo-50/10 transition-colors group/row cursor-pointer"
                                         >
-                                            <td className="px-4 py-2">
-                                                <div className="flex items-center text-[13px] font-bold text-slate-600">
+                                            <td className="px-4 py-1.5">
+                                                <div className="flex items-center text-[12px] font-bold text-slate-600">
                                                     <div className="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center mr-3 group-hover/row:bg-indigo-600 group-hover/row:text-white transition-colors">
-                                                        <Building2 size={14} />
+                                                        <Building2 size={13} />
                                                     </div>
                                                     {job.vendor?.studio_name || 'Individual'}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-2">
-                                                <div className="font-bold text-slate-900 text-base group-hover/row:text-indigo-600 transition-colors leading-tight">
+                                            <td className="px-4 py-1.5">
+                                                <div className="font-bold text-slate-900 text-[14px] group-hover/row:text-indigo-600 transition-colors leading-tight">
                                                     {job.service?.name || 'Manual Project'}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-2">
-                                                <div className="text-[13px] text-slate-400 font-bold leading-relaxed max-w-[250px] line-clamp-1 italic">
+                                            <td className="px-4 py-1.5">
+                                                <div className="text-[12px] text-slate-400 font-bold leading-relaxed max-w-[250px] line-clamp-1 italic">
                                                     {job.description || 'No description provided'}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-2 text-center">
-                                                <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-sm border ${job.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' :
+                                            <td className="px-4 py-1.5 text-center">
+                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-sm border ${job.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' :
                                                     job.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' :
                                                         'bg-indigo-600 text-white border-indigo-700'
                                                     }`}>
@@ -218,45 +218,45 @@ export default function MyJobsPage() {
                                                      job.status}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-2">
-                                                <div className="flex items-center text-[12px] text-slate-400 font-bold tracking-wider">
-                                                    <Calendar size={14} className="mr-2 text-indigo-300" />
+                                            <td className="px-4 py-1.5">
+                                                <div className="flex items-center text-[11px] text-slate-400 font-bold tracking-wider">
+                                                    <Calendar size={13} className="mr-2 text-indigo-300" />
                                                     {new Date(job.job_due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-2">
-                                                <div className="flex items-center justify-center space-x-2" onClick={(e) => e.stopPropagation()}>
+                                            <td className="px-4 py-1.5">
+                                                <div className="flex items-center justify-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
                                                     <button
                                                         onClick={() => handleUpdateStatus(job.id, 'PENDING')}
                                                         disabled={actionLoading === job.id}
-                                                        className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all border shadow-sm ${job.status === 'PENDING' ? 'bg-[#F59E0B] text-white border-[#F59E0B]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#F59E0B] hover:border-amber-200'}`}
+                                                        className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'PENDING' ? 'bg-[#F59E0B] text-white border-[#F59E0B]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#F59E0B] hover:border-amber-200'}`}
                                                         title="Mark as Pending"
                                                     >
-                                                        <Clock size={16} strokeWidth={2.5} />
+                                                        <Clock size={14} strokeWidth={2.5} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleUpdateStatus(job.id, 'IN_PROGRESS')}
                                                         disabled={actionLoading === job.id}
-                                                        className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all border shadow-sm ${job.status === 'IN_PROGRESS' ? 'bg-[#4F46E5] text-white border-[#4F46E5]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#4F46E5] hover:border-indigo-200'}`}
+                                                        className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'IN_PROGRESS' ? 'bg-[#4F46E5] text-white border-[#4F46E5]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#4F46E5] hover:border-indigo-200'}`}
                                                         title="Mark as In-Progress"
                                                     >
-                                                        <Zap size={16} strokeWidth={2.5} />
+                                                        <Zap size={14} strokeWidth={2.5} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleUpdateStatus(job.id, 'COMPLETED')}
                                                         disabled={actionLoading === job.id}
-                                                        className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all border shadow-sm ${job.status === 'COMPLETED' ? 'bg-[#10B981] text-white border-[#10B981]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#10B981] hover:border-emerald-200'}`}
+                                                        className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'COMPLETED' ? 'bg-[#10B981] text-white border-[#10B981]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#10B981] hover:border-emerald-200'}`}
                                                         title="Mark as Completed"
                                                     >
-                                                        <CheckCircle2 size={16} strokeWidth={2.5} />
+                                                        <CheckCircle2 size={14} strokeWidth={2.5} />
                                                     </button>
-                                                    <div className="w-[1px] h-5 bg-slate-100 mx-1" />
+                                                    <div className="w-[1px] h-4 bg-slate-100 mx-1" />
                                                     <button
                                                         onClick={() => router.push(`/dashboard/staff/my-jobs/view/${job.id}`)}
-                                                        className="w-9 h-9 flex items-center justify-center bg-white text-slate-500 hover:text-white hover:bg-slate-900 rounded-xl transition-all border border-slate-100 hover:border-slate-900 shadow-sm"
+                                                        className="w-8 h-8 flex items-center justify-center bg-white text-slate-500 hover:text-white hover:bg-slate-900 rounded-lg transition-all border border-slate-100 hover:border-slate-900 shadow-sm"
                                                         title="View Details"
                                                     >
-                                                        <Eye size={16} strokeWidth={2.5} />
+                                                        <Eye size={14} strokeWidth={2.5} />
                                                     </button>
                                                 </div>
                                             </td>

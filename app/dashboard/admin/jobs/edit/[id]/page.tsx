@@ -213,6 +213,7 @@ export default function EditJobPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <AestheticSelect
                                         label="Production Studio (Vendor)"
+                                        heightClass="h-11"
                                         required
                                         options={vendors.map(v => ({ id: v.id, name: v.studio_name }))}
                                         value={selectedVendor}
@@ -221,6 +222,7 @@ export default function EditJobPage() {
                                     />
                                     <AestheticSelect
                                         label="Service / Job Type"
+                                        heightClass="h-11"
                                         required
                                         options={services.map(s => ({ id: s.id, name: s.name }))}
                                         value={selectedService}
@@ -232,6 +234,7 @@ export default function EditJobPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
                                     <AestheticSelect
                                         label="Assign User"
+                                        heightClass="h-11"
                                         required
                                         disabled={!selectedService}
                                         options={filteredStaffList.map(s => ({ id: s.id, name: s.name }))}

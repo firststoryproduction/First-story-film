@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { User, Service, StaffServiceConfig } from '@/types/database'
 import Pagination from '@/components/Pagination'
 import Spinner from '@/components/Spinner'
+import AestheticSelect from '@/components/AestheticSelect'
 
 export default function StaffPage() {
     const router = useRouter()
@@ -41,7 +42,6 @@ export default function StaffPage() {
         role: 'USER' as 'ADMIN' | 'MANAGER' | 'USER',
     })
     const [commissions, setCommissions] = useState<{ serviceId: string, percentage: number }[]>([])
-    const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false)
     const [showPasswordField, setShowPasswordField] = useState(false)
 
     useEffect(() => {
@@ -232,7 +232,7 @@ export default function StaffPage() {
             }
 
             setShowModal(false)
-            showNotification(modalMode === 'create' ? 'Staff member created successfully' : 'Staff member updated successfully')
+            showNotification(modalMode === 'create' ? 'User created successfully' : 'User updated successfully')
             fetchStaff()
         } catch (error: any) {
             console.error('Error saving user:', error)
@@ -263,7 +263,7 @@ export default function StaffPage() {
 
             setShowDeleteModal(false)
             setMemberToDelete(null)
-            showNotification('Staff member deleted successfully')
+            showNotification('User deleted successfully')
             fetchStaff()
         } catch (error: any) {
             console.error('Error deleting staff:', error)
@@ -291,25 +291,25 @@ export default function StaffPage() {
 
     return (
         <div className="min-h-screen bg-[#f1f5f9] text-slate-800 lg:ml-72">
-            <div className="w-full px-2 py-4 lg:px-4 lg:py-8">
+            <div className="w-full px-2 py-4 lg:px-4 lg:py-6">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
                     <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-indigo-600 rounded-[1.25rem] shadow-lg shadow-indigo-100 flex items-center justify-center">
-                            <Users size={20} className="text-white" />
+                        <div className="w-10 h-10 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100 flex items-center justify-center">
+                            <Users size={18} className="text-white" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-black text-slate-900 font-heading tracking-tight leading-tight uppercase">System Users</h1>
+                            <h1 className="text-2xl font-black text-slate-900 font-heading tracking-tight leading-tight uppercase">Users</h1>
                         </div>
                     </div>
                 </div>
 
                 {/* Main Operations Card */}
-                <div className="bg-white rounded-[1.5rem] border border-slate-100 shadow-xl overflow-hidden">
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden">
                     
                     {/* Toolbar Inside Card */}
-                    <div className="px-12 py-5 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div className="relative w-full md:w-[350px] group">
+                    <div className="px-6 py-4 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="relative w-full md:w-[320px] group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={14} />
                             <input
                                 type="text"
@@ -338,11 +338,11 @@ export default function StaffPage() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-100/80 border-b border-slate-200">
-                                    <th className="px-12 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">User Profile</th>
-                                    <th className="px-12 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Email</th>
-                                    <th className="px-12 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Mobile Number</th>
-                                    <th className="px-12 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 text-center">System Role</th>
-                                    <th className="px-12 py-4 text-right text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Actions</th>
+                                    <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">User Profile</th>
+                                    <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Email</th>
+                                    <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Mobile Number</th>
+                                    <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 text-center">Role</th>
+                                    <th className="px-6 py-3 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
@@ -352,7 +352,7 @@ export default function StaffPage() {
                                             <div className="inline-flex p-5 bg-slate-50 rounded-full mb-3">
                                                 <Users size={28} className="text-slate-200" />
                                             </div>
-                                            <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.2em]">No staff members detected</p>
+                                            <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.2em]">No users detected</p>
                                         </td>
                                     </tr>
                                 ) : (
@@ -362,25 +362,25 @@ export default function StaffPage() {
                                             onClick={() => router.push(`/dashboard/admin/staff/${member.id}`)}
                                             className="hover:bg-slate-50/50 transition-colors group/row cursor-pointer"
                                         >
-                                            <td className="px-12 py-2">
-                                                <div className="text-base font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors flex items-center group/name">
+                                            <td className="px-6 py-1.5">
+                                                <div className="text-[14px] font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors flex items-center group/name">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-200 mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100" />
                                                     {member.name}
                                                 </div>
                                             </td>
-                                            <td className="px-12 py-2">
-                                                <div className="text-xs text-slate-400 font-bold flex items-center">
+                                            <td className="px-6 py-1.5">
+                                                <div className="text-[11px] text-slate-400 font-bold flex items-center">
                                                     <Mail size={12} className="mr-2 text-indigo-300" />
                                                     {member.email}
                                                 </div>
                                             </td>
-                                            <td className="px-12 py-2">
-                                                <div className="text-xs text-slate-400 font-bold flex items-center">
+                                            <td className="px-6 py-1.5">
+                                                <div className="text-[11px] text-slate-400 font-bold flex items-center">
                                                     <Smartphone size={12} className="mr-2 text-indigo-300" />
                                                     {member.mobile || 'N/A'}
                                                 </div>
                                             </td>
-                                            <td className="px-12 py-2 text-center">
+                                            <td className="px-6 py-1.5 text-center">
                                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border ${member.role === 'ADMIN' ? 'bg-rose-50 text-rose-600 border-rose-100' :
                                                     member.role === 'MANAGER' ? 'bg-amber-50 text-amber-600 border-amber-100' :
                                                         'bg-indigo-50 text-indigo-600 border-indigo-100'
@@ -388,21 +388,21 @@ export default function StaffPage() {
                                                     {member.role}
                                                 </span>
                                             </td>
-                                            <td className="px-12 py-2">
-                                                <div className="flex items-center justify-end space-x-2" onClick={(e) => e.stopPropagation()}>
+                                            <td className="px-6 py-1.5">
+                                                <div className="flex items-center justify-end space-x-1.5" onClick={(e) => e.stopPropagation()}>
                                                     <button
                                                         onClick={() => handleEdit(member)}
-                                                        className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                        className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
                                                         title="Edit / Manage Commissions"
                                                     >
-                                                        <Edit2 size={14} />
+                                                        <Edit2 size={13} />
                                                     </button>
                                                     <button
                                                         onClick={() => confirmDelete(member)}
-                                                        className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                        className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
                                                         title="Delete User"
                                                     >
-                                                        <Trash2 size={14} />
+                                                        <Trash2 size={13} />
                                                     </button>
                                                 </div>
                                             </td>
@@ -500,44 +500,17 @@ export default function StaffPage() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block ml-2">System Role</label>
-                                            <div className="relative">
-                                                <div
-                                                    onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-                                                    className="input-aesthetic h-11 flex items-center justify-between cursor-pointer px-6 bg-white border-slate-200"
-                                                >
-                                                    <span className="text-xs font-black uppercase tracking-widest text-indigo-600">
-                                                        {formData.role === 'USER' ? 'Staff / User' : formData.role === 'MANAGER' ? 'Manager' : 'Administrator'}
-                                                    </span>
-                                                    <ChevronDown size={14} className={`text-indigo-400 transition-transform ${isRoleDropdownOpen ? 'rotate-180' : ''}`} />
-                                                </div>
-
-                                                {isRoleDropdownOpen && (
-                                                    <>
-                                                        <div className="fixed inset-0 z-[60]" onClick={() => setIsRoleDropdownOpen(false)} />
-                                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
-                                                            {[
-                                                                { value: 'USER', label: 'Staff / User' },
-                                                                { value: 'MANAGER', label: 'Manager' },
-                                                                { value: 'ADMIN', label: 'Administrator' }
-                                                            ].map(opt => (
-                                                                <div
-                                                                    key={opt.value}
-                                                                    onClick={() => {
-                                                                        setFormData({ ...formData, role: opt.value as any });
-                                                                        setIsRoleDropdownOpen(false);
-                                                                    }}
-                                                                    className={`px-6 py-3 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-colors
-                                                                        ${formData.role === opt.value ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600'}
-                                                                    `}
-                                                                >
-                                                                    {opt.label}
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
+                                            <AestheticSelect
+                                                label="Role"
+                                                heightClass="h-11"
+                                                value={formData.role}
+                                                onChange={(val) => setFormData({ ...formData, role: val as any })}
+                                                options={[
+                                                    { id: 'USER', name: 'Staff / User' },
+                                                    { id: 'MANAGER', name: 'Manager' },
+                                                    { id: 'ADMIN', name: 'Administrator' }
+                                                ]}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -545,7 +518,7 @@ export default function StaffPage() {
                                 {formData.role === 'USER' && (
                                     <div className="space-y-4 pt-4 border-t border-slate-50">
                                         <div className="flex justify-between items-center">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-2 border-indigo-600 pl-3">Service Benchmark Rates</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-2 border-indigo-600 pl-3">Service </p>
                                             <button type="button" onClick={handleAddCommission} className="text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 flex items-center bg-indigo-50 px-2.5 py-1 rounded-lg">
                                                 <Plus size={14} className="mr-1" /> Add Service
                                             </button>
@@ -558,22 +531,25 @@ export default function StaffPage() {
                                         ) : (
                                             <div className="space-y-3">
                                                 {commissions.map((comm, index) => (
-                                                    <div key={index} className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-3 relative animate-in slide-in-from-top-1">
+                                                    <div key={index} className="bg-white/50 p-3 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4 relative animate-in slide-in-from-top-1">
                                                         <div>
-                                                            <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">Service</label>
-                                                            <select className="input-aesthetic h-10 py-0 text-xs bg-white" value={comm.serviceId} onChange={e => updateCommission(index, 'serviceId', e.target.value)} required>
-                                                                <option value="">Select Service...</option>
-                                                                {services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                                            </select>
+                                                            <AestheticSelect
+                                                                label="Service"
+                                                                heightClass="h-10"
+                                                                value={comm.serviceId}
+                                                                onChange={(val) => updateCommission(index, 'serviceId', val)}
+                                                                placeholder="Select Service..."
+                                                                options={services}
+                                                            />
                                                         </div>
                                                         <div>
-                                                            <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">Rate (%)</label>
+                                                            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2 ml-1">Rate (%)</label>
                                                             <div className="relative">
-                                                                <input type="number" step="0.01" className="input-aesthetic h-10 py-0 text-xs bg-white pr-8" value={comm.percentage || ''} onFocus={e => e.target.select()} onChange={e => updateCommission(index, 'percentage', e.target.value)} required min="0" max="100" />
-                                                                <Percent size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                                <input type="number" step="0.01" className="input-aesthetic h-10 min-h-0 py-0 text-[10px] font-black uppercase tracking-widest bg-white pr-8 border-2 border-slate-100 rounded-full px-4" value={comm.percentage || ''} onFocus={e => e.target.select()} onChange={e => updateCommission(index, 'percentage', e.target.value)} required min="0" max="100" />
+                                                                <Percent size={10} className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-400" />
                                                             </div>
                                                         </div>
-                                                        <button type="button" onClick={() => handleRemoveCommission(index)} className="absolute -top-2 -right-2 w-6 h-6 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center text-slate-300 hover:text-rose-500 transition-all">
+                                                        <button type="button" onClick={() => handleRemoveCommission(index)} className="absolute -top-2 -right-2 w-6 h-6 bg-white shadow-md border border-slate-100 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-500 transition-all z-10">
                                                             <X size={12} />
                                                         </button>
                                                     </div>

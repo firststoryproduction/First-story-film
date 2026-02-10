@@ -117,25 +117,25 @@ export default function ServicesPage() {
 
     return (
         <div className="min-h-screen bg-[#f1f5f9] text-slate-800 lg:ml-72">
-            <div className="w-full px-2 py-4 lg:px-4 lg:py-8">
+            <div className="w-full px-2 py-4 lg:px-4 lg:py-6">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
                     <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-indigo-600 rounded-[1.25rem] shadow-lg shadow-indigo-100 flex items-center justify-center">
-                            <Briefcase size={20} className="text-white" />
+                        <div className="w-10 h-10 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100 flex items-center justify-center">
+                            <Briefcase size={18} className="text-white" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-black text-slate-900 font-heading tracking-tight leading-tight uppercase">Services</h1>
+                            <h1 className="text-2xl font-black text-slate-900 font-heading tracking-tight leading-tight uppercase">Services</h1>
                         </div>
                     </div>
                 </div>
 
                 {/* Main Operations Card */}
-                <div className="bg-white rounded-[1.5rem] border border-slate-100 shadow-xl overflow-hidden">
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden">
                     
                     {/* Toolbar Inside Card */}
-                    <div className="px-12 py-5 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div className="relative w-full md:w-[350px] group">
+                    <div className="px-6 py-4 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="relative w-full md:w-[320px] group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={14} />
                             <input
                                 type="text"
@@ -164,9 +164,9 @@ export default function ServicesPage() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-100/80 border-b border-slate-200">
-                                    <th className="px-12 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Service Name</th>
-                                    <th className="px-12 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Date Created</th>
-                                    <th className="px-12 py-4 text-right text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Actions</th>
+                                    <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Service Name</th>
+                                    <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Date Created</th>
+                                    <th className="px-6 py-3 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
@@ -182,33 +182,33 @@ export default function ServicesPage() {
                                 ) : (
                                     paginatedServices.map((service) => (
                                         <tr key={service.id} className="hover:bg-slate-50/50 transition-colors group/row">
-                                            <td className="px-12 py-2">
-                                                <div className="text-base font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors flex items-center">
+                                            <td className="px-6 py-1.5">
+                                                <div className="text-[14px] font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors flex items-center">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-200 mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100" />
                                                     {service.name}
                                                 </div>
                                             </td>
-                                            <td className="px-12 py-2">
+                                            <td className="px-6 py-1.5">
                                                 <div className="flex items-center text-[11px] font-black uppercase tracking-widest text-slate-400">
-                                                    <Calendar size={14} className="mr-2 text-indigo-300" />
+                                                    <Calendar size={13} className="mr-2 text-indigo-300" />
                                                     {new Date(service.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                                 </div>
                                             </td>
-                                            <td className="px-12 py-2">
-                                                <div className="flex items-center justify-end space-x-2">
+                                            <td className="px-6 py-1.5">
+                                                <div className="flex items-center justify-end space-x-1.5">
                                                     <button
                                                         onClick={() => openEditModal(service)}
-                                                        className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                        className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
                                                         title="Edit"
                                                     >
-                                                        <Edit2 size={14} />
+                                                        <Edit2 size={13} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(service.id)}
-                                                        className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                        className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
                                                         title="Delete"
                                                     >
-                                                        <Trash2 size={14} />
+                                                        <Trash2 size={13} />
                                                     </button>
                                                 </div>
                                             </td>

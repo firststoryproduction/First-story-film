@@ -110,7 +110,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         <div className="w-8 h-8 rounded-full bg-white border border-slate-100 flex items-center justify-center group-hover:bg-indigo-50 group-hover:border-indigo-100 transition-all">
                             <ArrowLeft size={14} />
                         </div>
-                        <span className="text-[10px] uppercase font-black tracking-widest">Back to Staff</span>
+                        <span className="text-[10px] uppercase font-black tracking-widest">Back to Users</span>
                     </button>
                     
                     <div className="flex items-center space-x-3">
@@ -124,175 +124,135 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left Column: Profile & Commissions */}
-                    <div className="space-y-8">
-                        {/* Profile Info */}
-                        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden p-8">
-                            <div className="flex items-center space-x-4 mb-8">
-                                <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100">
-                                    <UserIcon size={32} className="text-white" />
+                <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100/50">
+                        {/* 1. Profile & Contact */}
+                        <div className="p-6 flex items-center justify-between gap-6">
+                            <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100 shrink-0">
+                                    <UserIcon size={20} className="text-white" />
                                 </div>
-                                <div>
-                                    <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none">{user.name}</h1>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Team Member</p>
+                                <div className="overflow-hidden">
+                                    <h1 className="text-base font-black text-slate-900 uppercase tracking-tight leading-none truncate">{user.name}</h1>
+                                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">User</p>
                                 </div>
                             </div>
 
-                            <div className="space-y-6">
-                                <div className="flex items-center space-x-4 p-4 bg-slate-50/50 rounded-2xl border border-transparent hover:border-slate-100 transition-colors group">
-                                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors shadow-sm">
-                                        <Mail size={18} />
-                                    </div>
-                                    <div>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Email Address</p>
-                                        <p className="text-sm font-bold text-slate-900 mt-0.5">{user.email}</p>
-                                    </div>
+                            <div className="flex flex-col space-y-1 pr-4 border-l border-slate-100 pl-6">
+                                <div className="flex items-center space-x-2 text-slate-400">
+                                    <Mail size={10} className="shrink-0" />
+                                    <span className="text-[10px] font-bold truncate">{user.email}</span>
                                 </div>
-
-                                <div className="flex items-center space-x-4 p-4 bg-slate-50/50 rounded-2xl border border-transparent hover:border-slate-100 transition-colors group">
-                                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors shadow-sm">
-                                        <Smartphone size={18} />
-                                    </div>
-                                    <div>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Mobile Number</p>
-                                        <p className="text-sm font-bold text-slate-900 mt-0.5">{user.mobile || 'Not Set'}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center space-x-4 p-4 bg-slate-50/50 rounded-2xl border border-transparent hover:border-slate-100 transition-colors group">
-                                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors shadow-sm">
-                                        <Calendar size={18} />
-                                    </div>
-                                    <div>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Joined On</p>
-                                        <p className="text-sm font-bold text-slate-900 mt-0.5">
-                                            {new Date(user.created_at || '').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                                        </p>
-                                    </div>
+                                <div className="flex items-center space-x-2 text-slate-400">
+                                    <Smartphone size={10} className="shrink-0" />
+                                    <span className="text-[10px] font-bold">{user.mobile || 'No Mobile'}</span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Commission Settings */}
-                        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden">
-                            <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                                        <Percent size={14} />
-                                    </div>
-                                    <h2 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">Service Commissions</h2>
-                                </div>
+                        {/* 2. Stats Summary */}
+                        <div className="p-6 grid grid-cols-3 gap-0 bg-slate-50/20">
+                            <div className="flex flex-col justify-center text-center">
+                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Projects</p>
+                                <p className="text-xl font-black text-slate-900">{stats.totalJobs}</p>
                             </div>
-                            <div className="p-6 space-y-3">
+                            <div className="flex flex-col justify-center text-center border-l border-slate-200/50">
+                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Done</p>
+                                <p className="text-xl font-black text-emerald-600 truncate">{stats.completedJobs}</p>
+                            </div>
+                            <div className="flex flex-col justify-center text-center border-l border-slate-200/50">
+                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Earnings</p>
+                                <p className="text-xl font-black text-indigo-600 truncate">₹{stats.totalEarnt.toLocaleString()}</p>
+                            </div>
+                        </div>
+
+                        {/* 3. Service Commissions List */}
+                        <div className="p-6 overflow-hidden bg-white">
+                            <div className="flex items-center space-x-2 mb-3">
+                                <Percent size={12} className="text-emerald-500" />
+                                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Commissions</h3>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 overflow-y-auto max-h-[64px] custom-scrollbar">
                                 {commissions.length === 0 ? (
-                                    <p className="text-center py-8 text-[10px] font-bold text-slate-300 uppercase tracking-widest">No commissions configured</p>
+                                    <span className="text-[10px] font-bold text-slate-300 italic">None</span>
                                 ) : (
                                     commissions.map((comm) => (
-                                        <div key={comm.id} className="flex items-center justify-between p-4 bg-slate-50/50 rounded-2xl border border-transparent hover:border-slate-100 transition-all group">
-                                            <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">{comm.services?.name}</span>
-                                            <div className="flex items-center space-x-2">
-                                                <span className="text-base font-black text-indigo-600">{comm.percentage}%</span>
-                                            </div>
+                                        <div key={comm.id} className="px-2.5 py-1 bg-slate-50 rounded-lg border border-slate-100 flex items-center space-x-2">
+                                            <span className="text-[9px] font-black text-slate-600 uppercase truncate max-w-[100px]">{comm.services?.name}</span>
+                                            <span className="text-[10px] font-black text-indigo-600">{comm.percentage}%</span>
                                         </div>
                                     ))
                                 )}
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Right Column: Stats & Job History */}
-                    <div className="lg:col-span-2 space-y-8">
-                        {/* Stats Grid */}
-                        <div className="grid grid-cols-3 gap-6">
-                            <div className="bg-white p-6 rounded-[1.5rem] border border-slate-100 shadow-sm">
-                                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4">
-                                    <Briefcase size={18} />
+                <div className="w-full">
+                    {/* Job History Table */}
+                    <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden">
+                        <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                    <ClipboardList size={14} />
                                 </div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Projects</p>
-                                <p className="text-2xl font-black text-slate-900 mt-1">{stats.totalJobs}</p>
-                            </div>
-                            <div className="bg-white p-6 rounded-[1.5rem] border border-slate-100 shadow-sm">
-                                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
-                                    <CheckCircle2 size={18} />
-                                </div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Completed</p>
-                                <p className="text-2xl font-black text-slate-900 mt-1">{stats.completedJobs}</p>
-                            </div>
-                            <div className="bg-white p-6 rounded-[1.5rem] border border-slate-100 shadow-sm">
-                                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
-                                    <TrendingUp size={18} />
-                                </div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Earnings (Est.)</p>
-                                <p className="text-2xl font-black text-emerald-600 mt-1">₹{stats.totalEarnt.toLocaleString()}</p>
+                                <h2 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">Assignment History</h2>
                             </div>
                         </div>
 
-                        {/* Job History Table */}
-                        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden">
-                            <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                                        <ClipboardList size={14} />
-                                    </div>
-                                    <h2 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">Live Assignment History</h2>
-                                </div>
-                            </div>
-
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-slate-50/30">
-                                            <th className="px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Project / Studio</th>
-                                            <th className="px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Due Date</th>
-                                            <th className="px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Status</th>
-                                            <th className="px-8 py-3 text-right text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Earning</th>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50/30">
+                                        <th className="px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Project / Studio</th>
+                                        <th className="px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Due Date</th>
+                                        <th className="px-8 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Status</th>
+                                        <th className="px-8 py-3 text-right text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Earning</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {jobs.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="py-20 text-center">
+                                                <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">No history records found</p>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-50">
-                                        {jobs.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={4} className="py-20 text-center">
-                                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">No history records found</p>
+                                    ) : (
+                                        jobs.map((job) => (
+                                            <tr key={job.id} className="hover:bg-slate-50/50 transition-colors group/row">
+                                                <td className="px-8 py-3">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[14px] font-bold text-slate-900 leading-none">{job.services?.name}</span>
+                                                        <div className="flex items-center text-[11px] text-slate-400 font-bold mt-1.5 uppercase tracking-tight">
+                                                            <Building2 size={12} className="mr-1 text-slate-300" />
+                                                            {job.vendors?.studio_name}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-3">
+                                                    <div className="flex items-center text-[11px] font-black uppercase tracking-widest text-slate-400">
+                                                        <Clock size={14} className="mr-2 text-indigo-300" />
+                                                        {new Date(job.job_due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-3">
+                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                                                        job.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                        job.status === 'PENDING' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                                        'bg-indigo-50 text-indigo-600 border-indigo-100'
+                                                    }`}>
+                                                        {job.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-3 text-right">
+                                                    <div className="text-base font-black text-slate-900 leading-tight">₹{Number(job.commission_amount).toLocaleString()}</div>
+                                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Base: ₹{Number(job.amount).toLocaleString()}</div>
                                                 </td>
                                             </tr>
-                                        ) : (
-                                            jobs.map((job) => (
-                                                <tr key={job.id} className="hover:bg-slate-50/50 transition-colors group/row">
-                                                    <td className="px-8 py-3">
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[14px] font-bold text-slate-900 leading-none">{job.services?.name}</span>
-                                                            <div className="flex items-center text-[11px] text-slate-400 font-bold mt-1.5 uppercase tracking-tight">
-                                                                <Building2 size={12} className="mr-1 text-slate-300" />
-                                                                {job.vendors?.studio_name}
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-8 py-3">
-                                                        <div className="flex items-center text-[11px] font-black uppercase tracking-widest text-slate-400">
-                                                            <Clock size={14} className="mr-2 text-indigo-300" />
-                                                            {new Date(job.job_due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-8 py-3">
-                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                                                            job.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                                            job.status === 'PENDING' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                                            'bg-indigo-50 text-indigo-600 border-indigo-100'
-                                                        }`}>
-                                                            {job.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-8 py-3 text-right">
-                                                        <div className="text-base font-black text-slate-900 leading-tight">₹{Number(job.commission_amount).toLocaleString()}</div>
-                                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Base: ₹{Number(job.amount).toLocaleString()}</div>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

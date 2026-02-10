@@ -105,7 +105,7 @@ export default function NewUserPage() {
                 }
             }
 
-            showNotification('Staff member registered successfully!')
+            showNotification('User registered successfully!')
             setTimeout(() => router.push('/dashboard/admin/staff'), 1000)
         } catch (error: any) {
             console.error('Error creating user:', error)
@@ -182,7 +182,7 @@ export default function NewUserPage() {
                                 />
                             </div>
                             <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">System Role</label>
+                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-400 mb-2 block">Role</label>
                                 <div className="relative">
                                     <div
                                         onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}

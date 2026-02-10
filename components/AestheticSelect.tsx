@@ -22,6 +22,7 @@ interface AestheticSelectProps {
     label?: string
     required?: boolean
     disabled?: boolean
+    heightClass?: string
 }
 
 export default function AestheticSelect({
@@ -31,7 +32,8 @@ export default function AestheticSelect({
     placeholder = 'Select option...',
     label,
     required = false,
-    disabled = false
+    disabled = false,
+    heightClass = 'h-10'
 }: AestheticSelectProps) {
     const [isOpen, setIsOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -61,7 +63,8 @@ export default function AestheticSelect({
                 disabled={disabled}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 className={cn(
-                    "w-full h-8 bg-white border-2 border-slate-100 rounded-full px-4 flex items-center justify-between transition-all duration-300",
+                    "w-full bg-white border-2 border-slate-100 rounded-full px-4 flex items-center justify-between transition-all duration-300",
+                    heightClass,
                     "hover:border-slate-200 hover:bg-slate-50/50",
                     isOpen && "border-indigo-600 ring-2 ring-indigo-50 bg-white",
                     disabled && "opacity-50 cursor-not-allowed bg-slate-50",
