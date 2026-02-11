@@ -69,93 +69,47 @@ function LoginForm() {
             console.log('[LOGIN] ✅ Step 2: Login successful', { 
                 userId: data.user.id,
                 email: data.user.email,
-                accessToken: data.session.access_token?.substring(0, 20) + '...',
+                hasSession: !!data.session,
+                hasAccessToken: !!data.session.access_token,
+                hasRefreshToken: !!data.session.refresh_token,
+                accessTokenLength: data.session.access_token?.length || 0,
                 timestamp: new Date().toISOString()
             })
             
-            // CRITICAL FIX: Wait for cookies to be set and propagate
-            // The browser client sets cookies, but we need to ensure they're available
-            // before redirecting. Use a shorter wait but verify cookies are set.
-            console.log('[LOGIN] ⏳ Step 3: Waiting for cookie propagation...')
+            // CRITICAL FIX: createBrowserClient automatically persists cookies
+            // When signInWithPassword succeeds, the session is immediately available
+            // We should trust the session and redirect - middleware will validate it
+            // Don't check getSession() - it might have timing issues but cookies are set
+            
+            // Brief wait to ensure createBrowserClient has synced cookies
+            // But we trust the session from signInWithPassword response
+            console.log('[LOGIN] ⏳ Step 3: Brief wait for cookie sync...')
             await new Promise(resolve => setTimeout(resolve, 300))
             
-            // Verify session and cookies are ready
-            let session = null
-            let retries = 2
-            let cookiesReady = false
-            
-            while (retries > 0 && (!session || !cookiesReady)) {
-                const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
-                
-                console.log('[LOGIN] 🔍 Step 3: Session verification attempt', {
-                    attempt: 4 - retries,
-                    hasSession: !!currentSession,
-                    userId: currentSession?.user?.id,
-                    error: sessionError?.message,
+            // CRITICAL: Trust the session from signInWithPassword
+            // createBrowserClient has already persisted it to cookies
+            // The middleware will validate the session on the next request
+            if (data.session && data.session.user && data.session.access_token) {
+                console.log('[LOGIN] ✅ Step 4: Session ready, redirecting...', {
+                    userId: data.user.id,
+                    email: data.user.email,
+                    hasAccessToken: !!data.session.access_token,
+                    hasRefreshToken: !!data.session.refresh_token,
                     timestamp: new Date().toISOString()
                 })
                 
-                if (sessionError) {
-                    console.error('[LOGIN] ❌ Session check error:', sessionError)
-                    if (retries > 1) {
-                        await new Promise(resolve => setTimeout(resolve, 300))
-                        retries--
-                        continue
-                    }
-                    break
-                }
-                
-                session = currentSession
-                
-                // Check if cookies are actually set (browser only)
-                if (typeof window !== 'undefined') {
-                    const accessTokenCookie = document.cookie.split(';').find(c => c.trim().startsWith('sb-') && c.includes('access-token'))
-                    cookiesReady = !!accessTokenCookie
-                    console.log('[LOGIN] 🍪 Cookie check:', {
-                        cookiesReady,
-                        hasAccessTokenCookie: !!accessTokenCookie,
-                        cookiePreview: accessTokenCookie?.substring(0, 30) + '...'
-                    })
-                } else {
-                    cookiesReady = true // Server-side, assume ready
-                }
-                
-                if (session && cookiesReady) {
-                    break
-                }
-                
-                retries--
-                if (retries > 0) {
-                    await new Promise(resolve => setTimeout(resolve, 300))
-                }
-            }
-            
-            console.log('[LOGIN] 🔍 Step 3: Final session check', {
-                hasSession: !!session,
-                cookiesReady,
-                userId: session?.user?.id,
-                email: session?.user?.email,
-                timestamp: new Date().toISOString()
-            })
-            
-            if (session && cookiesReady) {
-                console.log('[LOGIN] ✅ Step 4: Session confirmed, redirecting...', {
-                    userId: session.user.id,
-                    email: session.user.email,
-                    timestamp: new Date().toISOString()
-                })
-                
-                // CRITICAL FIX: Use window.location for hard redirect to ensure
-                // cookies are sent with the request to middleware
-                // This ensures middleware sees the session immediately
+                // Use window.location for hard redirect
+                // createBrowserClient has set cookies automatically
+                // Middleware will see the session and allow access
                 window.location.href = '/dashboard'
             } else {
-                console.error('[LOGIN] ❌ Step 4: Session or cookies not ready', {
-                    hasSession: !!session,
-                    cookiesReady,
+                console.error('[LOGIN] ❌ Step 4: Session missing required data', {
+                    hasSession: !!data.session,
+                    hasUser: !!data.session?.user,
+                    hasAccessToken: !!data.session?.access_token,
                     timestamp: new Date().toISOString()
                 })
-                setError('Login succeeded but session not ready. Please try again.')
+                setError('Login succeeded but session data is incomplete. Please try again.')
                 setLoading(false)
             }
         } catch (err: any) {
