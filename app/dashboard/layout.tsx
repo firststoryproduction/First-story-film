@@ -265,11 +265,21 @@ export default function DashboardLayout({
 
         // CRITICAL FIX: onAuthStateChange is the PRIMARY source of truth for new logins
         // This fires immediately when signInWithPassword succeeds
+        // CRITICAL: Only listen to user-initiated auth events (SIGNED_IN, SIGNED_OUT)
+        // Ignore automatic token refreshes (TOKEN_REFRESHED) - no live updates
+        // User wants manual refresh only, not automatic updates
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
             if (!mounted) return
 
-            // Keep logs for debugging - they help identify issues
-            console.log('[LAYOUT] 🔔 Auth state change (PRIMARY SOURCE)', {
+            // CRITICAL: Ignore TOKEN_REFRESHED completely - it's automatic, not user-initiated
+            // User only wants updates on manual actions (login/logout)
+            if (event === 'TOKEN_REFRESHED') {
+                // Completely ignore - no logs, no updates, nothing
+                return
+            }
+
+            // Only log and handle user-initiated events
+            console.log('[LAYOUT] 🔔 Auth state change (USER ACTION)', {
                 event,
                 hasNewSession: !!newSession,
                 newUserId: newSession?.user?.id,
@@ -350,17 +360,6 @@ export default function DashboardLayout({
                     userId: newSession.user.id,
                     timestamp: new Date().toISOString()
                 })
-            } else if (event === 'TOKEN_REFRESHED') {
-                // CRITICAL: Ignore TOKEN_REFRESHED events completely
-                // This happens automatically when tab becomes visible (Supabase behavior)
-                // User doesn't want any state updates when changing tabs
-                // Supabase handles token refresh in background - we don't need to react to it
-                // Log it for debugging, but don't update any state
-                console.log('[LAYOUT] 🔄 Token refreshed (ignored - no state update)', {
-                    userId: newSession?.user?.id,
-                    timestamp: new Date().toISOString()
-                })
-                // DO NOT call setSession() - this prevents any updates on tab visibility
             } else if (event === 'SIGNED_OUT') {
                 console.log('[LAYOUT] 🚪 Signed out, clearing session', {
                     timestamp: new Date().toISOString()
