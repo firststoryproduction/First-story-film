@@ -248,6 +248,17 @@ export default function DashboardLayout({
                         <div className="absolute bottom-full left-0 w-full mb-3 bg-white rounded-2xl shadow-2xl border border-slate-100 p-2 animate-in slide-in-from-bottom-2 zoom-in-95 z-50">
                             <button
                                 onClick={async () => {
+                                    // Log logout button press and token for all users and conditions
+                                    console.log('🔴 Confirm Logout button pressed')
+                                    console.log('👤 User Info:', {
+                                        userId: session?.user?.id,
+                                        email: session?.user?.email,
+                                        role: userRole,
+                                        userName: userName
+                                    })
+                                    console.log('🔑 Access Token:', session?.access_token || 'No token found')
+                                    console.log('📋 Full Session:', session)
+                                    
                                     await supabase.auth.signOut()
                                     router.push('/login?message=Signed out successfully')
                                 }}
