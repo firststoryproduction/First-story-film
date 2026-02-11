@@ -14,7 +14,7 @@ export default function Tooltip({ text, children, position = 'top' }: TooltipPro
         <div className="group relative flex items-center justify-center">
             {children}
             <div className={cn(
-                "absolute z-[100] scale-0 group-hover:scale-100 transition-all duration-100",
+                "absolute z-[100] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-none",
                 "pointer-events-none whitespace-nowrap px-2.5 py-1.5",
                 "bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-xl",
                 position === 'top' && "bottom-full mb-2",

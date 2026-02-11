@@ -310,7 +310,7 @@ export default function StaffPage() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
                     <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100 flex items-center justify-center">
+                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-100 flex items-center justify-center">
                             <Users size={18} className="text-white" />
                         </div>
                         <div>
@@ -335,7 +335,7 @@ export default function StaffPage() {
                         </div>
                         <button
                             onClick={handleOpenCreate}
-                            className="w-full md:w-auto px-5 h-9 bg-indigo-600 hover:bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center space-x-2 group shrink-0 shadow-lg shadow-indigo-100"
+                            className="w-full md:w-auto px-5 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-purple-600 hover:to-indigo-500 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center space-x-2 group shrink-0 shadow-lg shadow-indigo-100/50"
                         >
                             <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
                             <span>Register User</span>
@@ -374,23 +374,23 @@ export default function StaffPage() {
                                             <tr
                                                 key={member.id}
                                                 onClick={() => router.push(`/dashboard/admin/staff/${member.id}`)}
-                                                className="hover:bg-slate-50/50 transition-colors group/row cursor-pointer"
+                                                className="hover:bg-indigo-50/30 transition-colors group/row cursor-pointer"
                                             >
                                                 <td className="px-6 py-1.5">
-                                                    <div className="text-[14px] font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors flex items-center group/name">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-200 mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100" />
+                                                    <div className="text-[14px] font-bold text-slate-900 group-hover/row:text-indigo-700 transition-colors flex items-center group/name">
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${['bg-indigo-400', 'bg-rose-400', 'bg-amber-400', 'bg-emerald-400'][staff.indexOf(member) % 4]} mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100`} />
                                                         {member.name}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-1.5">
                                                     <div className="text-[11px] text-slate-500 font-bold flex items-center">
-                                                        <Mail size={12} className="mr-2 text-indigo-300" />
+                                                        <Mail size={12} className="mr-2 text-sky-400" />
                                                         {member.email}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-1.5">
                                                     <div className="text-[11px] text-slate-500 font-bold flex items-center">
-                                                        <Smartphone size={12} className="mr-2 text-indigo-300" />
+                                                        <Smartphone size={12} className="mr-2 text-amber-500" />
                                                         {member.mobile || 'N/A'}
                                                     </div>
                                                 </td>
@@ -407,7 +407,7 @@ export default function StaffPage() {
                                                         <Tooltip text="Edit">
                                                             <button
                                                                 onClick={() => handleEdit(member)}
-                                                                className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                                className="w-7 h-7 flex items-center justify-center text-sky-400 hover:text-sky-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
                                                             >
                                                                 <Edit2 size={13} />
                                                             </button>
@@ -415,7 +415,7 @@ export default function StaffPage() {
                                                         <Tooltip text="Delete">
                                                             <button
                                                                 onClick={() => confirmDelete(member)}
-                                                                className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                                className="w-7 h-7 flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
                                                             >
                                                                 <Trash2 size={13} />
                                                             </button>

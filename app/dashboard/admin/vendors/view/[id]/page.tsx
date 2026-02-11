@@ -322,10 +322,10 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                                 {/* Left Side */}
                                 <div className="lg:col-span-8 space-y-8">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-8">
                                         <div className="space-y-4">
                                             <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-l-4 border-indigo-500 pl-4">General Details</h3>
-                                            <div className="space-y-3">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="flex items-center space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
                                                     <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm">
                                                         <User size={18} />
@@ -344,51 +344,48 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
                                                         <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Studio Contact</span>
                                                         <div className="flex flex-col">
                                                             <span className="text-sm font-bold text-slate-900 truncate tracking-tight">{selectedJob.vendor?.contact_person || "N/A"}</span>
-                                                            {selectedJob.vendor?.email && <span className="text-[10px] text-slate-500 font-bold">{selectedJob.vendor?.email}</span>}
+                                                            {selectedJob.vendor?.email && <span className="text-[10px] text-slate-500 font-bold leading-none mt-0.5">{selectedJob.vendor?.email}</span>}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-l-4 border-emerald-500 pl-4">Location</h3>
-                                            <div className="space-y-3">
-                                                <div className="flex items-center space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
-                                                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm">
-                                                        <MapPin size={18} />
-                                                    </div>
-                                                    <div className="flex flex-col overflow-hidden">
-                                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Source location</span>
-                                                        <span className="text-sm font-bold text-slate-900 truncate tracking-tight">{selectedJob.data_location || "Pending"}</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center space-x-4 p-4 bg-indigo-50/30 rounded-2xl border border-indigo-100/20 group transition-all hover:bg-indigo-50">
-                                                    <div className="w-10 h-10 rounded-xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
-                                                        <ExternalLink size={18} />
-                                                    </div>
-                                                    <div className="flex flex-col overflow-hidden">
-                                                        <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Output location</span>
-                                                        <span className="text-sm font-bold text-indigo-900 truncate tracking-tight">{selectedJob.final_location || "Pending"}</span>
-                                                    </div>
-                                                </div>
+                                        <div>
+                                            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center">
+                                                <FileText size={16} className="mr-2 text-indigo-500" />
+                                                Work Description
+                                            </h3>
+                                            <div className="p-6 bg-slate-50/80 rounded-2xl border border-slate-100/50 relative overflow-hidden group">
+                                                <p className="text-base font-bold text-slate-800 leading-relaxed italic relative z-10 whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                                                    {selectedJob.description || "No description provided."}
+                                                </p>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div>
-                                        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center">
-                                            <FileText size={16} className="mr-2 text-indigo-500" />
-                                            Work Description
-                                        </h3>
-                                        <div className="p-6 bg-slate-50/80 rounded-2xl border border-slate-100/50 relative overflow-hidden group">
-                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity whitespace-nowrap overflow-hidden">
-                                                <Briefcase size={80} />
+                                        <div className="space-y-4">
+                                            <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-l-4 border-emerald-500 pl-4">Location</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="flex items-start space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
+                                                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm shrink-0">
+                                                        <MapPin size={18} />
+                                                    </div>
+                                                    <div className="flex flex-col min-w-0 pt-0.5">
+                                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Source location</span>
+                                                        <span className="text-sm font-bold text-slate-900 tracking-tight whitespace-pre-wrap leading-tight break-words overflow-wrap-anywhere">{selectedJob.data_location || "Pending"}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-start space-x-4 p-4 bg-indigo-50/30 rounded-2xl border border-indigo-100/20 group transition-all hover:bg-indigo-50">
+                                                    <div className="w-10 h-10 rounded-xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm shrink-0">
+                                                        <ExternalLink size={18} />
+                                                    </div>
+                                                    <div className="flex flex-col min-w-0 pt-0.5">
+                                                        <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Output location</span>
+                                                        <span className="text-sm font-bold text-indigo-900 tracking-tight whitespace-pre-wrap leading-tight break-words overflow-wrap-anywhere">{selectedJob.final_location || "Pending"}</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <p className="text-base font-bold text-slate-800 leading-relaxed italic relative z-10 whitespace-pre-wrap">
-                                                {selectedJob.description || "No description provided."}
-                                            </p>
                                         </div>
                                     </div>
                                 </div>

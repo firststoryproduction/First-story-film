@@ -121,7 +121,7 @@ export default function ServicesPage() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
                     <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100 flex items-center justify-center">
+                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-100 flex items-center justify-center">
                             <Briefcase size={18} className="text-white" />
                         </div>
                         <div>
@@ -132,7 +132,7 @@ export default function ServicesPage() {
 
                 {/* Main Operations Card */}
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden">
-                    
+
                     {/* Toolbar Inside Card */}
                     <div className="px-6 py-4 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="relative w-full md:w-[320px] group">
@@ -144,9 +144,9 @@ export default function ServicesPage() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-10 pr-4 h-9 bg-slate-100/80 border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-500 shadow-inner" />
                         </div>
-                        <button 
-                            onClick={openCreateModal} 
-                            className="w-full md:w-auto px-5 h-9 bg-indigo-600 hover:bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center space-x-2 group shrink-0 shadow-lg shadow-indigo-100"
+                        <button
+                            onClick={openCreateModal}
+                            className="w-full md:w-auto px-5 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-purple-600 hover:to-indigo-500 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center space-x-2 group shrink-0 shadow-lg shadow-indigo-100/50"
                         >
                             <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
                             <span>Add Service</span>
@@ -161,64 +161,64 @@ export default function ServicesPage() {
                             </div>
                         ) : (
                             <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-slate-100/80 border-b border-slate-200">
-                                    <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Service Name</th>
-                                    <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Date Created</th>
-                                    <th className="px-6 py-3 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {paginatedServices.length === 0 && !loading ? (
-                                    <tr>
-                                        <td colSpan={3} className="py-20 text-center">
-                                            <div className="inline-flex p-5 bg-slate-50 rounded-full mb-3">
-                                                <Briefcase size={28} className="text-slate-200" />
-                                            </div>
-                                            <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">No services found</p>
-                                        </td>
+                                <thead>
+                                    <tr className="bg-slate-100/80 border-b border-slate-200">
+                                        <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Service Name</th>
+                                        <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Date Created</th>
+                                        <th className="px-6 py-3 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Actions</th>
                                     </tr>
-                                ) : (
-                                    paginatedServices.map((service) => (
-                                        <tr key={service.id} className="hover:bg-slate-50/50 transition-colors group/row">
-                                            <td className="px-6 py-1.5">
-                                                <div className="text-[14px] font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors flex items-center">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-200 mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100" />
-                                                    {service.name}
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {paginatedServices.length === 0 && !loading ? (
+                                        <tr>
+                                            <td colSpan={3} className="py-20 text-center">
+                                                <div className="inline-flex p-5 bg-slate-50 rounded-full mb-3">
+                                                    <Briefcase size={28} className="text-slate-200" />
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-1.5">
-                                                <div className="flex items-center text-[11px] font-black uppercase tracking-widest text-slate-500">
-                                                    <Calendar size={13} className="mr-2 text-indigo-300" />
-                                                    {new Date(service.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-1.5">
-                                                <div className="flex items-center justify-end space-x-1.5">
-                                                    <button
-                                                        onClick={() => openEditModal(service)}
-                                                        className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
-                                                        title="Edit"
-                                                    >
-                                                        <Edit2 size={13} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(service.id)}
-                                                        className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
-                                                        title="Delete"
-                                                    >
-                                                        <Trash2 size={13} />
-                                                    </button>
-                                                </div>
+                                                <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">No services found</p>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                    ) : (
+                                        paginatedServices.map((service, idx) => (
+                                            <tr key={service.id} className="hover:bg-indigo-50/30 transition-colors group/row">
+                                                <td className="px-6 py-1.5">
+                                                    <div className="text-[14px] font-bold text-slate-900 group-hover/row:text-indigo-700 transition-colors flex items-center">
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${['bg-indigo-400', 'bg-rose-400', 'bg-amber-400', 'bg-emerald-400'][idx % 4]} mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100`} />
+                                                        {service.name}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-1.5">
+                                                    <div className="flex items-center text-[11px] font-black uppercase tracking-widest text-slate-500">
+                                                        <Calendar size={13} className="mr-2 text-amber-500" />
+                                                        {new Date(service.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-1.5">
+                                                    <div className="flex items-center justify-end space-x-1.5">
+                                                        <button
+                                                            onClick={() => openEditModal(service)}
+                                                            className="w-7 h-7 flex items-center justify-center text-sky-400 hover:text-sky-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                            title="Edit"
+                                                        >
+                                                            <Edit2 size={13} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(service.id)}
+                                                            className="w-7 h-7 flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 size={13} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         )}
                     </div>
-                    
+
                     {/* Pagination Container */}
                     <div className="p-4 border-t border-slate-50 bg-slate-50/20">
                         <Pagination
@@ -251,7 +251,7 @@ export default function ServicesPage() {
                                     autoFocus />
                             </div>
                             <div className="flex items-center gap-3 pt-4 border-t border-slate-50">
-                                <button type="submit" className="flex-1 h-11 bg-indigo-600 hover:bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-indigo-100 transition-all duration-300">
+                                <button type="submit" className="flex-1 h-11 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-purple-600 hover:to-indigo-500 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-indigo-100/50 transition-all duration-300">
                                     {editingService ? 'Update' : 'Create'}
                                 </button>
                                 <button
@@ -270,11 +270,10 @@ export default function ServicesPage() {
             {/* Notification Toast */}
             {notification && (
                 <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${
-                        notification.type === 'success' 
-                            ? 'bg-emerald-500 border-emerald-400 text-white' 
-                            : 'bg-rose-500 border-rose-400 text-white'
-                    }`}>
+                    <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${notification.type === 'success'
+                        ? 'bg-emerald-500 border-emerald-400 text-white'
+                        : 'bg-rose-500 border-rose-400 text-white'
+                        }`}>
                         {notification.type === 'success' ? (
                             <CheckCircle size={18} className="text-white" />
                         ) : (

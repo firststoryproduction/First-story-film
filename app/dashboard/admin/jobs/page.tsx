@@ -360,7 +360,7 @@ export default function JobsPage() {
             <div className="w-full px-2 py-4 lg:px-4 lg:py-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
                     <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100 flex items-center justify-center">
+                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-100 flex items-center justify-center">
                             <ClipboardList size={18} className="text-white" />
                         </div>
                         <div>
@@ -384,7 +384,7 @@ export default function JobsPage() {
                         </div>
                         <button
                             onClick={() => { resetFormData(); setShowCreateModal(true); }}
-                            className="w-full md:w-auto px-5 h-9 bg-indigo-600 hover:bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center space-x-2 group shrink-0 shadow-lg shadow-indigo-100"
+                            className="w-full md:w-auto px-5 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-purple-600 hover:to-indigo-500 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center space-x-2 group shrink-0 shadow-lg shadow-indigo-100/50"
                         >
                             <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
                             <span className="tracking-widest capitalize">Create New Job</span>
@@ -421,22 +421,22 @@ export default function JobsPage() {
                                             </td>
                                         </tr>
                                     ) : (
-                                        paginatedJobs.map((job) => (
+                                        paginatedJobs.map((job, jIdx) => (
                                             <tr
                                                 key={job.id}
                                                 onClick={() => openViewModal(job)}
-                                                className="hover:bg-slate-50/50 transition-colors group/row cursor-pointer"
+                                                className="hover:bg-indigo-50/30 transition-colors group/row cursor-pointer"
                                             >
                                                 <td className="px-4 py-1.5 whitespace-nowrap">
                                                     <div
-                                                        className="text-[11px] text-slate-500 font-bold flex items-center hover:text-indigo-600 cursor-pointer"
+                                                        className="text-[11px] text-slate-900 font-bold flex items-center hover:text-indigo-600 cursor-pointer"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             if (job.vendor_id) router.push(`/dashboard/admin/vendors/view/${job.vendor_id}`);
                                                         }}
                                                     >
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-200 mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100" />
-                                                        <Building2 size={12} className="mr-2 text-indigo-300" />
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${['bg-indigo-400', 'bg-rose-400', 'bg-amber-400', 'bg-emerald-400'][jIdx % 4]} mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100`} />
+                                                        <Building2 size={12} className="mr-2 text-sky-400" />
                                                         {job.vendor?.studio_name || 'N/A'}
                                                     </div>
                                                 </td>
@@ -469,7 +469,7 @@ export default function JobsPage() {
                                                 </td>
                                                 <td className="px-4 py-1.5 whitespace-nowrap">
                                                     <div className="text-[11px] text-slate-500 font-bold flex items-center">
-                                                        <Calendar size={13} className="mr-2 text-indigo-300" /> {new Date(job.job_due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                        <Calendar size={13} className="mr-2 text-amber-500" /> {new Date(job.job_due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-1.5">
@@ -506,7 +506,7 @@ export default function JobsPage() {
                                                         <Tooltip text="Edit">
                                                             <button
                                                                 onClick={() => openEditModal(job)}
-                                                                className="w-8 h-8 flex items-center justify-center bg-white text-slate-500 hover:text-white hover:bg-slate-900 rounded-lg transition-all border border-slate-100 hover:border-slate-900 shadow-sm"
+                                                                className="w-8 h-8 flex items-center justify-center bg-white text-sky-400 hover:text-sky-600 rounded-lg transition-all border border-slate-100 hover:border-slate-100 shadow-sm"
                                                             >
                                                                 <Edit2 size={14} strokeWidth={2.5} />
                                                             </button>
@@ -515,7 +515,7 @@ export default function JobsPage() {
                                                         <Tooltip text="Delete">
                                                             <button
                                                                 onClick={() => handleDelete(job.id)}
-                                                                className="w-8 h-8 flex items-center justify-center bg-white text-rose-500 hover:text-white hover:bg-rose-500 rounded-lg transition-all border border-slate-100 hover:border-rose-500 shadow-sm"
+                                                                className="w-8 h-8 flex items-center justify-center bg-white text-rose-400 hover:text-rose-600 rounded-lg transition-all border border-slate-100 hover:border-slate-100 shadow-sm"
                                                             >
                                                                 <Trash2 size={14} strokeWidth={2.5} />
                                                             </button>
@@ -540,181 +540,182 @@ export default function JobsPage() {
             </div>
 
             {/* Notification Toast */}
-            {notification && (
-                <div className={`fixed bottom-8 right-8 z-[100] flex items-center space-x-4 px-6 py-4 rounded-2xl shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-10 ${notification.type === 'success' ? 'bg-emerald-600 text-white shadow-emerald-200' : 'bg-rose-600 text-white shadow-rose-200'}`}>
-                    {notification.type === 'success' ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
-                    <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-widest opacity-70">{notification.type === 'success' ? 'System Success' : 'System Error'}</span>
-                        <span className="text-sm font-bold">{notification.message}</span>
+            {
+                notification && (
+                    <div className={`fixed bottom-8 right-8 z-[100] flex items-center space-x-4 px-6 py-4 rounded-2xl shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-10 ${notification.type === 'success' ? 'bg-emerald-600 text-white shadow-emerald-200' : 'bg-rose-600 text-white shadow-rose-200'}`}>
+                        {notification.type === 'success' ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black uppercase tracking-widest opacity-70">{notification.type === 'success' ? 'System Success' : 'System Error'}</span>
+                            <span className="text-sm font-bold">{notification.message}</span>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* View Modal */}
-            {showViewModal && selectedJob && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={closeModal} />
-                    <div className="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-                        {/* Modal Header */}
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm">
-                                    <ClipboardList size={22} className="text-indigo-600" />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">{selectedJob.service?.name}</h2>
-                                    <div className="flex items-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                        <Building2 size={12} className="mr-1.5 text-indigo-400" />
-                                        {selectedJob.vendor?.studio_name}
+            {
+                showViewModal && selectedJob && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={closeModal} />
+                        <div className="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+                            {/* Modal Header */}
+                            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm">
+                                        <ClipboardList size={22} className="text-indigo-600" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">{selectedJob.service?.name}</h2>
+                                        <div className="flex items-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                            <Building2 size={12} className="mr-1.5 text-indigo-400" />
+                                            {selectedJob.vendor?.studio_name}
+                                        </div>
                                     </div>
                                 </div>
+                                <div className="flex items-center space-x-3">
+                                    <button
+                                        onClick={() => openEditModal(selectedJob)}
+                                        className="px-5 h-9 bg-white border border-slate-200 hover:border-indigo-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center space-x-2 shadow-sm"
+                                    >
+                                        <Edit2 size={14} />
+                                        <span>Edit Job</span>
+                                    </button>
+                                    <button onClick={closeModal} className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-100 rounded-xl transition-all shadow-sm">
+                                        <X size={20} />
+                                    </button>
+                                </div>
                             </div>
-                            <div className="flex items-center space-x-3">
-                                <button
-                                    onClick={() => openEditModal(selectedJob)}
-                                    className="px-5 h-9 bg-white border border-slate-200 hover:border-indigo-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center space-x-2 shadow-sm"
-                                >
-                                    <Edit2 size={14} />
-                                    <span>Edit Job</span>
-                                </button>
-                                <button onClick={closeModal} className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-100 rounded-xl transition-all shadow-sm">
-                                    <X size={20} />
-                                </button>
-                            </div>
-                        </div>
 
-                        {/* Modal Body */}
-                        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                                {/* Left Side */}
-                                <div className="lg:col-span-8 space-y-8">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div className="space-y-4">
-                                            <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-l-4 border-indigo-500 pl-4">General Details</h3>
-                                            <div className="space-y-3">
-                                                <div className="flex items-center space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
-                                                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm">
-                                                        <UserIcon size={18} />
+                            {/* Modal Body */}
+                            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                                    {/* Left Side */}
+                                    <div className="lg:col-span-8 space-y-8">
+                                        <div className="space-y-8">
+                                            <div className="space-y-4">
+                                                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-l-4 border-indigo-500 pl-4">General Details</h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="flex items-center space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
+                                                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm">
+                                                            <UserIcon size={18} />
+                                                        </div>
+                                                        <div className="flex flex-col overflow-hidden">
+                                                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Assigned To</span>
+                                                            <span className="text-sm font-bold text-slate-900 truncate tracking-tight">{selectedJob.staff?.name || "Unassigned"}</span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex flex-col overflow-hidden">
-                                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Assigned To</span>
-                                                        <span className="text-sm font-bold text-slate-900 truncate tracking-tight">{selectedJob.staff?.name || "Unassigned"}</span>
+
+                                                    <div className="flex items-center space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
+                                                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm">
+                                                            <Building2 size={18} />
+                                                        </div>
+                                                        <div className="flex flex-col overflow-hidden">
+                                                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Studio Contact</span>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-bold text-slate-900 truncate tracking-tight">{selectedJob.vendor?.contact_person || "N/A"}</span>
+                                                                {selectedJob.vendor?.email && <span className="text-[10px] text-slate-500 font-bold leading-none mt-0.5">{selectedJob.vendor?.email}</span>}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                            </div>
 
-                                                <div className="flex items-center space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
-                                                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm">
-                                                        <Building2 size={18} />
+                                            <div>
+                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center">
+                                                    <FileText size={16} className="mr-2 text-indigo-500" />
+                                                    Work Description
+                                                </h3>
+                                                <div className="p-6 bg-slate-50/80 rounded-2xl border border-slate-100/50 relative overflow-hidden group">
+                                                    <p className="text-base font-bold text-slate-800 leading-relaxed italic relative z-10 whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                                                        {selectedJob.description || "No description provided."}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-l-4 border-emerald-500 pl-4">Location</h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="flex items-start space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
+                                                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm shrink-0">
+                                                            <MapPin size={18} />
+                                                        </div>
+                                                        <div className="flex flex-col min-w-0 pt-0.5">
+                                                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Source location</span>
+                                                            <span className="text-sm font-bold text-slate-900 tracking-tight whitespace-pre-wrap leading-tight break-words overflow-wrap-anywhere">{selectedJob.data_location || "Pending"}</span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex flex-col overflow-hidden">
-                                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Studio Contact</span>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-bold text-slate-900 truncate tracking-tight">{selectedJob.vendor?.contact_person || "N/A"}</span>
-                                                            {selectedJob.vendor?.email && <span className="text-[10px] text-slate-500 font-bold">{selectedJob.vendor?.email}</span>}
+
+                                                    <div className="flex items-start space-x-4 p-4 bg-indigo-50/30 rounded-2xl border border-indigo-100/20 group transition-all hover:bg-indigo-50">
+                                                        <div className="w-10 h-10 rounded-xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm shrink-0">
+                                                            <ExternalLink size={18} />
+                                                        </div>
+                                                        <div className="flex flex-col min-w-0 pt-0.5">
+                                                            <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Output location</span>
+                                                            <span className="text-sm font-bold text-indigo-900 tracking-tight whitespace-pre-wrap leading-tight break-words overflow-wrap-anywhere">{selectedJob.final_location || "Pending"}</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <div className="space-y-4">
-                                            <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-l-4 border-emerald-500 pl-4">Location</h3>
-                                            <div className="space-y-3">
-                                                <div className="flex items-center space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
-                                                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm">
-                                                        <MapPin size={18} />
-                                                    </div>
-                                                    <div className="flex flex-col overflow-hidden">
-                                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Source location</span>
-                                                        <span className="text-sm font-bold text-slate-900 truncate tracking-tight">{selectedJob.data_location || "Pending"}</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center space-x-4 p-4 bg-indigo-50/30 rounded-2xl border border-indigo-100/20 group transition-all hover:bg-indigo-50">
-                                                    <div className="w-10 h-10 rounded-xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
-                                                        <ExternalLink size={18} />
-                                                    </div>
-                                                    <div className="flex flex-col overflow-hidden">
-                                                        <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Final destination</span>
-                                                        <span className="text-sm font-bold text-indigo-900 truncate tracking-tight">{selectedJob.final_location || "Pending"}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
 
-                                    <div>
-                                        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center">
-                                            <FileText size={16} className="mr-2 text-indigo-500" />
-                                            Work Description
-                                        </h3>
-                                        <div className="p-6 bg-slate-50/80 rounded-2xl border border-slate-100/50 relative overflow-hidden group">
-                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity whitespace-nowrap overflow-hidden">
-                                                <Briefcase size={80} />
-                                            </div>
-                                            <p className="text-base font-bold text-slate-800 leading-relaxed italic relative z-10 whitespace-pre-wrap">
-                                                {selectedJob.description || "No description provided."}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Right Side (Financials & Date) */}
-                                <div className="lg:col-span-4 space-y-6">
-                                    <div className="bg-slate-50/80 rounded-[2rem] border border-slate-100 p-7 space-y-3">
-                                        <div>
-                                            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Production Status</h3>
-                                            <div className="space-y-2">
-                                                <button
-                                                    onClick={() => handleStatusUpdate(selectedJob.id, 'PENDING')}
-                                                    className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' : 'bg-white text-slate-500 border-slate-200'}`}
-                                                >
-                                                    <Clock size={14} />
-                                                    <span className="text-[10px] font-black uppercase tracking-wider">Pending</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleStatusUpdate(selectedJob.id, 'IN_PROGRESS')}
-                                                    className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'IN_PROGRESS' ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white text-slate-500 border-slate-200'}`}
-                                                >
-                                                    <Zap size={14} />
-                                                    <span className="text-[10px] font-black uppercase tracking-wider">In-Progress</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleStatusUpdate(selectedJob.id, 'COMPLETED')}
-                                                    className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-slate-500 border-slate-200'}`}
-                                                >
-                                                    <CheckCircle2 size={14} />
-                                                    <span className="text-[10px] font-black uppercase tracking-wider">Complete</span>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div className="pt-3 border-t border-slate-200/60">
-                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Production Deadline</p>
-                                            <div className="flex items-center space-x-2">
-                                                <Calendar className="text-rose-500" size={16} />
-                                                <p className="text-xl font-black text-rose-600 font-mono tracking-tight">
-                                                    {new Date(selectedJob.job_due_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="pt-3 border-t border-slate-200/60 space-y-3">
-                                            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">Financial Summary</h3>
-                                            <div className="flex justify-between items-end">
-                                                <div>
-                                                    <p className="text-3xl font-black text-slate-900 tracking-tighter">{formatCurrency(selectedJob.amount)}</p>
+                                    {/* Right Side (Financials & Date) */}
+                                    <div className="lg:col-span-4 space-y-6">
+                                        <div className="bg-slate-50/80 rounded-[2rem] border border-slate-100 p-7 space-y-3">
+                                            <div>
+                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Production Status</h3>
+                                                <div className="space-y-2">
+                                                    <button
+                                                        onClick={() => handleStatusUpdate(selectedJob.id, 'PENDING')}
+                                                        className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' : 'bg-white text-slate-500 border-slate-200'}`}
+                                                    >
+                                                        <Clock size={14} />
+                                                        <span className="text-[10px] font-black uppercase tracking-wider">Pending</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleStatusUpdate(selectedJob.id, 'IN_PROGRESS')}
+                                                        className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'IN_PROGRESS' ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white text-slate-500 border-slate-200'}`}
+                                                    >
+                                                        <Zap size={14} />
+                                                        <span className="text-[10px] font-black uppercase tracking-wider">In-Progress</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleStatusUpdate(selectedJob.id, 'COMPLETED')}
+                                                        className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-slate-500 border-slate-200'}`}
+                                                    >
+                                                        <CheckCircle2 size={14} />
+                                                        <span className="text-[10px] font-black uppercase tracking-wider">Complete</span>
+                                                    </button>
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Commission</p>
-                                                    <div className="inline-flex items-center px-2 py-0.5 bg-rose-50 text-rose-600 rounded-lg border border-rose-100 font-black text-sm">
-                                                        -{formatCurrency(selectedJob.commission_amount)}
+                                            </div>
+
+                                            <div className="pt-3 border-t border-slate-200/60">
+                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Production Deadline</p>
+                                                <div className="flex items-center space-x-2">
+                                                    <Calendar className="text-rose-500" size={16} />
+                                                    <p className="text-xl font-black text-rose-600 font-mono tracking-tight">
+                                                        {new Date(selectedJob.job_due_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-3 border-t border-slate-200/60 space-y-3">
+                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">Financial Summary</h3>
+                                                <div className="flex justify-between items-end">
+                                                    <div>
+                                                        <p className="text-3xl font-black text-slate-900 tracking-tighter">{formatCurrency(selectedJob.amount)}</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Commission</p>
+                                                        <div className="inline-flex items-center px-2 py-0.5 bg-rose-50 text-rose-600 rounded-lg border border-rose-100 font-black text-sm">
+                                                            -{formatCurrency(selectedJob.commission_amount)}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div className="pt-3 border-t border-slate-200/40 flex justify-between items-center">
-                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Net Profit</span>
-                                                <span className="text-lg font-black text-indigo-600">{formatCurrency(Number(selectedJob.amount || 0) - Number(selectedJob.commission_amount || 0))}</span>
+                                                <div className="pt-3 border-t border-slate-200/40 flex justify-between items-center">
+                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Net Profit</span>
+                                                    <span className="text-lg font-black text-indigo-600">{formatCurrency(Number(selectedJob.amount || 0) - Number(selectedJob.commission_amount || 0))}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -722,165 +723,165 @@ export default function JobsPage() {
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Create / Edit Modal */}
-            {(showCreateModal || showEditModal) && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={closeModal} />
-                    <div className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col max-h-[95vh] animate-in zoom-in-95 duration-200">
-                        {/* Modal Header */}
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center justify-center shadow-sm text-indigo-600">
-                                    {(selectedJob && showEditModal) ? <Edit2 size={24} /> : <Plus size={24} />}
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">
-                                        {(selectedJob && showEditModal) ? 'Edit Production' : 'Post New Production'}
-                                    </h2>
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Master Workflow Management</p>
-                                </div>
-                            </div>
-                            <button onClick={closeModal} className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-100 rounded-xl transition-all shadow-sm">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        {/* Modal Body */}
-                        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <section className="space-y-5">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <AestheticSelect
-                                            label="Production Studio (Vendor)"
-                                            heightClass="h-11"
-                                            required
-                                            options={vendors.map(v => ({ id: v.id, name: v.studio_name }))}
-                                            value={selectedVendor}
-                                            onChange={setSelectedVendor}
-                                            placeholder="Select Vendor..." />
-                                        <AestheticSelect
-                                            label="Service / Job Type"
-                                            heightClass="h-11"
-                                            required
-                                            options={services.map(s => ({ id: s.id, name: s.name }))}
-                                            value={selectedService}
-                                            onChange={setSelectedService}
-                                            placeholder="Select Service..." />
+            {
+                (showCreateModal || showEditModal) && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={closeModal} />
+                        <div className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col max-h-[95vh] animate-in zoom-in-95 duration-200">
+                            {/* Modal Header */}
+                            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center justify-center shadow-sm text-indigo-600">
+                                        {(selectedJob && showEditModal) ? <Edit2 size={24} /> : <Plus size={24} />}
                                     </div>
+                                    <div>
+                                        <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">
+                                            {(selectedJob && showEditModal) ? 'Edit Production' : 'Post New Production'}
+                                        </h2>
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Master Workflow Management</p>
+                                    </div>
+                                </div>
+                                <button onClick={closeModal} className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-100 rounded-xl transition-all shadow-sm">
+                                    <X size={20} />
+                                </button>
+                            </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
-                                        <AestheticSelect
-                                            label="Assign User"
-                                            heightClass="h-11"
-                                            required
-                                            disabled={!selectedService}
-                                            options={filteredStaffList.map(s => ({ id: s.id, name: s.name }))}
-                                            value={selectedStaff}
-                                            onChange={setSelectedStaff}
-                                            placeholder={selectedService ? 'Select Assigned User...' : 'Choose Service First'} />
+                            {/* Modal Body */}
+                            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    <section className="space-y-5">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                            <AestheticSelect
+                                                label="Production Studio (Vendor)"
+                                                heightClass="h-11"
+                                                required
+                                                options={vendors.map(v => ({ id: v.id, name: v.studio_name }))}
+                                                value={selectedVendor}
+                                                onChange={setSelectedVendor}
+                                                placeholder="Select Vendor..." />
+                                            <AestheticSelect
+                                                label="Service / Job Type"
+                                                heightClass="h-11"
+                                                required
+                                                options={services.map(s => ({ id: s.id, name: s.name }))}
+                                                value={selectedService}
+                                                onChange={setSelectedService}
+                                                placeholder="Select Service..." />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
+                                            <AestheticSelect
+                                                label="Assign User"
+                                                heightClass="h-11"
+                                                required
+                                                disabled={!selectedService}
+                                                options={filteredStaffList.map(s => ({ id: s.id, name: s.name }))}
+                                                value={selectedStaff}
+                                                onChange={setSelectedStaff}
+                                                placeholder={selectedService ? 'Select Assigned User...' : 'Choose Service First'} />
+
+                                            <div>
+                                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block ml-1">Job Due Date <span className="text-rose-500">*</span></label>
+                                                <input
+                                                    type="datetime-local"
+                                                    className="w-full h-8 bg-white border-2 border-slate-100 rounded-full px-4 text-[10px] font-black uppercase tracking-widest text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-50 transition-all duration-300"
+                                                    value={formData.job_due_date}
+                                                    onChange={e => setFormData({ ...formData, job_due_date: e.target.value })}
+                                                    required />
+                                            </div>
+
+                                            <AestheticSelect
+                                                label="Job Status"
+                                                required
+                                                options={[
+                                                    { id: 'PENDING', name: 'PENDING' },
+                                                    { id: 'IN_PROGRESS', name: 'IN-PROGRESS' },
+                                                    { id: 'COMPLETED', name: 'COMPLETE' }
+                                                ]}
+                                                value={formData.status}
+                                                onChange={(val) => setFormData({ ...formData, status: val })} />
+                                        </div>
 
                                         <div>
-                                            <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block ml-1">Job Due Date <span className="text-rose-500">*</span></label>
-                                            <input
-                                                type="datetime-local"
-                                                className="w-full h-8 bg-white border-2 border-slate-100 rounded-full px-4 text-[10px] font-black uppercase tracking-widest text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-50 transition-all duration-300"
-                                                value={formData.job_due_date}
-                                                onChange={e => setFormData({ ...formData, job_due_date: e.target.value })}
+                                            <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Work Description <span className="text-rose-500">*</span></label>
+                                            <textarea
+                                                className="input-aesthetic min-h-[100px] resize-none text-sm p-4"
+                                                placeholder="Provide clear instructions for the staff..."
+                                                value={formData.description}
+                                                onChange={e => setFormData({ ...formData, description: e.target.value })}
                                                 required />
                                         </div>
 
-                                        <AestheticSelect
-                                            label="Job Status"
-                                            required
-                                            options={[
-                                                { id: 'PENDING', name: 'PENDING' },
-                                                { id: 'IN_PROGRESS', name: 'IN-PROGRESS' },
-                                                { id: 'COMPLETED', name: 'COMPLETE' }
-                                            ]}
-                                            value={formData.status}
-                                            onChange={(val) => setFormData({ ...formData, status: val })} />
-                                    </div>
-
-                                    <div>
-                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Work Description <span className="text-rose-500">*</span></label>
-                                        <textarea
-                                            className="input-aesthetic min-h-[100px] resize-none text-sm p-4"
-                                            placeholder="Provide clear instructions for the staff..."
-                                            value={formData.description}
-                                            onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                            required />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <div>
-                                            <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Source location</label>
-                                            <input
-                                                type="text"
-                                                className="input-aesthetic h-12 px-4 text-sm"
-                                                placeholder="Source location..."
-                                                value={formData.data_location}
-                                                onChange={e => setFormData({ ...formData, data_location: e.target.value })} />
-                                        </div>
-
-                                        <div>
-                                            <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Final destination</label>
-                                            <input
-                                                type="text"
-                                                className="input-aesthetic h-12 px-4 text-sm"
-                                                placeholder="Final destination..."
-                                                value={formData.final_location}
-                                                onChange={e => setFormData({ ...formData, final_location: e.target.value })} />
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-6 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
-                                        <div>
-                                            <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Job Total Amount (Base) <span className="text-rose-500">*</span></label>
-                                            <div className="relative">
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">₹</span>
-                                                <input
-                                                    type="number"
-                                                    className="input-aesthetic h-12 pl-10 font-bold text-lg text-slate-900 border-2 border-slate-50"
-                                                    placeholder="0"
-                                                    value={formData.amount || ''}
-                                                    onFocus={(e) => e.target.select()}
-                                                    onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })}
-                                                    required
-                                                    min="0" />
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                            <div>
+                                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Source location</label>
+                                                <textarea
+                                                    className="input-aesthetic min-h-[80px] py-3 px-4 text-sm resize-none"
+                                                    placeholder="Source location details..."
+                                                    value={formData.data_location}
+                                                    onChange={e => setFormData({ ...formData, data_location: e.target.value })} />
                                             </div>
-                                            <div className="mt-2 flex items-center justify-between px-2">
-                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Est. Commission</span>
-                                                <span className="text-xs font-black text-indigo-600">{formatCurrency(calculateCommission(formData.amount, staffPercentage))}</span>
+
+                                            <div>
+                                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Final destination</label>
+                                                <textarea
+                                                    className="input-aesthetic min-h-[80px] py-3 px-4 text-sm resize-none"
+                                                    placeholder="Final destination details..."
+                                                    value={formData.final_location}
+                                                    onChange={e => setFormData({ ...formData, final_location: e.target.value })} />
                                             </div>
                                         </div>
 
-                                        <div className="flex space-x-3">
-                                            <button
-                                                type="button"
-                                                onClick={closeModal}
-                                                className="flex-1 px-5 h-12 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-[1.25rem] font-black text-[11px] uppercase tracking-widest transition-all"
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                disabled={modalLoading || !selectedStaff || !formData.job_due_date}
-                                                className="flex-[2] bg-indigo-600 hover:bg-slate-900 text-white rounded-[1.25rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center h-12 shadow-lg shadow-indigo-100 disabled:opacity-50"
-                                            >
-                                                <Save size={16} className="mr-2" />
-                                                {modalLoading ? 'Processing...' : selectedJob ? 'Update Job' : 'Post Job'}
-                                            </button>
+                                        <div className="pt-6 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
+                                            <div>
+                                                <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Job Total Amount (Base) <span className="text-rose-500">*</span></label>
+                                                <div className="relative">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">₹</span>
+                                                    <input
+                                                        type="number"
+                                                        className="input-aesthetic h-12 pl-10 font-bold text-lg text-slate-900 border-2 border-slate-50"
+                                                        placeholder="0"
+                                                        value={formData.amount || ''}
+                                                        onFocus={(e) => e.target.select()}
+                                                        onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })}
+                                                        required
+                                                        min="0" />
+                                                </div>
+                                                <div className="mt-2 flex items-center justify-between px-2">
+                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Est. Commission</span>
+                                                    <span className="text-xs font-black text-indigo-600">{formatCurrency(calculateCommission(formData.amount, staffPercentage))}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex space-x-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={closeModal}
+                                                    className="flex-1 px-5 h-12 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-[1.25rem] font-black text-[11px] uppercase tracking-widest transition-all"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    type="submit"
+                                                    disabled={modalLoading || !selectedStaff || !formData.job_due_date}
+                                                    className="flex-[2] bg-indigo-600 hover:bg-slate-900 text-white rounded-[1.25rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center h-12 shadow-lg shadow-indigo-100 disabled:opacity-50"
+                                                >
+                                                    <Save size={16} className="mr-2" />
+                                                    {modalLoading ? 'Processing...' : selectedJob ? 'Update Job' : 'Post Job'}
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                </section>
-                            </form>
+                                    </section>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </div>
     )
 }

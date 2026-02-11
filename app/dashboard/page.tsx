@@ -204,10 +204,10 @@ export default function DashboardPage() {
                                 <Link href="/dashboard/admin/jobs/new" className="btn-aesthetic text-center">
                                     Create New Job
                                 </Link>
-                                <Link href="/dashboard/admin/staff/new" className="btn-aesthetic-secondary text-center">
+                                <Link href="/dashboard/admin/staff/new" className="btn-aesthetic text-center">
                                     Add New User
                                 </Link>
-                                <Link href="/dashboard/admin/services" className="btn-aesthetic-secondary text-center">
+                                <Link href="/dashboard/admin/services" className="btn-aesthetic text-center">
                                     Manage Services
                                 </Link>
                             </>
