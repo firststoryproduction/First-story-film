@@ -1,19 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
-  Calendar, 
-  CheckCircle2, 
-  Search, 
-  Clock, 
-  Building2, 
-  Layout, 
-  Zap, 
-  X, 
-  FileText, 
-  MapPin,
-  ExternalLink,
-  ClipboardList 
+import {
+    Calendar,
+    CheckCircle2,
+    Search,
+    Clock,
+    Building2,
+    Layout,
+    Zap,
+    X,
+    FileText,
+    MapPin,
+    ExternalLink,
+    ClipboardList
 } from 'lucide-react'
 import { supabase } from '../../../../lib/supabase'
 import Pagination from '../../../../components/Pagination'
@@ -122,7 +122,7 @@ export default function MyJobsPage() {
 
             if (error) throw error
 
-            setJobs(prevJobs => prevJobs.map(j => 
+            setJobs(prevJobs => prevJobs.map(j =>
                 j.id === jobId ? { ...j, ...updatePayload } : j
             ));
 
@@ -180,7 +180,7 @@ export default function MyJobsPage() {
                 </div>
 
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden">
-                    
+
                     {/* Toolbar Inside Card */}
                     <div className="px-6 py-4 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="relative w-full md:w-[320px] group">
@@ -219,8 +219,8 @@ export default function MyJobsPage() {
                                     </tr>
                                 ) : (
                                     paginatedJobs.map((job) => (
-                                        <tr 
-                                            key={job.id} 
+                                        <tr
+                                            key={job.id}
                                             onClick={() => openViewModal(job)}
                                             className="hover:bg-indigo-50 transition-colors group/row cursor-pointer"
                                         >
@@ -247,9 +247,9 @@ export default function MyJobsPage() {
                                                     job.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' :
                                                         'bg-indigo-600 text-white border-indigo-700'
                                                     }`}>
-                                                    {job.status === 'IN_PROGRESS' ? 'IN-PROGRESS' : 
-                                                     job.status === 'COMPLETED' ? 'COMPLETE' : 
-                                                     job.status}
+                                                    {job.status === 'IN_PROGRESS' ? 'IN-PROGRESS' :
+                                                        job.status === 'COMPLETED' ? 'COMPLETE' :
+                                                            job.status}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-1.5">
@@ -307,7 +307,7 @@ export default function MyJobsPage() {
             {/* View Modal */}
             {showViewModal && selectedJob && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900 backdrop-blur-sm" onClick={closeModal} />
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={closeModal} />
                     <div className="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
                         {/* Modal Header */}
                         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white relative z-10">
@@ -338,10 +338,9 @@ export default function MyJobsPage() {
                                                         <Building2 size={18} />
                                                     </div>
                                                     <div className="flex flex-col overflow-hidden">
-                                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Studio Contact</span>
+                                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Studio Name</span>
                                                         <div className="flex flex-col">
                                                             <span className="text-sm font-bold text-slate-900 truncate tracking-tight">{selectedJob.vendor?.studio_name || "Individual Client"}</span>
-                                                            <span className="text-[10px] text-slate-500 font-bold">Partner Studio</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -377,7 +376,7 @@ export default function MyJobsPage() {
                                                         <ExternalLink size={18} />
                                                     </div>
                                                     <div className="flex flex-col overflow-hidden">
-                                                        <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Output location</span>
+                                                        <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Final destination</span>
                                                         <span className="text-sm font-bold text-indigo-900 truncate tracking-tight">{selectedJob.final_location || 'Pending'}</span>
                                                     </div>
                                                 </div>
@@ -394,7 +393,7 @@ export default function MyJobsPage() {
                                             <FileText className="absolute top-6 right-6 text-slate-200 opacity-20 transition-colors" size={120} />
                                             <div className="relative z-10">
                                                 <div className="bg-white backdrop-blur-sm p-6 rounded-2xl border border-slate-100 shadow-sm">
-                                                    <p className="text-slate-700 font-bold leading-relaxed italic text-lg">
+                                                    <p className="text-slate-700 font-bold leading-relaxed italic text-lg whitespace-pre-wrap">
                                                         &quot;{selectedJob.description || 'No specific instructions provided.'}&quot;
                                                     </p>
                                                 </div>
@@ -409,7 +408,7 @@ export default function MyJobsPage() {
                                         <div>
                                             <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Update Status</h3>
                                             <div className="space-y-2">
-                                                <button 
+                                                <button
                                                     onClick={() => handleUpdateStatus(selectedJob.id, 'PENDING')}
                                                     disabled={actionLoading === selectedJob.id}
                                                     className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500 shadow-md shadow-amber-100' : 'bg-white text-slate-500 border-slate-200 hover:bg-amber-50'}`}
@@ -417,7 +416,7 @@ export default function MyJobsPage() {
                                                     <Clock size={14} />
                                                     <span className="text-[10px] font-black uppercase tracking-wider">Pending</span>
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => handleUpdateStatus(selectedJob.id, 'IN_PROGRESS')}
                                                     disabled={actionLoading === selectedJob.id}
                                                     className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'IN_PROGRESS' ? 'bg-indigo-600 text-white border-indigo-700 shadow-md shadow-indigo-100' : 'bg-white text-slate-500 border-slate-200 hover:bg-indigo-50'}`}
@@ -425,7 +424,7 @@ export default function MyJobsPage() {
                                                     <Zap size={14} />
                                                     <span className="text-[10px] font-black uppercase tracking-wider">In-Progress</span>
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => handleUpdateStatus(selectedJob.id, 'COMPLETED')}
                                                     disabled={actionLoading === selectedJob.id}
                                                     className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600 shadow-md shadow-emerald-100' : 'bg-white text-slate-500 border-slate-200 hover:bg-emerald-50'}`}
@@ -436,7 +435,7 @@ export default function MyJobsPage() {
                                             </div>
                                         </div>
                                         <div className="pt-3 border-t border-slate-200">
-                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Service Context</p>
+                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Job</p>
                                             <p className="text-xl font-black text-slate-900 tracking-tight uppercase">{selectedJob.service?.name}</p>
                                         </div>
                                     </div>

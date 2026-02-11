@@ -48,7 +48,7 @@ export default function StaffPage() {
 
     useEffect(() => {
         let mounted = true;
-        
+
         // Safety timeout
         const timeout = setTimeout(() => {
             if (mounted && loading) {
@@ -61,7 +61,7 @@ export default function StaffPage() {
             try {
                 // Fetch staff and services
                 await Promise.all([fetchStaff(), fetchServices()]);
-                
+
                 if (mounted) {
                     const { data: { user } } = await supabase.auth.getUser();
                     if (user) setCurrentUser(user);
@@ -76,7 +76,7 @@ export default function StaffPage() {
             }
         };
         loadData();
-        return () => { 
+        return () => {
             mounted = false;
             clearTimeout(timeout);
         };
@@ -154,7 +154,7 @@ export default function StaffPage() {
             name: member.name,
             email: member.email,
             mobile: member.mobile,
-            password: '', 
+            password: '',
             role: member.role as any
         })
 
@@ -215,7 +215,7 @@ export default function StaffPage() {
             } else {
                 if (!editingId) return;
                 userId = editingId
-                
+
                 // Update via Admin API to bypass RLS and handle Auth/Public sync
                 const updateResponse = await fetch('/api/admin/update-user', {
                     method: 'POST',
@@ -321,7 +321,7 @@ export default function StaffPage() {
 
                 {/* Main Operations Card */}
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden">
-                    
+
                     {/* Toolbar Inside Card */}
                     <div className="px-6 py-4 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="relative w-full md:w-[320px] group">
@@ -333,8 +333,8 @@ export default function StaffPage() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-10 pr-4 h-9 bg-slate-100/80 border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-500 shadow-inner" />
                         </div>
-                        <button 
-                            onClick={handleOpenCreate} 
+                        <button
+                            onClick={handleOpenCreate}
                             className="w-full md:w-auto px-5 h-9 bg-indigo-600 hover:bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center space-x-2 group shrink-0 shadow-lg shadow-indigo-100"
                         >
                             <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
@@ -350,86 +350,86 @@ export default function StaffPage() {
                             </div>
                         ) : (
                             <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-slate-100/80 border-b border-slate-200">
-                                    <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">User Profile</th>
-                                    <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Email</th>
-                                    <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Mobile Number</th>
-                                    <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 text-center">Role</th>
-                                    <th className="px-6 py-3 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {paginatedStaff.length === 0 && !loading ? (
-                                    <tr>
-                                        <td colSpan={5} className="py-20 text-center">
-                                            <div className="inline-flex p-5 bg-slate-50 rounded-full mb-3">
-                                                <Users size={28} className="text-slate-200" />
-                                            </div>
-                                            <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">No users detected</p>
-                                        </td>
+                                <thead>
+                                    <tr className="bg-slate-100/80 border-b border-slate-200">
+                                        <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">User Profile</th>
+                                        <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Email</th>
+                                        <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Mobile Number</th>
+                                        <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 text-center">Role</th>
+                                        <th className="px-6 py-3 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Actions</th>
                                     </tr>
-                                ) : (
-                                    paginatedStaff.map((member) => (
-                                        <tr 
-                                            key={member.id} 
-                                            onClick={() => router.push(`/dashboard/admin/staff/${member.id}`)}
-                                            className="hover:bg-slate-50/50 transition-colors group/row cursor-pointer"
-                                        >
-                                            <td className="px-6 py-1.5">
-                                                <div className="text-[14px] font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors flex items-center group/name">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-200 mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100" />
-                                                    {member.name}
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {paginatedStaff.length === 0 && !loading ? (
+                                        <tr>
+                                            <td colSpan={5} className="py-20 text-center">
+                                                <div className="inline-flex p-6 bg-slate-50 rounded-full mb-3">
+                                                    <Users size={32} className="text-slate-200" />
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-1.5">
-                                                <div className="text-[11px] text-slate-500 font-bold flex items-center">
-                                                    <Mail size={12} className="mr-2 text-indigo-300" />
-                                                    {member.email}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-1.5">
-                                                <div className="text-[11px] text-slate-500 font-bold flex items-center">
-                                                    <Smartphone size={12} className="mr-2 text-indigo-300" />
-                                                    {member.mobile || 'N/A'}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-1.5 text-center">
-                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border ${member.role === 'ADMIN' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-                                                    member.role === 'MANAGER' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                                        'bg-indigo-50 text-indigo-600 border-indigo-100'
-                                                    }`}>
-                                                    {member.role}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-1.5">
-                                                <div className="flex items-center justify-end space-x-1.5" onClick={(e) => e.stopPropagation()}>
-                                                    <Tooltip text="Edit">
-                                                        <button
-                                                            onClick={() => handleEdit(member)}
-                                                            className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
-                                                        >
-                                                            <Edit2 size={13} />
-                                                        </button>
-                                                    </Tooltip>
-                                                    <Tooltip text="Delete">
-                                                        <button
-                                                            onClick={() => confirmDelete(member)}
-                                                            className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
-                                                        >
-                                                            <Trash2 size={13} />
-                                                        </button>
-                                                    </Tooltip>
-                                                </div>
+                                                <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">No users detected</p>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                    ) : (
+                                        paginatedStaff.map((member) => (
+                                            <tr
+                                                key={member.id}
+                                                onClick={() => router.push(`/dashboard/admin/staff/${member.id}`)}
+                                                className="hover:bg-slate-50/50 transition-colors group/row cursor-pointer"
+                                            >
+                                                <td className="px-6 py-1.5">
+                                                    <div className="text-[14px] font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors flex items-center group/name">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-200 mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100" />
+                                                        {member.name}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-1.5">
+                                                    <div className="text-[11px] text-slate-500 font-bold flex items-center">
+                                                        <Mail size={12} className="mr-2 text-indigo-300" />
+                                                        {member.email}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-1.5">
+                                                    <div className="text-[11px] text-slate-500 font-bold flex items-center">
+                                                        <Smartphone size={12} className="mr-2 text-indigo-300" />
+                                                        {member.mobile || 'N/A'}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-1.5 text-center">
+                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border ${member.role === 'ADMIN' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                                                        member.role === 'MANAGER' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                                            'bg-indigo-50 text-indigo-600 border-indigo-100'
+                                                        }`}>
+                                                        {member.role}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-1.5">
+                                                    <div className="flex items-center justify-end space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                                                        <Tooltip text="Edit">
+                                                            <button
+                                                                onClick={() => handleEdit(member)}
+                                                                className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                            >
+                                                                <Edit2 size={13} />
+                                                            </button>
+                                                        </Tooltip>
+                                                        <Tooltip text="Delete">
+                                                            <button
+                                                                onClick={() => confirmDelete(member)}
+                                                                className="w-7 h-7 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                            >
+                                                                <Trash2 size={13} />
+                                                            </button>
+                                                        </Tooltip>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         )}
                     </div>
-                    
+
                     {/* Pagination Container */}
                     <div className="p-4 border-t border-slate-50 bg-slate-50/20">
                         <Pagination
@@ -462,128 +462,128 @@ export default function StaffPage() {
                                 <div className="space-y-5">
                                     {/* Profile Info */}
                                     <div className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-[9px] font-bold text-slate-500 uppercase mb-1 block ml-2">Full Name</label>
-                                            <input type="text" className="input-aesthetic h-11 py-0 text-sm" placeholder="John Doe" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-[9px] font-bold text-slate-500 uppercase mb-1 block ml-2">Full Name</label>
+                                                <input type="text" className="input-aesthetic h-11 py-0 text-sm" placeholder="John Doe" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-bold text-slate-500 uppercase mb-1 block ml-2">Mobile Number</label>
+                                                <input
+                                                    type="tel"
+                                                    pattern="[0-9]{10}"
+                                                    maxLength={10}
+                                                    className="input-aesthetic h-11 py-0 text-sm"
+                                                    placeholder="10-digit number"
+                                                    value={formData.mobile}
+                                                    onChange={e => {
+                                                        const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 10)
+                                                        setFormData({ ...formData, mobile: val })
+                                                    }}
+                                                    required />
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="text-[9px] font-bold text-slate-500 uppercase mb-1 block ml-2">Mobile Number</label>
-                                            <input
-                                                type="tel"
-                                                pattern="[0-9]{10}"
-                                                maxLength={10}
-                                                className="input-aesthetic h-11 py-0 text-sm"
-                                                placeholder="10-digit number"
-                                                value={formData.mobile}
-                                                onChange={e => {
-                                                    const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 10)
-                                                    setFormData({ ...formData, mobile: val })
-                                                }}
-                                                required />
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-[9px] font-bold text-slate-500 uppercase mb-1 block ml-2">Email Address</label>
+                                                <input type="email" className="input-aesthetic h-11 py-0 text-sm" placeholder="john@example.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-bold text-slate-500 uppercase mb-1 block ml-2">Security Password</label>
+                                                {!showPasswordField && modalMode === 'edit' ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPasswordField(true)}
+                                                        className="w-full h-11 px-6 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest text-indigo-600 hover:bg-white hover:border-indigo-200 transition-all flex items-center justify-center gap-2 group/reset"
+                                                    >
+                                                        <Save size={14} className="group-hover/reset:scale-110 transition-transform" />
+                                                        Reset User Password
+                                                    </button>
+                                                ) : (
+                                                    <input
+                                                        type="password"
+                                                        title="Set password"
+                                                        className="input-aesthetic h-11 py-0 text-sm"
+                                                        placeholder={modalMode === 'create' ? "Set password" : "Enter new password"}
+                                                        value={formData.password}
+                                                        onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                                        required={modalMode === 'create' || (modalMode === 'edit' && showPasswordField)} />
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <AestheticSelect
+                                                    label="Role"
+                                                    heightClass="h-11"
+                                                    value={formData.role}
+                                                    onChange={(val) => setFormData({ ...formData, role: val as any })}
+                                                    options={[
+                                                        { id: 'USER', name: 'Staff / User' },
+                                                        { id: 'MANAGER', name: 'Manager' },
+                                                        { id: 'ADMIN', name: 'Administrator' }
+                                                    ]} />
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-[9px] font-bold text-slate-500 uppercase mb-1 block ml-2">Email Address</label>
-                                            <input type="email" className="input-aesthetic h-11 py-0 text-sm" placeholder="john@example.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
-                                        </div>
-                                        <div>
-                                            <label className="text-[9px] font-bold text-slate-500 uppercase mb-1 block ml-2">Security Password</label>
-                                            {!showPasswordField && modalMode === 'edit' ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowPasswordField(true)}
-                                                    className="w-full h-11 px-6 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest text-indigo-600 hover:bg-white hover:border-indigo-200 transition-all flex items-center justify-center gap-2 group/reset"
-                                                >
-                                                    <Save size={14} className="group-hover/reset:scale-110 transition-transform" />
-                                                    Reset User Password
+                                    {formData.role === 'USER' && (
+                                        <div className="space-y-4 pt-4 border-t border-slate-50">
+                                            <div className="flex justify-between items-center">
+                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-l-2 border-indigo-600 pl-3">Service </p>
+                                                <button type="button" onClick={handleAddCommission} className="text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 flex items-center bg-indigo-50 px-2.5 py-1 rounded-lg">
+                                                    <Plus size={14} className="mr-1" /> Add Service
                                                 </button>
+                                            </div>
+
+                                            {commissions.length === 0 ? (
+                                                <div className="bg-slate-50 rounded-2xl p-6 text-center border border-dashed border-slate-200">
+                                                    <p className="text-xs text-slate-500 font-medium italic">No services configured yet.</p>
+                                                </div>
                                             ) : (
-                                                <input
-                                                    type="password"
-                                                    title="Set password"
-                                                    className="input-aesthetic h-11 py-0 text-sm"
-                                                    placeholder={modalMode === 'create' ? "Set password" : "Enter new password"}
-                                                    value={formData.password}
-                                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                                    required={modalMode === 'create' || (modalMode === 'edit' && showPasswordField)} />
+                                                <div className="max-h-[320px] overflow-y-auto custom-scrollbar pr-2 space-y-3">
+                                                    {commissions.map((comm, index) => (
+                                                        <div key={index} className="bg-white p-4 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4 relative shadow-sm transition-all hover:border-indigo-100">
+                                                            <div>
+                                                                <AestheticSelect
+                                                                    label="Service"
+                                                                    heightClass="h-10"
+                                                                    value={comm.serviceId}
+                                                                    onChange={(val) => updateCommission(index, 'serviceId', val)}
+                                                                    placeholder="Select Service..."
+                                                                    options={services} />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 ml-1">Rate (%)</label>
+                                                                <div className="relative">
+                                                                    <input type="number" step="0.01" className="input-aesthetic h-10 min-h-0 py-0 text-[10px] font-black uppercase tracking-widest bg-white pr-8 border-2 border-slate-100 rounded-full px-4" value={comm.percentage || ''} onFocus={e => e.target.select()} onChange={e => updateCommission(index, 'percentage', e.target.value)} required min="0" max="100" />
+                                                                    <Percent size={10} className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-400" />
+                                                                </div>
+                                                            </div>
+                                                            <button type="button" onClick={() => handleRemoveCommission(index)} className="absolute -top-2 -right-2 w-6 h-6 bg-white shadow-md border border-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:text-rose-500 transition-all z-10">
+                                                                <X size={12} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             )}
                                         </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <AestheticSelect
-                                                label="Role"
-                                                heightClass="h-11"
-                                                value={formData.role}
-                                                onChange={(val) => setFormData({ ...formData, role: val as any })}
-                                                options={[
-                                                    { id: 'USER', name: 'Staff / User' },
-                                                    { id: 'MANAGER', name: 'Manager' },
-                                                    { id: 'ADMIN', name: 'Administrator' }
-                                                ]} />
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
-
-                                {formData.role === 'USER' && (
-                                    <div className="space-y-4 pt-4 border-t border-slate-50">
-                                        <div className="flex justify-between items-center">
-                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-l-2 border-indigo-600 pl-3">Service </p>
-                                            <button type="button" onClick={handleAddCommission} className="text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 flex items-center bg-indigo-50 px-2.5 py-1 rounded-lg">
-                                                <Plus size={14} className="mr-1" /> Add Service
-                                            </button>
-                                        </div>
-
-                                        {commissions.length === 0 ? (
-                                            <div className="bg-slate-50 rounded-2xl p-6 text-center border border-dashed border-slate-200">
-                                                <p className="text-xs text-slate-500 font-medium italic">No services configured yet.</p>
-                                            </div>
-                                        ) : (
-                                            <div className="max-h-[320px] overflow-y-auto custom-scrollbar pr-2 space-y-3">
-                                                {commissions.map((comm, index) => (
-                                                    <div key={index} className="bg-white p-4 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4 relative shadow-sm transition-all hover:border-indigo-100">
-                                                        <div>
-                                                            <AestheticSelect
-                                                                label="Service"
-                                                                heightClass="h-10"
-                                                                value={comm.serviceId}
-                                                                onChange={(val) => updateCommission(index, 'serviceId', val)}
-                                                                placeholder="Select Service..."
-                                                                options={services} />
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 ml-1">Rate (%)</label>
-                                                            <div className="relative">
-                                                                <input type="number" step="0.01" className="input-aesthetic h-10 min-h-0 py-0 text-[10px] font-black uppercase tracking-widest bg-white pr-8 border-2 border-slate-100 rounded-full px-4" value={comm.percentage || ''} onFocus={e => e.target.select()} onChange={e => updateCommission(index, 'percentage', e.target.value)} required min="0" max="100" />
-                                                                <Percent size={10} className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-400" />
-                                                            </div>
-                                                        </div>
-                                                        <button type="button" onClick={() => handleRemoveCommission(index)} className="absolute -top-2 -right-2 w-6 h-6 bg-white shadow-md border border-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:text-rose-500 transition-all z-10">
-                                                            <X size={12} />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
                             </div>
-                        </div>
 
-                        {/* Sticky Button Footer */}
-                        <div className="p-8 md:p-10 py-6 border-t border-slate-50 bg-white">
-                            <button type="submit" disabled={submitting} className="btn-aesthetic w-full h-12 text-xs flex items-center justify-center tracking-widest shadow-lg shadow-indigo-100/50">
-                                <Save size={16} className="mr-2" /> {submitting ? 'Saving...' : (modalMode === 'create' ? 'Save Profile' : 'Update Profile')}
-                            </button>
-                        </div>
-                    </form>
+                            {/* Sticky Button Footer */}
+                            <div className="p-8 md:p-10 py-6 border-t border-slate-50 bg-white">
+                                <button type="submit" disabled={submitting} className="btn-aesthetic w-full h-12 text-xs flex items-center justify-center tracking-widest shadow-lg shadow-indigo-100/50">
+                                    <Save size={16} className="mr-2" /> {submitting ? 'Saving...' : (modalMode === 'create' ? 'Save Profile' : 'Update Profile')}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
-        )}
+            )}
 
             {/* Deletion Confirmation Modal */}
             {showDeleteModal && memberToDelete && (
@@ -597,7 +597,7 @@ export default function StaffPage() {
                             <p className="text-slate-500 text-sm leading-relaxed mb-8">
                                 You are about to permanently remove <span className="font-bold text-slate-900">{memberToDelete.name}</span>'s access. This action cannot be undone.
                             </p>
-                            
+
                             <div className="space-y-3">
                                 <button
                                     onClick={handleDelete}
@@ -624,11 +624,10 @@ export default function StaffPage() {
             {/* Notification Toast */}
             {notification && (
                 <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${
-                        notification.type === 'success' 
-                            ? 'bg-emerald-500 border-emerald-400 text-white' 
-                            : 'bg-rose-500 border-rose-400 text-white'
-                    }`}>
+                    <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${notification.type === 'success'
+                        ? 'bg-emerald-500 border-emerald-400 text-white'
+                        : 'bg-rose-500 border-rose-400 text-white'
+                        }`}>
                         {notification.type === 'success' ? (
                             <CheckCircle size={18} className="text-white" />
                         ) : (

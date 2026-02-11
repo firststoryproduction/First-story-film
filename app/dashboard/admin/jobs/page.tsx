@@ -270,7 +270,7 @@ export default function JobsPage() {
         setSelectedService(job.service_id)
         setSelectedVendor(job.vendor_id || '')
         setSelectedStaff(job.staff_id || '')
-        
+
         // Find commission percentage from stats if possible, or just fetch again
         // For now, let the useEffect handle it when service/staff are set
         setShowEditModal(true)
@@ -295,7 +295,7 @@ export default function JobsPage() {
             console.log(`Updating job ${jobId} to status ${newStatus}`);
             const { error } = await (supabase
                 .from('jobs') as any)
-                .update({ 
+                .update({
                     status: newStatus,
                     updated_at: newStatus === 'COMPLETED' ? new Date().toISOString() : undefined,
                     completed_at: newStatus === 'COMPLETED' ? new Date().toISOString() : undefined,
@@ -307,13 +307,22 @@ export default function JobsPage() {
                 console.error('Supabase Error:', error);
                 throw error;
             }
-            
-            showNotification(`Job marked as ${newStatus.replace('_', ' ')}`)
-            
+
+            const statusLabels: { [key: string]: string } = {
+                'PENDING': 'Pending',
+                'IN_PROGRESS': 'In Progress',
+                'COMPLETED': 'Complete'
+            }
+            showNotification(statusLabels[newStatus] || newStatus)
+
             // Local state update for immediate feedback
-            setJobs(prevJobs => prevJobs.map(j => 
+            setJobs(prevJobs => prevJobs.map(j =>
                 j.id === jobId ? { ...j, status: newStatus } : j
             ));
+
+            if (selectedJob?.id === jobId) {
+                setSelectedJob((prev: any) => prev ? { ...prev, status: newStatus } : null)
+            }
         } catch (error) {
             console.error('Error updating status:', error)
             showNotification('Failed to update status', 'error');
@@ -361,7 +370,7 @@ export default function JobsPage() {
                 </div>
 
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden">
-                    
+
                     {/* Toolbar Inside Card */}
                     <div className="px-6 py-4 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="relative w-full md:w-[320px] group">
@@ -389,138 +398,138 @@ export default function JobsPage() {
                             </div>
                         ) : (
                             <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-slate-100/80 border-b border-slate-200">
-                                    <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Vendor</th>
-                                    <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Job Type</th>
-                                    <th className="pl-4 pr-1 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Work Description</th>
-                                    <th className="pl-1 pr-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Assigned To</th>
-                                    <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Amount</th>
-                                    <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 text-center">Status</th>
-                                    <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Due Date</th>
-                                    <th className="px-4 py-3 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {paginatedJobs.length === 0 && !loading ? (
-                                    <tr>
-                                        <td colSpan={8} className="py-20 text-center">
-                                            <div className="inline-flex p-5 bg-slate-50 rounded-full mb-3">
-                                                <ClipboardList size={28} className="text-slate-200" />
-                                            </div>
-                                            <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">No productions detected</p>
-                                        </td>
+                                <thead>
+                                    <tr className="bg-slate-100/80 border-b border-slate-200">
+                                        <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Vendor</th>
+                                        <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Job Type</th>
+                                        <th className="pl-4 pr-1 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Work Description</th>
+                                        <th className="pl-1 pr-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Assigned To</th>
+                                        <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Amount</th>
+                                        <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 text-center">Status</th>
+                                        <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Due Date</th>
+                                        <th className="px-4 py-3 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Actions</th>
                                     </tr>
-                                ) : (
-                                    paginatedJobs.map((job) => (
-                                        <tr 
-                                            key={job.id} 
-                                            onClick={() => openViewModal(job)}
-                                            className="hover:bg-slate-50/50 transition-colors group/row cursor-pointer"
-                                        >
-                                            <td className="px-4 py-1.5 whitespace-nowrap">
-                                                <div 
-                                                    className="text-[11px] text-slate-500 font-bold flex items-center hover:text-indigo-600 cursor-pointer"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (job.vendor_id) router.push(`/dashboard/admin/vendors/view/${job.vendor_id}`);
-                                                    }}
-                                                >
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-200 mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100" />
-                                                    <Building2 size={12} className="mr-2 text-indigo-300" />
-                                                    {job.vendor?.studio_name || 'N/A'}
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {paginatedJobs.length === 0 && !loading ? (
+                                        <tr>
+                                            <td colSpan={8} className="py-20 text-center">
+                                                <div className="inline-flex p-5 bg-slate-50 rounded-full mb-3">
+                                                    <ClipboardList size={28} className="text-slate-200" />
                                                 </div>
-                                            </td>
-                                            <td className="px-4 py-1.5 whitespace-nowrap">
-                                                <div className="font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors text-[13px] leading-none flex items-center group/name">
-                                                    {job.service?.name}
-                                                </div>
-                                            </td>
-                                            <td className="pl-4 pr-1 py-1.5">
-                                                <div className="text-[12px] text-slate-500 font-bold leading-relaxed max-w-[200px] line-clamp-1 italic">{job.description}</div>
-                                            </td>
-                                            <td className="pl-1 pr-4 py-1.5 whitespace-nowrap">
-                                                <div className="text-[13px] font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors flex items-center">
-                                                    {job.staff?.name || 'Unassigned'}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-1.5 whitespace-nowrap">
-                                                <div className="text-[12px] font-black text-slate-900">{formatCurrency(job.amount)}</div>
-                                                <div className="text-[9px] text-emerald-600 font-black uppercase tracking-wider">Comm: {formatCurrency(job.commission_amount)}</div>
-                                            </td>
-                                            <td className="px-4 py-1.5 text-center whitespace-nowrap">
-                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-sm border ${job.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' :
-                                                    job.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' :
-                                                        'bg-indigo-600 text-white border-indigo-700'
-                                                    }`}>
-                                                    {job.status === 'IN_PROGRESS' ? 'IN-PROGRESS' : 
-                                                     job.status === 'COMPLETED' ? 'COMPLETE' : 
-                                                     job.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-1.5 whitespace-nowrap">
-                                                <div className="text-[11px] text-slate-500 font-bold flex items-center">
-                                                    <Calendar size={13} className="mr-2 text-indigo-300" /> {new Date(job.job_due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-1.5">
-                                                <div className="flex items-center justify-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
-                                                    <Tooltip text="Pending">
-                                                        <button
-                                                            onClick={() => handleStatusUpdate(job.id, 'PENDING')}
-                                                            className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'PENDING' ? 'bg-[#F59E0B] text-white border-[#F59E0B]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#F59E0B] hover:border-amber-200'}`}
-                                                        >
-                                                            <Clock size={14} strokeWidth={2.5} />
-                                                        </button>
-                                                    </Tooltip>
-
-                                                    <Tooltip text="In-Progress">
-                                                        <button
-                                                            onClick={() => handleStatusUpdate(job.id, 'IN_PROGRESS')}
-                                                            className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'IN_PROGRESS' ? 'bg-[#4F46E5] text-white border-[#4F46E5]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#4F46E5] hover:border-indigo-200'}`}
-                                                        >
-                                                            <Zap size={14} strokeWidth={2.5} />
-                                                        </button>
-                                                    </Tooltip>
-
-                                                    <Tooltip text="Complete">
-                                                        <button
-                                                            onClick={() => handleStatusUpdate(job.id, 'COMPLETED')}
-                                                            className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'COMPLETED' ? 'bg-[#10B981] text-white border-[#10B981]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#10B981] hover:border-emerald-200'}`}
-                                                        >
-                                                            <CheckCircle2 size={14} strokeWidth={2.5} />
-                                                        </button>
-                                                    </Tooltip>
-
-                                                    <div className="w-[1px] h-4 bg-slate-100 mx-1" />
-
-                                                    <Tooltip text="Edit">
-                                                        <button
-                                                            onClick={() => openEditModal(job)}
-                                                            className="w-8 h-8 flex items-center justify-center bg-white text-slate-500 hover:text-white hover:bg-slate-900 rounded-lg transition-all border border-slate-100 hover:border-slate-900 shadow-sm"
-                                                        >
-                                                            <Edit2 size={14} strokeWidth={2.5} />
-                                                        </button>
-                                                    </Tooltip>
-
-                                                    <Tooltip text="Delete">
-                                                        <button
-                                                            onClick={() => handleDelete(job.id)}
-                                                            className="w-8 h-8 flex items-center justify-center bg-white text-rose-500 hover:text-white hover:bg-rose-500 rounded-lg transition-all border border-slate-100 hover:border-rose-500 shadow-sm"
-                                                        >
-                                                            <Trash2 size={14} strokeWidth={2.5} />
-                                                        </button>
-                                                    </Tooltip>
-                                                </div>
+                                                <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">No productions detected</p>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                    ) : (
+                                        paginatedJobs.map((job) => (
+                                            <tr
+                                                key={job.id}
+                                                onClick={() => openViewModal(job)}
+                                                className="hover:bg-slate-50/50 transition-colors group/row cursor-pointer"
+                                            >
+                                                <td className="px-4 py-1.5 whitespace-nowrap">
+                                                    <div
+                                                        className="text-[11px] text-slate-500 font-bold flex items-center hover:text-indigo-600 cursor-pointer"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (job.vendor_id) router.push(`/dashboard/admin/vendors/view/${job.vendor_id}`);
+                                                        }}
+                                                    >
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-200 mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100" />
+                                                        <Building2 size={12} className="mr-2 text-indigo-300" />
+                                                        {job.vendor?.studio_name || 'N/A'}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-1.5 whitespace-nowrap">
+                                                    <div className="font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors text-[13px] leading-none flex items-center group/name">
+                                                        {job.service?.name}
+                                                    </div>
+                                                </td>
+                                                <td className="pl-4 pr-1 py-1.5">
+                                                    <div className="text-[12px] text-slate-500 font-bold leading-relaxed max-w-[200px] line-clamp-1 italic">{job.description}</div>
+                                                </td>
+                                                <td className="pl-1 pr-4 py-1.5 whitespace-nowrap">
+                                                    <div className="text-[13px] font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors flex items-center">
+                                                        {job.staff?.name || 'Unassigned'}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-1.5 whitespace-nowrap">
+                                                    <div className="text-[12px] font-black text-slate-900">{formatCurrency(job.amount)}</div>
+                                                    <div className="text-[9px] text-emerald-600 font-black uppercase tracking-wider">Comm: {formatCurrency(job.commission_amount)}</div>
+                                                </td>
+                                                <td className="px-4 py-1.5 text-center whitespace-nowrap">
+                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-sm border ${job.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' :
+                                                        job.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' :
+                                                            'bg-indigo-600 text-white border-indigo-700'
+                                                        }`}>
+                                                        {job.status === 'IN_PROGRESS' ? 'IN-PROGRESS' :
+                                                            job.status === 'COMPLETED' ? 'COMPLETE' :
+                                                                job.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-1.5 whitespace-nowrap">
+                                                    <div className="text-[11px] text-slate-500 font-bold flex items-center">
+                                                        <Calendar size={13} className="mr-2 text-indigo-300" /> {new Date(job.job_due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-1.5">
+                                                    <div className="flex items-center justify-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                                                        <Tooltip text="Pending">
+                                                            <button
+                                                                onClick={() => handleStatusUpdate(job.id, 'PENDING')}
+                                                                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'PENDING' ? 'bg-[#F59E0B] text-white border-[#F59E0B]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#F59E0B] hover:border-amber-200'}`}
+                                                            >
+                                                                <Clock size={14} strokeWidth={2.5} />
+                                                            </button>
+                                                        </Tooltip>
+
+                                                        <Tooltip text="In-Progress">
+                                                            <button
+                                                                onClick={() => handleStatusUpdate(job.id, 'IN_PROGRESS')}
+                                                                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'IN_PROGRESS' ? 'bg-[#4F46E5] text-white border-[#4F46E5]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#4F46E5] hover:border-indigo-200'}`}
+                                                            >
+                                                                <Zap size={14} strokeWidth={2.5} />
+                                                            </button>
+                                                        </Tooltip>
+
+                                                        <Tooltip text="Complete">
+                                                            <button
+                                                                onClick={() => handleStatusUpdate(job.id, 'COMPLETED')}
+                                                                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'COMPLETED' ? 'bg-[#10B981] text-white border-[#10B981]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#10B981] hover:border-emerald-200'}`}
+                                                            >
+                                                                <CheckCircle2 size={14} strokeWidth={2.5} />
+                                                            </button>
+                                                        </Tooltip>
+
+                                                        <div className="w-[1px] h-4 bg-slate-100 mx-1" />
+
+                                                        <Tooltip text="Edit">
+                                                            <button
+                                                                onClick={() => openEditModal(job)}
+                                                                className="w-8 h-8 flex items-center justify-center bg-white text-slate-500 hover:text-white hover:bg-slate-900 rounded-lg transition-all border border-slate-100 hover:border-slate-900 shadow-sm"
+                                                            >
+                                                                <Edit2 size={14} strokeWidth={2.5} />
+                                                            </button>
+                                                        </Tooltip>
+
+                                                        <Tooltip text="Delete">
+                                                            <button
+                                                                onClick={() => handleDelete(job.id)}
+                                                                className="w-8 h-8 flex items-center justify-center bg-white text-rose-500 hover:text-white hover:bg-rose-500 rounded-lg transition-all border border-slate-100 hover:border-rose-500 shadow-sm"
+                                                            >
+                                                                <Trash2 size={14} strokeWidth={2.5} />
+                                                            </button>
+                                                        </Tooltip>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         )}
                     </div>
-                    
+
                     <div className="p-4 border-t border-slate-50 bg-slate-50/20">
                         <Pagination
                             currentPage={currentPage}
@@ -561,7 +570,7 @@ export default function JobsPage() {
                                 </div>
                             </div>
                             <div className="flex items-center space-x-3">
-                                <button 
+                                <button
                                     onClick={() => openEditModal(selectedJob)}
                                     className="px-5 h-9 bg-white border border-slate-200 hover:border-indigo-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center space-x-2 shadow-sm"
                                 >
@@ -626,7 +635,7 @@ export default function JobsPage() {
                                                         <ExternalLink size={18} />
                                                     </div>
                                                     <div className="flex flex-col overflow-hidden">
-                                                        <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Output location</span>
+                                                        <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Final destination</span>
                                                         <span className="text-sm font-bold text-indigo-900 truncate tracking-tight">{selectedJob.final_location || "Pending"}</span>
                                                     </div>
                                                 </div>
@@ -643,7 +652,7 @@ export default function JobsPage() {
                                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity whitespace-nowrap overflow-hidden">
                                                 <Briefcase size={80} />
                                             </div>
-                                            <p className="text-base font-bold text-slate-800 leading-relaxed italic relative z-10">
+                                            <p className="text-base font-bold text-slate-800 leading-relaxed italic relative z-10 whitespace-pre-wrap">
                                                 {selectedJob.description || "No description provided."}
                                             </p>
                                         </div>
@@ -656,21 +665,21 @@ export default function JobsPage() {
                                         <div>
                                             <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Production Status</h3>
                                             <div className="space-y-2">
-                                                <button 
+                                                <button
                                                     onClick={() => handleStatusUpdate(selectedJob.id, 'PENDING')}
                                                     className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' : 'bg-white text-slate-500 border-slate-200'}`}
                                                 >
                                                     <Clock size={14} />
                                                     <span className="text-[10px] font-black uppercase tracking-wider">Pending</span>
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => handleStatusUpdate(selectedJob.id, 'IN_PROGRESS')}
                                                     className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'IN_PROGRESS' ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white text-slate-500 border-slate-200'}`}
                                                 >
                                                     <Zap size={14} />
                                                     <span className="text-[10px] font-black uppercase tracking-wider">In-Progress</span>
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => handleStatusUpdate(selectedJob.id, 'COMPLETED')}
                                                     className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-slate-500 border-slate-200'}`}
                                                 >
@@ -811,17 +820,17 @@ export default function JobsPage() {
                                             <input
                                                 type="text"
                                                 className="input-aesthetic h-12 px-4 text-sm"
-                                                placeholder="Source folder path..."
+                                                placeholder="Source location..."
                                                 value={formData.data_location}
                                                 onChange={e => setFormData({ ...formData, data_location: e.target.value })} />
                                         </div>
 
                                         <div>
-                                            <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Output location</label>
+                                            <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Final destination</label>
                                             <input
                                                 type="text"
                                                 className="input-aesthetic h-12 px-4 text-sm"
-                                                placeholder="Final destination path..."
+                                                placeholder="Final destination..."
                                                 value={formData.final_location}
                                                 onChange={e => setFormData({ ...formData, final_location: e.target.value })} />
                                         </div>

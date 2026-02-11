@@ -208,7 +208,7 @@ export default function EditJobPage() {
                                     <span className="text-xs font-black text-indigo-600">{formatCurrency(commission)}</span>
                                 </div>
                             </div>
-                            
+
                             <div className="space-y-5">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <AestheticSelect
@@ -279,22 +279,22 @@ export default function EditJobPage() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
-                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Data Location (Source)</label>
+                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Source location</label>
                                         <input
                                             type="text"
                                             className="input-aesthetic h-12 px-4 text-sm"
-                                            placeholder="Source folder path..."
+                                            placeholder="Source location..."
                                             value={formData.data_location}
                                             onChange={e => setFormData({ ...formData, data_location: e.target.value })}
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Final Location (Destination)</label>
+                                        <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Final destination</label>
                                         <input
                                             type="text"
                                             className="input-aesthetic h-12 px-4 text-sm"
-                                            placeholder="Final destination path..."
+                                            placeholder="Final destination..."
                                             value={formData.final_location}
                                             onChange={e => setFormData({ ...formData, final_location: e.target.value })}
                                         />
@@ -337,11 +337,10 @@ export default function EditJobPage() {
             {/* Notification Toast */}
             {notification && (
                 <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${
-                        notification.type === 'success' 
-                            ? 'bg-emerald-500 border-emerald-400 text-white' 
+                    <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${notification.type === 'success'
+                            ? 'bg-emerald-500 border-emerald-400 text-white'
                             : 'bg-rose-500 border-rose-400 text-white'
-                    }`}>
+                        }`}>
                         {notification.type === 'success' ? (
                             <CheckCircle size={18} className="text-white" />
                         ) : (

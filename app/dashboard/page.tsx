@@ -67,9 +67,9 @@ export default function DashboardPage() {
 
                     // 2. Prepare queries based on role
                     let jobsQuery = (supabase as any).from('jobs').select('status', { count: 'exact' })
-                    
+
                     const isSystemAdmin = profileData && profileData.role === 'ADMIN'
-                    let usersQuery = isSystemAdmin 
+                    let usersQuery = isSystemAdmin
                         ? (supabase as any).from('users').select('id', { count: 'exact', head: true })
                         : null
 
@@ -135,11 +135,6 @@ export default function DashboardPage() {
                     <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 font-heading tracking-tight mb-2 leading-tight">
                         Welcome back, <span className="text-indigo-600">{userName || 'Studio Member'}!</span>
                     </h2>
-                    <p className="text-slate-500 text-sm font-medium mt-1">
-                        {isAdmin
-                            ? 'Manage your team, jobs, and track commissions'
-                            : 'View and manage your assigned jobs'}
-                    </p>
                 </div>
 
                 {/* Stats Grid */}

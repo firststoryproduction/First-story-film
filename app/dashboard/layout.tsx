@@ -35,7 +35,7 @@ export default function DashboardLayout({
     const fetchProfile = async (userId: string) => {
         // Prevent redundant fetches if we already have the profile for this user
         if (session?.user?.id === userId && userRole !== null) return;
-        
+
         try {
             const { data: profileList, error } = await supabase
                 .from('users')
@@ -100,7 +100,7 @@ export default function DashboardLayout({
                 setUserRole(null)
                 router.push('/login')
             }
-            
+
             // Never set loading back to true here
             setLoading(false)
         })
@@ -225,9 +225,10 @@ export default function DashboardLayout({
                             <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
                         </div>
                         <div className="overflow-hidden flex-1">
-                            <p className="font-bold text-[10px] text-slate-900 truncate uppercase tracking-tight">
+                            <p className="font-bold text-[10px] text-slate-900 truncate uppercase tracking-tight leading-none mb-1">
                                 {userName || 'User'}
                             </p>
+                            <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{userRole}</p>
                         </div>
                         <div className={`text-slate-300 transition-transform duration-300 ${showLogout ? 'rotate-180 text-indigo-500' : ''}`}>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
