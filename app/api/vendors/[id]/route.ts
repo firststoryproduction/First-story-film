@@ -48,7 +48,7 @@ async function verifyAuth(request: Request) {
 // GET: Fetch single vendor by ID
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const authResult = await verifyAuth(request)
@@ -57,10 +57,11 @@ export async function GET(
         }
 
         const { supabaseAdmin } = authResult
+        const { id } = await params
         const { data, error } = await supabaseAdmin
             .from('vendors')
             .select('*')
-            .eq('id', params.id)
+            .eq('id', id)
             .single()
 
         if (error) {
@@ -80,7 +81,7 @@ export async function GET(
 // PUT: Update vendor
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const authResult = await verifyAuth(request)
@@ -89,6 +90,7 @@ export async function PUT(
         }
 
         const { supabaseAdmin } = authResult
+        const { id } = await params
         const body = await request.json()
 
         // Validate mobile if provided
@@ -124,7 +126,7 @@ export async function PUT(
         const { data, error } = await supabaseAdmin
             .from('vendors')
             .update(updateData)
-            .eq('id', params.id)
+            .eq('id', id)
             .select()
             .single()
 
@@ -145,7 +147,7 @@ export async function PUT(
 // DELETE: Delete vendor
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const authResult = await verifyAuth(request)
@@ -154,10 +156,11 @@ export async function DELETE(
         }
 
         const { supabaseAdmin } = authResult
+        const { id } = await params
         const { error } = await supabaseAdmin
             .from('vendors')
             .delete()
-            .eq('id', params.id)
+            .eq('id', id)
 
         if (error) {
             // Check if it's a foreign key constraint error
