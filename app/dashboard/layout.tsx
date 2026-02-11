@@ -260,28 +260,26 @@ export default function DashboardLayout({
                                         console.log('🔑 Access Token:', session?.access_token || 'No token found')
                                         console.log('📋 Full Session:', session)
                                         
-                                        // Sign out from Supabase
+                                        // Start sign out in background (don't wait for it)
                                         console.log('🚪 Attempting to sign out...')
-                                        const { error: signOutError } = await supabase.auth.signOut()
+                                        supabase.auth.signOut().then(({ error: signOutError }) => {
+                                            if (signOutError) {
+                                                console.error('❌ Sign out error:', signOutError)
+                                            } else {
+                                                console.log('✅ Sign out successful')
+                                            }
+                                        }).catch((error) => {
+                                            console.error('❌ Sign out catch error:', error)
+                                        })
                                         
-                                        if (signOutError) {
-                                            console.error('❌ Sign out error:', signOutError)
-                                        } else {
-                                            console.log('✅ Sign out successful')
-                                        }
-                                        
-                                        // Force redirect using window.location for reliability
+                                        // Force redirect immediately (don't wait for signOut to complete)
                                         console.log('🔄 Redirecting to login page...')
                                         window.location.href = '/login?message=Signed out successfully'
                                         
-                                        // Fallback redirect using router
-                                        setTimeout(() => {
-                                            router.push('/login?message=Signed out successfully')
-                                            router.refresh()
-                                        }, 100)
                                     } catch (error) {
                                         console.error('❌ Logout error:', error)
-                                        // Even if there's an error, try to redirect
+                                        // Even if there's an error, redirect immediately
+                                        console.log('🔄 Force redirecting to login page...')
                                         window.location.href = '/login?message=Signed out successfully'
                                     }
                                 }}
