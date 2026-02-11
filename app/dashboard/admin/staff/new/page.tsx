@@ -33,12 +33,36 @@ export default function NewUserPage() {
     const [commissions, setCommissions] = useState<{ serviceId: string, percentage: number }[]>([])
 
     useEffect(() => {
+        let mounted = true;
+
+        const timeout = setTimeout(() => {
+            if (mounted && loading) {
+                console.warn('NewUserPage: Loading timeout triggered');
+                setLoading(false);
+            }
+        }, 5000);
+
         const init = async () => {
-            const { data: { user } } = await supabase.auth.getUser()
-            setCurrentUser(user)
-            fetchServices()
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (mounted) {
+                    setCurrentUser(user);
+                    await fetchServices();
+                }
+            } catch (err) {
+                console.error('NewUserPage: Init error', err);
+            } finally {
+                if (mounted) {
+                    setLoading(false);
+                    clearTimeout(timeout);
+                }
+            }
         }
         init()
+        return () => {
+            mounted = false;
+            clearTimeout(timeout);
+        };
     }, [router])
 
     const fetchServices = async () => {
@@ -308,11 +332,10 @@ export default function NewUserPage() {
             {/* Notification Toast */}
             {notification && (
                 <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${
-                        notification.type === 'success' 
-                            ? 'bg-emerald-500 border-emerald-400 text-white' 
+                    <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${notification.type === 'success'
+                            ? 'bg-emerald-500 border-emerald-400 text-white'
                             : 'bg-rose-500 border-rose-400 text-white'
-                    }`}>
+                        }`}>
                         {notification.type === 'success' ? (
                             <CheckCircle size={18} className="text-white" />
                         ) : (

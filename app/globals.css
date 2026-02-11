@@ -31,6 +31,11 @@
 }
 
 @layer base {
+  html {
+    font-size: 110%;
+    /* Increased base size to ~17.6px */
+  }
+
   body {
     background: #f1f5f9;
     color: #0f172a;

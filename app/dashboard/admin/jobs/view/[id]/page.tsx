@@ -3,19 +3,19 @@
 import { useState, useEffect, use } from "react"
 import { supabase } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
-import { 
-    ClipboardList, 
-    Building2, 
-    User, 
-    Calendar, 
-    ArrowLeft, 
-    DollarSign, 
-    ExternalLink, 
-    Clock, 
-    CheckCircle2, 
-    Zap, 
-    MapPin, 
-    FileText, 
+import {
+    ClipboardList,
+    Building2,
+    User,
+    Calendar,
+    ArrowLeft,
+    DollarSign,
+    ExternalLink,
+    Clock,
+    CheckCircle2,
+    Zap,
+    MapPin,
+    FileText,
     Edit2,
     Briefcase,
     Shield,
@@ -52,12 +52,33 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     }
 
     useEffect(() => {
-        if (id) fetchJob()
+        let mounted = true;
+
+        const timeout = setTimeout(() => {
+            if (mounted && loading) {
+                console.warn('JobDetailPage: Loading timeout triggered');
+                setLoading(false);
+            }
+        }, 5000);
+
+        if (id) {
+            fetchJob().then(() => {
+                if (mounted) {
+                    setLoading(false);
+                    clearTimeout(timeout);
+                }
+            });
+        }
+
+        return () => {
+            mounted = false;
+            clearTimeout(timeout);
+        };
     }, [id])
 
     const handleStatusUpdate = async (newStatus: string) => {
         try {
-            const updates: any = { 
+            const updates: any = {
                 status: newStatus,
                 updated_at: new Date().toISOString()
             }
@@ -90,7 +111,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         </div>
     )
 
-    const formatCurrency = (amt: any) => 
+    const formatCurrency = (amt: any) =>
         new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Number(amt || 0))
 
     return (
@@ -98,7 +119,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             <div className="w-full px-4 py-6 lg:px-8">
                 {/* Header Section */}
                 <div className="mb-6 space-y-4">
-                    <button 
+                    <button
                         onClick={() => router.back()}
                         className="group flex items-center space-x-2 text-slate-500 hover:text-indigo-600 transition-colors"
                     >
@@ -118,11 +139,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                     <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight leading-none">
                                         {job.service?.name}
                                     </h1>
-                                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm ${
-                                        job.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' :
-                                        job.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' :
-                                        'bg-indigo-600 text-white border-indigo-700'
-                                    }`}>
+                                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm ${job.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' :
+                                            job.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' :
+                                                'bg-indigo-600 text-white border-indigo-700'
+                                        }`}>
                                         {job.status}
                                     </span>
                                 </div>
@@ -134,7 +154,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                         </div>
 
                         <div className="flex items-center space-x-4">
-                            <button 
+                            <button
                                 onClick={() => router.push(`/dashboard/admin/jobs/edit/${job.id}`)}
                                 className="px-6 h-10 bg-white border border-slate-200 hover:border-indigo-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center space-x-2 shadow-sm"
                             >
@@ -152,21 +172,21 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                         <div>
                             <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Status</h2>
                             <div className="bg-white p-1 rounded-2xl flex items-center shadow-inner border border-slate-200 w-fit">
-                                <button 
+                                <button
                                     onClick={() => handleStatusUpdate('PENDING')}
                                     className={`py-2 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 ${job.status === 'PENDING' ? 'bg-amber-400 text-white shadow-lg' : 'hover:bg-slate-50 text-slate-500 font-bold'}`}
                                 >
                                     <Clock size={14} />
                                     <span className="text-[10px] font-black uppercase tracking-wider whitespace-nowrap">Pending</span>
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => handleStatusUpdate('IN_PROGRESS')}
                                     className={`py-2 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 ${job.status === 'IN_PROGRESS' ? 'bg-indigo-600 text-white shadow-lg' : 'hover:bg-slate-50 text-slate-500 font-bold'}`}
                                 >
                                     <Zap size={14} />
                                     <span className="text-[10px] font-black uppercase tracking-wider whitespace-nowrap">In-Progress</span>
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => handleStatusUpdate('COMPLETED')}
                                     className={`py-2 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 ${job.status === 'COMPLETED' ? 'bg-emerald-500 text-white shadow-lg' : 'hover:bg-slate-50 text-slate-500 font-bold'}`}
                                 >
@@ -193,7 +213,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                     Work Description
                                 </h3>
                                 <div className="p-6 bg-slate-50/80 rounded-2xl border border-slate-100/50">
-                                    <p className="text-lg font-bold text-slate-800 leading-relaxed italic">
+                                    <p className="text-lg font-bold text-slate-800 leading-relaxed italic whitespace-pre-wrap break-words overflow-wrap-anywhere">
                                         {job.description || "No description provided."}
                                     </p>
                                 </div>
@@ -227,23 +247,23 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                                 <div className="space-y-4">
                                     <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-l-4 border-emerald-500 pl-4">Location</h3>
                                     <div className="space-y-3">
-                                        <div className="flex items-center space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
-                                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm">
+                                        <div className="flex items-start space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
+                                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm shrink-0">
                                                 <MapPin size={18} />
                                             </div>
-                                            <div className="flex flex-col overflow-hidden">
+                                            <div className="flex flex-col overflow-hidden min-w-0">
                                                 <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Source location</span>
-                                                <span className="text-sm font-bold text-slate-900 truncate">{job.data_location || "Pending"}</span>
+                                                <span className="text-sm font-bold text-slate-900 break-words whitespace-pre-wrap overflow-wrap-anywhere">{job.data_location || "Pending"}</span>
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center space-x-4 p-4 bg-indigo-50/30 rounded-2xl border border-indigo-100/20 group transition-all hover:bg-indigo-50">
-                                            <div className="w-10 h-10 rounded-xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
+                                        <div className="flex items-start space-x-4 p-4 bg-indigo-50/30 rounded-2xl border border-indigo-100/20 group transition-all hover:bg-indigo-50">
+                                            <div className="w-10 h-10 rounded-xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm shrink-0">
                                                 <ExternalLink size={18} />
                                             </div>
-                                            <div className="flex flex-col overflow-hidden">
+                                            <div className="flex flex-col overflow-hidden min-w-0">
                                                 <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Output location</span>
-                                                <span className="text-sm font-bold text-indigo-900 truncate">{job.final_location || "Pending"}</span>
+                                                <span className="text-sm font-bold text-indigo-900 break-words whitespace-pre-wrap overflow-wrap-anywhere">{job.final_location || "Pending"}</span>
                                             </div>
                                         </div>
                                     </div>

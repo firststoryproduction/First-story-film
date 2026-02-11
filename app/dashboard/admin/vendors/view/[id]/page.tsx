@@ -106,12 +106,32 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
         } catch (error) {
             console.error("Error fetching vendor details:", error)
         } finally {
-            setLoading(false)
+            // setLoading(false) // This line will be handled by the useEffect's then block or timeout
         }
     }
 
     useEffect(() => {
-        if (id) fetchData()
+        let mounted = true;
+
+        const timeout = setTimeout(() => {
+            if (mounted && loading) {
+                console.warn('VendorDetailPage: Loading timeout triggered');
+                setLoading(false);
+            }
+        }, 5000);
+
+        fetchData().then(() => {
+            if (mounted) {
+                setLoading(false);
+                clearTimeout(timeout);
+            }
+        });
+
+        return () => {
+            mounted = false;
+            clearTimeout(timeout);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id])
 
     if (loading) return <Spinner className="py-24" />

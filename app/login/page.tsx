@@ -31,19 +31,56 @@ function LoginForm() {
         setLoading(true)
 
         try {
-            const { error } = await supabase.auth.signInWithPassword({
+            console.log('🔐 Login attempt:', { email, passwordLength: password.length })
+            
+            const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             })
 
+            console.log('📊 Login response:', { data, error })
+
             if (error) {
-                setError(error.message)
-            } else {
-                router.push('/dashboard')
-                router.refresh()
+                console.error('❌ Login error:', error)
+                setError(`${error.message} (Code: ${error.code || 'unknown'})`)
+                return
             }
-        } catch (err) {
-            setError('An error occurred. Please try again.')
+
+            // Check if we actually got a session
+            if (!data.session || !data.user) {
+                console.error('❌ No session created:', data)
+                setError('Login failed: No session created. Please check if email is confirmed.')
+                return
+            }
+
+            console.log('✅ Login successful, user:', data.user.email)
+            
+            // Wait a bit for session to be properly set in cookies
+            await new Promise(resolve => setTimeout(resolve, 500))
+            
+            // Verify session before redirect
+            const { data: { session } } = await supabase.auth.getSession()
+            console.log('🔍 Session check:', session?.user?.email)
+            
+            if (session) {
+                console.log('✅ Session confirmed, redirecting...')
+                console.log('🚀 Attempting navigation to /dashboard')
+                
+                // Force navigation with replace instead of push
+                window.location.href = '/dashboard'
+                
+                // Fallback to router if window.location doesn't work
+                setTimeout(() => {
+                    router.push('/dashboard')
+                    router.refresh()
+                }, 100)
+            } else {
+                console.error('❌ Session not found after login')
+                setError('Login succeeded but session not created. Please try again.')
+            }
+        } catch (err: any) {
+            console.error('❌ Unexpected error:', err)
+            setError(`Error: ${err.message || 'An error occurred. Please try again.'}`)
         } finally {
             setLoading(false)
         }

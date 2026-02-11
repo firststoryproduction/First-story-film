@@ -46,21 +46,20 @@ export default function StaffPage() {
     const [commissions, setCommissions] = useState<{ serviceId: string, percentage: number }[]>([])
     const [showPasswordField, setShowPasswordField] = useState(false)
 
+
+    // Single initialization effect - runs once on mount
     useEffect(() => {
         let mounted = true;
 
-        // Safety timeout
-        const timeout = setTimeout(() => {
-            if (mounted && loading) {
-                console.warn('StaffPage: Loading timeout triggered');
-                setLoading(false);
-            }
-        }, 5000);
-
-        const loadData = async () => {
+        const init = async () => {
             try {
-                // Fetch staff and services
-                await Promise.all([fetchStaff(), fetchServices()]);
+                if (!mounted) return;
+
+                // Run fetches in parallel using Promise.allSettled to avoid one blocking another
+                await Promise.allSettled([
+                    fetchServices(),
+                    fetchStaff()
+                ]);
 
                 if (mounted) {
                     const { data: { user } } = await supabase.auth.getUser();
@@ -71,20 +70,36 @@ export default function StaffPage() {
             } finally {
                 if (mounted) {
                     setLoading(false);
-                    clearTimeout(timeout);
                 }
             }
         };
-        loadData();
+
+        // Refetch data when tab becomes visible (user returns from another website/tab)
+        const handleVisibilityChange = () => {
+            if (!document.hidden && mounted) {
+                console.log('🔄 Tab visible - refreshing staff data...');
+                fetchStaff();
+            }
+        };
+
+        init();
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
         return () => {
             mounted = false;
-            clearTimeout(timeout);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
-    }, []);
+    }, []); // Only run once on mount
 
+    // Re-fetch when pagination or search changes
     useEffect(() => {
-        fetchStaff()
-    }, [currentPage, searchTerm])
+        // Skip initial render (handled by init effect above)
+        if (loading) return;
+        
+        setLoading(true);
+        fetchStaff();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, searchTerm]);
 
     const fetchServices = async () => {
         try {
@@ -95,7 +110,6 @@ export default function StaffPage() {
 
     const fetchStaff = async () => {
         try {
-            setLoading(true)
             const start = (currentPage - 1) * ITEMS_PER_PAGE
             const end = start + ITEMS_PER_PAGE - 1
 
@@ -302,6 +316,7 @@ export default function StaffPage() {
 
     useEffect(() => {
         if (currentPage !== 1) setCurrentPage(1)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchTerm])
 
     return (

@@ -40,8 +40,24 @@ export default function NewJobPage() {
     })
 
     useEffect(() => {
-        fetchFormData()
-    }, [router])
+        let mounted = true;
+        const timeout = setTimeout(() => {
+            if (mounted && loading) {
+                console.warn('NewJobPage: Loading timeout triggered');
+                setLoading(false);
+            }
+        }, 5000);
+
+        fetchFormData().then(() => {
+            if (mounted) clearTimeout(timeout);
+        });
+
+        return () => {
+            mounted = false;
+            clearTimeout(timeout);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const fetchFormData = async () => {
         try {
@@ -110,6 +126,7 @@ export default function NewJobPage() {
                 }
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedStaff, filteredStaffList])
 
     const commission = calculateCommission(formData.amount, staffPercentage)
@@ -237,20 +254,18 @@ export default function NewJobPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
                                         <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Data Location (Source)</label>
-                                        <input
-                                            type="text"
-                                            className="input-aesthetic h-12 px-4 text-sm"
-                                            placeholder="Source folder path..."
+                                        <textarea
+                                            className="input-aesthetic min-h-[80px] py-3 px-4 text-sm resize-none"
+                                            placeholder="Source location details..."
                                             value={formData.data_location}
                                             onChange={e => setFormData({ ...formData, data_location: e.target.value })} />
                                     </div>
 
                                     <div>
                                         <label className="label text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2 block">Final Location (Destination)</label>
-                                        <input
-                                            type="text"
-                                            className="input-aesthetic h-12 px-4 text-sm"
-                                            placeholder="Final destination path..."
+                                        <textarea
+                                            className="input-aesthetic min-h-[80px] py-3 px-4 text-sm resize-none"
+                                            placeholder="Final destination details..."
                                             value={formData.final_location}
                                             onChange={e => setFormData({ ...formData, final_location: e.target.value })} />
                                     </div>
@@ -291,11 +306,10 @@ export default function NewJobPage() {
             {/* Notification Toast */}
             {notification && (
                 <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${
-                        notification.type === 'success' 
-                            ? 'bg-emerald-500 border-emerald-400 text-white' 
+                    <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${notification.type === 'success'
+                            ? 'bg-emerald-500 border-emerald-400 text-white'
                             : 'bg-rose-500 border-rose-400 text-white'
-                    }`}>
+                        }`}>
                         {notification.type === 'success' ? (
                             <CheckCircle size={18} className="text-white" />
                         ) : (

@@ -99,12 +99,43 @@ export default function DashboardLayout({
             }
         }
 
+
         init()
+
+        // CRITICAL: Refresh session when tab becomes visible again
+        const handleVisibilityChange = async () => {
+            if (!document.hidden && mounted) {
+                console.log('🔄 Tab visible - refreshing session...', { timestamp: new Date().toISOString() });
+                try {
+                    // Just refresh the session token, don't try to fetch profile
+                    // (Profile data doesn't change when you switch tabs)
+                    const { data, error } = await supabase.auth.refreshSession()
+
+                    if (error) {
+                        console.error('Visibility: Session refresh error:', error)
+                        return
+                    }
+
+                    if (data?.session && mounted) {
+                        // Update session state silently
+                        setSession(data.session)
+                        console.log('✅ Token refreshed successfully')
+                    }
+                } catch (err) {
+                    console.error('Visibility: Unexpected error:', err)
+                }
+            }
+        }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange)
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
             if (!mounted) return
 
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || newSession?.user?.id !== session?.user?.id) {
+            // Get current session from state
+            const currentSessionId = session?.user?.id
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || newSession?.user?.id !== currentSessionId) {
                 setSession(newSession)
                 if (newSession?.user) {
                     await fetchProfile(newSession.user.id)
@@ -122,7 +153,9 @@ export default function DashboardLayout({
             mounted = false
             subscription.unsubscribe()
             clearTimeout(timeout)
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
 

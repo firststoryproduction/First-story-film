@@ -13,11 +13,20 @@ import {
     FileText,
     MapPin,
     ExternalLink,
-    ClipboardList
+    ClipboardList,
+    Smartphone,
+    Mail,
+    Trash2,
+    Edit2,
+    AlertCircle,
+    Eye,
+    ArrowLeft,
+    MoreVertical
 } from 'lucide-react'
 import { supabase } from '../../../../lib/supabase'
-import Pagination from '../../../../components/Pagination'
-import Spinner from '../../../../components/Spinner'
+import Pagination from '@/components/Pagination'
+import Spinner from '@/components/Spinner'
+import Tooltip from '@/components/Tooltip'
 
 export default function MyJobsPage() {
     const [jobs, setJobs] = useState<any[]>([])
@@ -37,37 +46,53 @@ export default function MyJobsPage() {
     const [actionLoading, setActionLoading] = useState<string | null>(null)
 
     useEffect(() => {
+        let mounted = true;
+
+        const timeout = setTimeout(() => {
+            if (mounted && loading) {
+                console.warn('MyJobsPage: Loading timeout triggered');
+                setLoading(false);
+            }
+        }, 5000);
+
         const init = async () => {
             try {
                 const { data: { user } } = await supabase.auth.getUser()
-                if (user) {
-                    setCurrentUser(user)
-                    // Initial load handled by the other useEffect listening to currentUser/currentPage/searchTerm
-                } else {
-                    setLoading(false)
+                if (mounted) {
+                    if (user) {
+                        setCurrentUser(user)
+                    } else {
+                        setLoading(false)
+                        clearTimeout(timeout)
+                    }
                 }
             } catch (error) {
                 console.error('Init error:', error)
-                setLoading(false)
+                if (mounted) {
+                    setLoading(false)
+                    clearTimeout(timeout)
+                }
             }
         }
         init()
+        return () => {
+            mounted = false
+            clearTimeout(timeout)
+        }
     }, [])
 
     useEffect(() => {
         if (currentUser) {
             fetchMyJobs(currentUser.id)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser, currentPage, searchTerm])
 
     const fetchMyJobs = async (userId: string) => {
-        setLoading(true)
-        console.log('MyJobs: Fetching jobs for user ID:', userId)
-
-        const start = (currentPage - 1) * ITEMS_PER_PAGE
-        const end = start + ITEMS_PER_PAGE - 1
-
         try {
+            setLoading(true)
+            const start = (currentPage - 1) * ITEMS_PER_PAGE
+            const end = start + ITEMS_PER_PAGE - 1
             // Fetch jobs
             let query = (supabase.from('jobs') as any)
                 .select(`
@@ -151,6 +176,7 @@ export default function MyJobsPage() {
 
     useEffect(() => {
         if (currentPage !== 1) setCurrentPage(1)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchTerm])
 
     return (
@@ -260,30 +286,33 @@ export default function MyJobsPage() {
                                             </td>
                                             <td className="px-4 py-1.5">
                                                 <div className="flex items-center justify-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
-                                                    <button
-                                                        onClick={() => handleUpdateStatus(job.id, 'PENDING')}
-                                                        disabled={actionLoading === job.id}
-                                                        className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' : 'bg-white text-slate-500 border-slate-100 hover:text-amber-400 hover:border-amber-200'}`}
-                                                        title="Mark as Pending"
-                                                    >
-                                                        <Clock size={14} strokeWidth={2.5} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleUpdateStatus(job.id, 'IN_PROGRESS')}
-                                                        disabled={actionLoading === job.id}
-                                                        className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'IN_PROGRESS' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-500 border-slate-100 hover:text-indigo-600 hover:border-indigo-200'}`}
-                                                        title="Mark as In-Progress"
-                                                    >
-                                                        <Zap size={14} strokeWidth={2.5} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleUpdateStatus(job.id, 'COMPLETED')}
-                                                        disabled={actionLoading === job.id}
-                                                        className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-500 border-slate-100 hover:text-emerald-500 hover:border-emerald-200'}`}
-                                                        title="Mark as Completed"
-                                                    >
-                                                        <CheckCircle2 size={14} strokeWidth={2.5} />
-                                                    </button>
+                                                    <Tooltip text="Pending">
+                                                        <button
+                                                            onClick={() => handleUpdateStatus(job.id, 'PENDING')}
+                                                            disabled={actionLoading === job.id}
+                                                            className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' : 'bg-white text-slate-500 border-slate-100 hover:text-amber-400 hover:border-amber-200'}`}
+                                                        >
+                                                            <Clock size={14} strokeWidth={2.5} />
+                                                        </button>
+                                                    </Tooltip>
+                                                    <Tooltip text="In-Progress">
+                                                        <button
+                                                            onClick={() => handleUpdateStatus(job.id, 'IN_PROGRESS')}
+                                                            disabled={actionLoading === job.id}
+                                                            className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'IN_PROGRESS' ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white text-slate-500 border-slate-100 hover:text-indigo-600 hover:border-indigo-200'}`}
+                                                        >
+                                                            <Zap size={14} strokeWidth={2.5} />
+                                                        </button>
+                                                    </Tooltip>
+                                                    <Tooltip text="Complete">
+                                                        <button
+                                                            onClick={() => handleUpdateStatus(job.id, 'COMPLETED')}
+                                                            disabled={actionLoading === job.id}
+                                                            className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-slate-500 border-slate-100 hover:text-emerald-500 hover:border-emerald-200'}`}
+                                                        >
+                                                            <CheckCircle2 size={14} strokeWidth={2.5} />
+                                                        </button>
+                                                    </Tooltip>
                                                 </div>
                                             </td>
                                         </tr>

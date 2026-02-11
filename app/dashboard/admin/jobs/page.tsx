@@ -51,17 +51,53 @@ export default function JobsPage() {
         setTimeout(() => setNotification(null), 3000)
     }
 
-    useEffect(() => {
-        fetchCommonData()
-    }, [])
 
+    // Single initialization effect
     useEffect(() => {
-        fetchJobs()
-    }, [currentPage, searchTerm])
+        let mounted = true;
+
+        const init = async () => {
+            try {
+                if (!mounted) return;
+                await Promise.allSettled([fetchJobs(), fetchCommonData()]);
+            } catch (error) {
+                console.error('JobsPage: Error initializing:', error);
+            } finally {
+                if (mounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        // Refetch data when tab becomes visible (user returns from another website/tab)
+        const handleVisibilityChange = () => {
+            if (!document.hidden && mounted) {
+                console.log('🔄 Tab visible - refreshing jobs data...');
+                fetchJobs();
+            }
+        };
+
+        init();
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            mounted = false;
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
+
+    // Re-fetch jobs when pagination or search changes
+    useEffect(() => {
+        // Skip initial render (handled by init effect above)
+        if (loading) return;
+        
+        setLoading(true);
+        fetchJobs();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, searchTerm]);
 
     const fetchJobs = async () => {
         try {
-            setLoading(true)
             const start = (currentPage - 1) * ITEMS_PER_PAGE
             const end = start + ITEMS_PER_PAGE - 1
 
@@ -75,9 +111,7 @@ export default function JobsPage() {
                 `, { count: 'exact' })
 
             if (searchTerm) {
-                // If there's a search term, we search in the description
-                // Note: Complex multi-table search is better via Views, but this works for basic search
-                query = query.ilike('description', `%${searchTerm}%`)
+                query = query.or(`description.ilike.%${searchTerm}%,status.ilike.%${searchTerm}%`)
             }
 
             const { data, error, count } = await query
@@ -96,6 +130,7 @@ export default function JobsPage() {
 
     const fetchCommonData = async () => {
         try {
+            await supabase.auth.getUser()
             const [sRes, vRes] = await Promise.all([
                 supabase.from('services').select('*').order('name'),
                 supabase.from('vendors').select('*').order('studio_name')
@@ -104,7 +139,7 @@ export default function JobsPage() {
             if (sRes.data) setServices(sRes.data)
             if (vRes.data) setVendors(vRes.data)
         } catch (error) {
-            console.error('Error fetching form data:', error)
+            console.error('Error fetching common data:', error)
         }
     }
 
@@ -160,6 +195,7 @@ export default function JobsPage() {
                 }
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedStaff, filteredStaffList, showCreateModal, showEditModal])
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -353,6 +389,7 @@ export default function JobsPage() {
 
     useEffect(() => {
         if (currentPage !== 1) setCurrentPage(1)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchTerm])
 
     return (

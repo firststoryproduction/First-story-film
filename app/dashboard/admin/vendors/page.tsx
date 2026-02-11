@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Edit2, Trash2, Search, Building2, User, Smartphone, Mail, MapPin, CheckCircle, Eye } from 'lucide-react'
+import { Plus, Edit2, Trash2, Search, Building2, User, Smartphone, Mail, MapPin, CheckCircle, Eye, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Vendor } from '@/types/database'
 import Pagination from '@/components/Pagination'
 import Spinner from '@/components/Spinner'
+import Tooltip from "@/components/Tooltip"
 
 export default function VendorsPage() {
     const router = useRouter()
@@ -29,32 +30,85 @@ export default function VendorsPage() {
         notes: ''
     })
 
+
+
+    // Single initialization effect
     useEffect(() => {
-        fetchVendors()
-    }, [currentPage, searchTerm])
+        let mounted = true;
+
+        const init = async () => {
+            try {
+                if (!mounted) return;
+                await fetchVendors();
+            } catch (error) {
+                console.error('VendorsPage: Error initializing:', error);
+            } finally {
+                if (mounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        // Refetch data when tab becomes visible (user returns from another website/tab)
+        const handleVisibilityChange = () => {
+            if (!document.hidden && mounted) {
+                console.log('🔄 Tab visible - refreshing vendors data...');
+                fetchVendors();
+            }
+        };
+
+        init();
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            mounted = false;
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
+
+    // Re-fetch when pagination or search changes
+    useEffect(() => {
+        // Skip initial render (handled by init effect above)
+        if (loading) return;
+        
+        setLoading(true);
+        fetchVendors();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, searchTerm]);
 
     const fetchVendors = async () => {
         try {
-            setLoading(true)
-            const start = (currentPage - 1) * ITEMS_PER_PAGE
-            const end = start + ITEMS_PER_PAGE - 1
-
-            let query = (supabase.from('vendors') as any)
-                .select('*', { count: 'exact' })
-
-            if (searchTerm) {
-                query = query.or(`studio_name.ilike.%${searchTerm}%,contact_person.ilike.%${searchTerm}%`)
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session?.access_token) {
+                console.error('No active session');
+                return;
             }
 
-            const { data, error, count } = await query
-                .order('studio_name')
-                .range(start, end)
+            const response = await fetch(
+                `/api/vendors?page=${currentPage}&limit=${ITEMS_PER_PAGE}&search=${encodeURIComponent(searchTerm)}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${session.access_token}`
+                    }
+                }
+            )
 
-            if (error) throw error
-            setVendors(data || [])
-            setTotalCount(count || 0)
-        } catch (error) {
-            console.error('Error fetching vendors:', error)
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.error || 'Failed to fetch vendors')
+            }
+
+            const result = await response.json()
+            setVendors(result.data || [])
+            setTotalCount(result.count || 0)
+            
+            console.log('✅ Vendors fetched successfully:', {
+                count: result.data?.length || 0,
+                totalCount: result.count
+            });
+        } catch (error: any) {
+            console.error('❌ Error fetching vendors:', error);
+            showNotification(error.message || 'Failed to fetch vendors', 'error');
         } finally {
             setLoading(false)
         }
@@ -70,37 +124,35 @@ export default function VendorsPage() {
         setLoading(true)
 
         try {
-            // Validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-            const mobileRegex = /^[0-9]{10}$/
-
-            if (formData.email && !emailRegex.test(formData.email)) {
-                showNotification('Please enter a valid email address.', 'error')
-                setLoading(false)
-                return
-            }
-
-            if (!mobileRegex.test(formData.mobile)) {
-                showNotification('Please enter a valid 10-digit mobile number.', 'error')
-                setLoading(false)
-                return
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session?.access_token) {
+                throw new Error('No active session');
             }
 
             if (editingVendor) {
-                const { error } = await (supabase
-                    .from('vendors') as any)
-                    .update(formData)
-                    .eq('id', editingVendor.id)
-                if (error) throw error
+                // Update existing vendor
+                const response = await fetch(`/api/vendors/${editingVendor.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`
+                    },
+                    body: JSON.stringify(formData)
+                })
+
+                if (!response.ok) {
+                    const errorData = await response.json()
+                    throw new Error(errorData.error || 'Failed to update vendor')
+                }
+                
                 showNotification('Vendor updated successfully!')
             } else {
-                // Use Admin API to bypass RLS for vendor creation
-                const { data: { session } } = await supabase.auth.getSession()
-                const response = await fetch('/api/admin/create-vendor', {
+                // Create new vendor
+                const response = await fetch('/api/vendors', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session?.access_token}`
+                        'Authorization': `Bearer ${session.access_token}`
                     },
                     body: JSON.stringify(formData)
                 })
@@ -109,16 +161,17 @@ export default function VendorsPage() {
                     const errorData = await response.json()
                     throw new Error(errorData.error || 'Failed to create vendor')
                 }
-                showNotification('Vendor registered successfully!')
+                
+                showNotification('Vendor created successfully!')
             }
 
             setShowModal(false)
             resetForm()
+            setLoading(false)
             fetchVendors()
         } catch (error: any) {
             console.error('Error saving vendor:', error)
             showNotification(error.message || 'Something went wrong while saving.', 'error')
-        } finally {
             setLoading(false)
         }
     }
@@ -127,11 +180,23 @@ export default function VendorsPage() {
         if (!confirm('Are you sure you want to delete this vendor?')) return
 
         try {
-            const { error } = await (supabase
-                .from('vendors') as any)
-                .delete()
-                .eq('id', id)
-            if (error) throw error
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session?.access_token) {
+                throw new Error('No active session');
+            }
+
+            const response = await fetch(`/api/vendors/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`
+                }
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.error || 'Failed to delete vendor')
+            }
+            
             showNotification('Vendor deleted successfully')
             fetchVendors()
         } catch (error: any) {
@@ -161,8 +226,12 @@ export default function VendorsPage() {
     const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
     const paginatedVendors = vendors
 
+    // Reset to page 1 when search term changes (handled by useEffect above)
     useEffect(() => {
-        if (currentPage !== 1) setCurrentPage(1)
+        if (currentPage !== 1) {
+            setCurrentPage(1);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchTerm])
 
     return (
@@ -270,27 +339,30 @@ export default function VendorsPage() {
                                                 </td>
                                                 <td className="px-6 py-1.5">
                                                     <div className="flex items-center justify-end space-x-1.5" onClick={(e) => e.stopPropagation()}>
-                                                        <button
-                                                            onClick={() => router.push(`/dashboard/admin/vendors/view/${vendor.id}`)}
-                                                            className="w-7 h-7 flex items-center justify-center text-emerald-400 hover:text-emerald-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
-                                                            title="View Vendor Details"
-                                                        >
-                                                            <Eye size={13} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => openEditModal(vendor)}
-                                                            className="w-7 h-7 flex items-center justify-center text-sky-400 hover:text-sky-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
-                                                            title="Edit Vendor"
-                                                        >
-                                                            <Edit2 size={13} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(vendor.id)}
-                                                            className="w-7 h-7 flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
-                                                            title="Delete Vendor"
-                                                        >
-                                                            <Trash2 size={13} />
-                                                        </button>
+                                                        <Tooltip text="View Details">
+                                                            <button
+                                                                onClick={() => router.push(`/dashboard/admin/vendors/view/${vendor.id}`)}
+                                                                className="w-7 h-7 flex items-center justify-center text-indigo-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                            >
+                                                                <Eye size={13} />
+                                                            </button>
+                                                        </Tooltip>
+                                                        <Tooltip text="Edit">
+                                                            <button
+                                                                onClick={() => openEditModal(vendor)}
+                                                                className="w-7 h-7 flex items-center justify-center text-sky-400 hover:text-sky-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                            >
+                                                                <Edit2 size={13} />
+                                                            </button>
+                                                        </Tooltip>
+                                                        <Tooltip text="Delete">
+                                                            <button
+                                                                onClick={() => handleDelete(vendor.id)}
+                                                                className="w-7 h-7 flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                            >
+                                                                <Trash2 size={13} />
+                                                            </button>
+                                                        </Tooltip>
                                                     </div>
                                                 </td>
                                             </tr>

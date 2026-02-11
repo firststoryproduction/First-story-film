@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { Service } from '@/types/database'
 import Pagination from '@/components/Pagination'
 import Spinner from '@/components/Spinner'
+import Tooltip from '@/components/Tooltip'
 
 export default function ServicesPage() {
     const router = useRouter()
@@ -25,9 +26,41 @@ export default function ServicesPage() {
         setTimeout(() => setNotification(null), 3500)
     }
 
+
+    // Single initialization effect
     useEffect(() => {
-        fetchServices()
-    }, [])
+        let mounted = true;
+
+        const init = async () => {
+            try {
+                if (!mounted) return;
+                await fetchServices();
+            } catch (error) {
+                console.error('ServicesPage: Error initializing:', error);
+            } finally {
+                if (mounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        // Refetch data when tab becomes visible (user returns from another website/tab)
+        const handleVisibilityChange = () => {
+            if (!document.hidden && mounted) {
+                console.log('🔄 Tab visible - refreshing services data...');
+                fetchServices();
+            }
+        };
+
+        init();
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            mounted = false;
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const fetchServices = async () => {
         try {
@@ -40,8 +73,6 @@ export default function ServicesPage() {
             setServices(data || [])
         } catch (error) {
             console.error('Error fetching services:', error)
-        } finally {
-            setLoading(false)
         }
     }
 
@@ -194,21 +225,23 @@ export default function ServicesPage() {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-1.5">
-                                                    <div className="flex items-center justify-end space-x-1.5">
-                                                        <button
-                                                            onClick={() => openEditModal(service)}
-                                                            className="w-7 h-7 flex items-center justify-center text-sky-400 hover:text-sky-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
-                                                            title="Edit"
-                                                        >
-                                                            <Edit2 size={13} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(service.id)}
-                                                            className="w-7 h-7 flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
-                                                            title="Delete"
-                                                        >
-                                                            <Trash2 size={13} />
-                                                        </button>
+                                                    <div className="flex items-center justify-end space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                                                        <Tooltip text="Edit">
+                                                            <button
+                                                                onClick={() => openEditModal(service)}
+                                                                className="w-7 h-7 flex items-center justify-center text-sky-400 hover:text-sky-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                            >
+                                                                <Edit2 size={13} />
+                                                            </button>
+                                                        </Tooltip>
+                                                        <Tooltip text="Delete">
+                                                            <button
+                                                                onClick={() => handleDelete(service.id)}
+                                                                className="w-7 h-7 flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-100 shadow-sm"
+                                                            >
+                                                                <Trash2 size={13} />
+                                                            </button>
+                                                        </Tooltip>
                                                     </div>
                                                 </td>
                                             </tr>
