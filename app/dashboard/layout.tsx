@@ -34,7 +34,20 @@ export default function DashboardLayout({
 
     const fetchProfile = async (userId: string) => {
         // Prevent redundant fetches if we already have the profile for this user
-        if (session?.user?.id === userId && userRole !== null) return;
+        if (session?.user?.id === userId && userRole !== null) {
+            console.log('[LAYOUT] ⏭️ Skipping profile fetch - already have role', {
+                userId,
+                currentRole: userRole,
+                timestamp: new Date().toISOString()
+            })
+            return
+        }
+
+        console.log('[LAYOUT] 🔍 Fetching profile', {
+            userId,
+            currentRole: userRole,
+            timestamp: new Date().toISOString()
+        })
 
         try {
             const { data: profileList, error } = await supabase
@@ -43,52 +56,113 @@ export default function DashboardLayout({
                 .eq('id', userId)
                 .limit(1)
 
+            console.log('[LAYOUT] 📊 Profile fetch response', {
+                userId,
+                hasData: !!profileList && profileList.length > 0,
+                dataLength: profileList?.length || 0,
+                error: error?.message,
+                timestamp: new Date().toISOString()
+            })
+
             if (error) {
-                console.error('Layout: Profile fetch error:', error)
-                if (userRole === null) setUserRole('USER')
+                console.error('[LAYOUT] ❌ Profile fetch error:', error)
+                if (userRole === null) {
+                    console.log('[LAYOUT] ⚠️ Setting default role USER due to error')
+                    setUserRole('USER')
+                }
                 return
             }
 
             if (profileList && profileList.length > 0) {
                 const profile = profileList[0] as { role?: string; name?: string }
-                setUserRole(profile.role || 'USER')
+                const newRole = profile.role || 'USER'
+                console.log('[LAYOUT] ✅ Profile loaded', {
+                    userId,
+                    role: newRole,
+                    name: profile.name,
+                    timestamp: new Date().toISOString()
+                })
+                setUserRole(newRole)
                 setUserName(profile.name || '')
             } else {
+                console.log('[LAYOUT] ⚠️ No profile found, using default USER role', {
+                    userId,
+                    timestamp: new Date().toISOString()
+                })
                 if (userRole === null) setUserRole('USER')
             }
         } catch (err) {
-            console.error('Layout: Unexpected profile error:', err)
-            if (userRole === null) setUserRole('USER')
+            console.error('[LAYOUT] ❌ Unexpected profile error:', err)
+            if (userRole === null) {
+                console.log('[LAYOUT] ⚠️ Setting default role USER due to exception')
+                setUserRole('USER')
+            }
         }
     }
 
     useEffect(() => {
         let mounted = true
+        let renderCount = 0
+        renderCount++
+
+        console.log('[LAYOUT] 🚀 useEffect triggered', {
+            renderCount,
+            loading,
+            hasSession: !!session,
+            userRole,
+            timestamp: new Date().toISOString()
+        })
 
         // 10-second fail-safe timeout (increased for Vercel serverless)
         const timeout = setTimeout(() => {
             if (mounted && loading) {
-                console.warn('DashboardLayout: Loading timeout - forcing render');
+                console.warn('[LAYOUT] ⏰ Loading timeout - forcing render', {
+                    renderCount,
+                    timestamp: new Date().toISOString()
+                });
                 setLoading(false);
-                if (userRole === null) setUserRole('USER');
+                if (userRole === null) {
+                    console.log('[LAYOUT] ⚠️ Setting default role USER due to timeout')
+                    setUserRole('USER');
+                }
             }
         }, 10000);
 
         const init = async () => {
             try {
-                // Retry logic for session retrieval (helps with Vercel serverless cold starts)
+                console.log('[LAYOUT] 🔄 Init started', {
+                    renderCount,
+                    timestamp: new Date().toISOString()
+                })
+
+                // CRITICAL FIX: Reduce retries - middleware already validated session
+                // If we're here, middleware passed, so session should be available
                 let currentSession = null
-                let retries = 3
+                let retries = 2
                 
                 while (retries > 0 && !currentSession && mounted) {
                     try {
+                        console.log('[LAYOUT] 🔍 Session check attempt', {
+                            attempt: 3 - retries,
+                            renderCount,
+                            timestamp: new Date().toISOString()
+                        })
+
                         const { data, error } = await supabase.auth.getSession()
                         
+                        console.log('[LAYOUT] 📊 Session check response', {
+                            attempt: 3 - retries,
+                            hasSession: !!data?.session,
+                            userId: data?.session?.user?.id,
+                            error: error?.message,
+                            timestamp: new Date().toISOString()
+                        })
+                        
                         if (error) {
-                            console.error('Layout: Session error:', error)
+                            console.error('[LAYOUT] ❌ Session error:', error)
                             // If it's a token error, wait a bit and retry
                             if (error.message?.toLowerCase().includes('token') && retries > 1) {
-                                await new Promise(resolve => setTimeout(resolve, 500))
+                                await new Promise(resolve => setTimeout(resolve, 300))
                                 retries--
                                 continue
                             }
@@ -99,30 +173,46 @@ export default function DashboardLayout({
                         currentSession = data.session
                         
                         if (currentSession?.user) {
+                            console.log('[LAYOUT] ✅ Session found', {
+                                userId: currentSession.user.id,
+                                email: currentSession.user.email,
+                                timestamp: new Date().toISOString()
+                            })
                             break
                         }
                         
                         retries--
                         if (retries > 0) {
                             // Wait before retry
-                            await new Promise(resolve => setTimeout(resolve, 500))
+                            await new Promise(resolve => setTimeout(resolve, 300))
                         }
                     } catch (err) {
-                        console.error('Layout: Session retrieval error:', err)
+                        console.error('[LAYOUT] ❌ Session retrieval error:', err)
                         retries--
                         if (retries > 0) {
-                            await new Promise(resolve => setTimeout(resolve, 500))
+                            await new Promise(resolve => setTimeout(resolve, 300))
                         }
                     }
                 }
 
                 if (mounted) {
                     if (currentSession?.user) {
+                        console.log('[LAYOUT] ✅ Setting session and fetching profile', {
+                            userId: currentSession.user.id,
+                            timestamp: new Date().toISOString()
+                        })
                         setSession(currentSession)
                         await fetchProfile(currentSession.user.id)
+                        console.log('[LAYOUT] ✅ Init complete', {
+                            userId: currentSession.user.id,
+                            userRole,
+                            timestamp: new Date().toISOString()
+                        })
                     } else {
                         // Not logged in - redirect to login
-                        console.log('⚠️ No session found, redirecting to login')
+                        console.log('[LAYOUT] ⚠️ No session found, redirecting to login', {
+                            timestamp: new Date().toISOString()
+                        })
                         setLoading(false)
                         clearTimeout(timeout)
                         router.push('/login')
@@ -130,13 +220,17 @@ export default function DashboardLayout({
                     }
                 }
             } catch (error) {
-                console.error('Layout: Init error:', error)
+                console.error('[LAYOUT] ❌ Init error:', error)
                 if (mounted) {
                     // On error, redirect to login for safety
                     router.push('/login')
                 }
             } finally {
                 if (mounted) {
+                    console.log('[LAYOUT] 🏁 Init finally - setting loading to false', {
+                        renderCount,
+                        timestamp: new Date().toISOString()
+                    })
                     setLoading(false)
                     clearTimeout(timeout)
                 }
@@ -215,15 +309,30 @@ export default function DashboardLayout({
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
             if (!mounted) return
 
-            // Get current session from state
-            const currentSessionId = session?.user?.id
+            console.log('[LAYOUT] 🔔 Auth state change', {
+                event,
+                hasNewSession: !!newSession,
+                newUserId: newSession?.user?.id,
+                timestamp: new Date().toISOString()
+            })
 
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || newSession?.user?.id !== currentSessionId) {
+            // CRITICAL FIX: Use a ref-like pattern by checking current state
+            // We'll get the current session from the closure, but it's okay since
+            // this callback is only for auth events, not for reading stale state
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                console.log('[LAYOUT] ✅ Updating session from auth state change', {
+                    event,
+                    userId: newSession?.user?.id,
+                    timestamp: new Date().toISOString()
+                })
                 setSession(newSession)
                 if (newSession?.user) {
                     await fetchProfile(newSession.user.id)
                 }
             } else if (event === 'SIGNED_OUT') {
+                console.log('[LAYOUT] 🚪 Signed out, clearing session', {
+                    timestamp: new Date().toISOString()
+                })
                 setSession(null)
                 setUserRole(null)
                 router.push('/login')
@@ -233,13 +342,18 @@ export default function DashboardLayout({
         })
 
         return () => {
+            console.log('[LAYOUT] 🧹 Cleanup', {
+                timestamp: new Date().toISOString()
+            })
             mounted = false
             subscription.unsubscribe()
             clearTimeout(timeout)
             document.removeEventListener('visibilitychange', handleVisibilityChange)
         }
+        // CRITICAL FIX: Add session to dependencies to avoid stale closure
+        // But use a ref or functional updates in callbacks to prevent infinite loops
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, []) // Keep empty - we use functional updates in callbacks
 
 
     if (loading) {

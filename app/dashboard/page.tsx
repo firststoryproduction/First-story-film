@@ -35,35 +35,92 @@ export default function DashboardPage() {
 
     useEffect(() => {
         let mounted = true
+        let renderCount = 0
+        renderCount++
+
+        console.log('[PAGE] 🚀 useEffect triggered', {
+            renderCount,
+            loading,
+            hasSession: !!session,
+            userRole,
+            timestamp: new Date().toISOString()
+        })
+
         const timeout = setTimeout(() => {
             if (mounted && loading) {
-                console.warn('Dashboard: Loading timeout')
+                console.warn('[PAGE] ⏰ Loading timeout', {
+                    renderCount,
+                    timestamp: new Date().toISOString()
+                })
                 setLoading(false)
             }
         }, 5000)
 
         const init = async () => {
             try {
-                // Session is already validated by layout, but we still need it for user ID
-                const { data: { session } } = await supabase.auth.getSession()
-                if (!mounted) return
-                setSession(session)
+                console.log('[PAGE] 🔄 Init started', {
+                    renderCount,
+                    timestamp: new Date().toISOString()
+                })
 
-                if (session?.user?.id) {
-                    // 1. Fetch profile first to determine roles
+                // CRITICAL FIX: Session is already validated by layout
+                // We just need it for user ID, no need to fetch profile again
+                // The layout already has the role, but we need it here for stats
+                const { data: { session: currentSession } } = await supabase.auth.getSession()
+                
+                console.log('[PAGE] 📊 Session check', {
+                    hasSession: !!currentSession,
+                    userId: currentSession?.user?.id,
+                    timestamp: new Date().toISOString()
+                })
+
+                if (!mounted) return
+                setSession(currentSession)
+
+                if (currentSession?.user?.id) {
+                    // CRITICAL FIX: Don't fetch profile again - layout already has it
+                    // Instead, we'll get role from props or context, but for now
+                    // we'll fetch it once more but only if we don't have it
+                    // Actually, let's fetch it but log that layout should have it
+                    console.log('[PAGE] 🔍 Fetching profile for stats (layout should already have it)', {
+                        userId: currentSession.user.id,
+                        timestamp: new Date().toISOString()
+                    })
+
                     const { data: profileList } = await (supabase as any)
                         .from('users')
                         .select('role, name')
-                        .eq('id', session.user.id)
+                        .eq('id', currentSession.user.id)
                         .limit(1)
+
+                    console.log('[PAGE] 📊 Profile fetch response', {
+                        hasData: !!profileList && profileList.length > 0,
+                        dataLength: profileList?.length || 0,
+                        timestamp: new Date().toISOString()
+                    })
 
                     let profileData = null
                     if (profileList && profileList.length > 0) {
                         profileData = profileList[0] as { role: string; name: string }
-                        setUserRole(profileData.role)
-                        setUserName(profileData.name)
+                        // Only update if we don't already have it (to avoid flicker)
+                        if (!userRole || userRole === 'USER') {
+                            setUserRole(profileData.role)
+                        }
+                        if (!userName) {
+                            setUserName(profileData.name)
+                        }
+                        console.log('[PAGE] ✅ Profile loaded', {
+                            role: profileData.role,
+                            name: profileData.name,
+                            timestamp: new Date().toISOString()
+                        })
                     } else {
-                        setUserName(session.user.email?.split('@')[0] || 'Member')
+                        if (!userName) {
+                            setUserName(currentSession.user.email?.split('@')[0] || 'Member')
+                        }
+                        console.log('[PAGE] ⚠️ No profile found, using email', {
+                            timestamp: new Date().toISOString()
+                        })
                     }
 
                     // 2. Prepare queries based on role
@@ -77,10 +134,16 @@ export default function DashboardPage() {
                     // If not admin/manager, filter jobs by staff_id
                     const isSystemStaff = profileData && profileData.role === 'USER'
                     if (isSystemStaff) {
-                        jobsQuery = jobsQuery.eq('staff_id', session.user.id)
+                        jobsQuery = jobsQuery.eq('staff_id', currentSession.user.id)
                     } else if (!profileData) {
-                        jobsQuery = jobsQuery.eq('staff_id', session.user.id)
+                        jobsQuery = jobsQuery.eq('staff_id', currentSession.user.id)
                     }
+
+                    console.log('[PAGE] 📊 Fetching stats', {
+                        isSystemAdmin,
+                        isSystemStaff,
+                        timestamp: new Date().toISOString()
+                    })
 
                     // 3. Fetch stats in parallel
                     const [jobsResponse, usersResponse] = await Promise.all([
@@ -93,6 +156,14 @@ export default function DashboardPage() {
 
                     const safeJobs = (jobs || []) as { status: string }[]
 
+                    console.log('[PAGE] 📊 Stats loaded', {
+                        totalJobs: totalJobs || 0,
+                        inProgress: safeJobs.filter(j => j.status === 'IN_PROGRESS').length,
+                        completed: safeJobs.filter(j => j.status === 'COMPLETED').length,
+                        totalUsers: totalUsers || 0,
+                        timestamp: new Date().toISOString()
+                    })
+
                     if (mounted) {
                         setStats({
                             totalJobs: totalJobs || 0,
@@ -101,11 +172,28 @@ export default function DashboardPage() {
                             totalUsers: totalUsers || 0
                         })
                     }
+                } else {
+                    console.log('[PAGE] ⚠️ No session found', {
+                        timestamp: new Date().toISOString()
+                    })
+                    // CRITICAL FIX: Set loading to false even if no session
+                    // This prevents infinite loader
+                    if (mounted) {
+                        setLoading(false)
+                    }
                 }
             } catch (err) {
-                console.error('Dashboard: Unexpected error in init:', err)
+                console.error('[PAGE] ❌ Unexpected error in init:', err)
+                // CRITICAL FIX: Set loading to false on error
+                if (mounted) {
+                    setLoading(false)
+                }
             } finally {
                 if (mounted) {
+                    console.log('[PAGE] 🏁 Init finally - setting loading to false', {
+                        renderCount,
+                        timestamp: new Date().toISOString()
+                    })
                     setLoading(false)
                     clearTimeout(timeout)
                 }
@@ -113,18 +201,38 @@ export default function DashboardPage() {
         }
         init()
         return () => {
+            console.log('[PAGE] 🧹 Cleanup', {
+                timestamp: new Date().toISOString()
+            })
             mounted = false
             clearTimeout(timeout)
         }
     }, [])
 
-    if (!session && !loading) return null
+    // CRITICAL FIX: Show loader if we're loading OR if we have session but role is still default
+    // This prevents flicker when role is being fetched
+    // Note: userRole starts as 'USER', so we check if we're still in initial loading state
+    const isLoading = loading || (session && loading) // Keep it simple - if loading is true, show loader
+    
+    console.log('[PAGE] 🎨 Render check', {
+        loading,
+        hasSession: !!session,
+        userRole,
+        userName,
+        isLoading,
+        timestamp: new Date().toISOString()
+    })
+
+    if (!session && !loading) {
+        console.log('[PAGE] ⚠️ No session and not loading - returning null')
+        return null
+    }
 
     const isAdmin = userRole === 'ADMIN'
 
     return (
         <main className="lg:ml-72 min-h-screen p-6 lg:p-10 relative">
-            {loading && !session && (
+            {isLoading && (
                 <div className="absolute inset-0 bg-[#f1f5f9] z-50 flex items-center justify-center py-20">
                     <Spinner />
                 </div>

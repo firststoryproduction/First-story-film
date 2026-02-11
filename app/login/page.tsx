@@ -31,44 +31,74 @@ function LoginForm() {
         setLoading(true)
 
         try {
-            console.log('🔐 Login attempt:', { email, passwordLength: password.length })
+            console.log('[LOGIN] 🔐 Step 1: Login attempt started', { 
+                email, 
+                timestamp: new Date().toISOString(),
+                renderCount: 'N/A'
+            })
             
             const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             })
 
-            console.log('📊 Login response:', { data, error })
+            console.log('[LOGIN] 📊 Step 2: Login response received', { 
+                hasSession: !!data?.session,
+                hasUser: !!data?.user,
+                userId: data?.user?.id,
+                userEmail: data?.user?.email,
+                error: error?.message,
+                timestamp: new Date().toISOString()
+            })
 
             if (error) {
-                console.error('❌ Login error:', error)
+                console.error('[LOGIN] ❌ Step 2: Login error', error)
                 setError(`${error.message} (Code: ${error.code || 'unknown'})`)
+                setLoading(false)
                 return
             }
 
             // Check if we actually got a session
             if (!data.session || !data.user) {
-                console.error('❌ No session created:', data)
+                console.error('[LOGIN] ❌ Step 2: No session created', data)
                 setError('Login failed: No session created. Please check if email is confirmed.')
+                setLoading(false)
                 return
             }
 
-            console.log('✅ Login successful, user:', data.user.email)
+            console.log('[LOGIN] ✅ Step 2: Login successful', { 
+                userId: data.user.id,
+                email: data.user.email,
+                accessToken: data.session.access_token?.substring(0, 20) + '...',
+                timestamp: new Date().toISOString()
+            })
             
-            // Wait for session to be properly set in cookies (longer wait for Vercel)
-            await new Promise(resolve => setTimeout(resolve, 1000))
+            // CRITICAL FIX: Wait for cookies to be set and propagate
+            // The browser client sets cookies, but we need to ensure they're available
+            // before redirecting. Use a shorter wait but verify cookies are set.
+            console.log('[LOGIN] ⏳ Step 3: Waiting for cookie propagation...')
+            await new Promise(resolve => setTimeout(resolve, 300))
             
-            // Verify session before redirect with retry logic
+            // Verify session and cookies are ready
             let session = null
-            let retries = 3
+            let retries = 2
+            let cookiesReady = false
             
-            while (retries > 0 && !session) {
+            while (retries > 0 && (!session || !cookiesReady)) {
                 const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
                 
+                console.log('[LOGIN] 🔍 Step 3: Session verification attempt', {
+                    attempt: 4 - retries,
+                    hasSession: !!currentSession,
+                    userId: currentSession?.user?.id,
+                    error: sessionError?.message,
+                    timestamp: new Date().toISOString()
+                })
+                
                 if (sessionError) {
-                    console.error('❌ Session check error:', sessionError)
+                    console.error('[LOGIN] ❌ Session check error:', sessionError)
                     if (retries > 1) {
-                        await new Promise(resolve => setTimeout(resolve, 500))
+                        await new Promise(resolve => setTimeout(resolve, 300))
                         retries--
                         continue
                     }
@@ -77,33 +107,60 @@ function LoginForm() {
                 
                 session = currentSession
                 
-                if (session) {
+                // Check if cookies are actually set (browser only)
+                if (typeof window !== 'undefined') {
+                    const accessTokenCookie = document.cookie.split(';').find(c => c.trim().startsWith('sb-') && c.includes('access-token'))
+                    cookiesReady = !!accessTokenCookie
+                    console.log('[LOGIN] 🍪 Cookie check:', {
+                        cookiesReady,
+                        hasAccessTokenCookie: !!accessTokenCookie,
+                        cookiePreview: accessTokenCookie?.substring(0, 30) + '...'
+                    })
+                } else {
+                    cookiesReady = true // Server-side, assume ready
+                }
+                
+                if (session && cookiesReady) {
                     break
                 }
                 
                 retries--
                 if (retries > 0) {
-                    await new Promise(resolve => setTimeout(resolve, 500))
+                    await new Promise(resolve => setTimeout(resolve, 300))
                 }
             }
             
-            console.log('🔍 Session check:', session?.user?.email)
+            console.log('[LOGIN] 🔍 Step 3: Final session check', {
+                hasSession: !!session,
+                cookiesReady,
+                userId: session?.user?.id,
+                email: session?.user?.email,
+                timestamp: new Date().toISOString()
+            })
             
-            if (session) {
-                console.log('✅ Session confirmed, redirecting...')
-                console.log('🚀 Attempting navigation to /dashboard')
+            if (session && cookiesReady) {
+                console.log('[LOGIN] ✅ Step 4: Session confirmed, redirecting...', {
+                    userId: session.user.id,
+                    email: session.user.email,
+                    timestamp: new Date().toISOString()
+                })
                 
-                // Use router.replace to avoid adding to history
-                // The middleware will handle the redirect and session validation
-                router.replace('/dashboard')
+                // CRITICAL FIX: Use window.location for hard redirect to ensure
+                // cookies are sent with the request to middleware
+                // This ensures middleware sees the session immediately
+                window.location.href = '/dashboard'
             } else {
-                console.error('❌ Session not found after login')
-                setError('Login succeeded but session not created. Please try again.')
+                console.error('[LOGIN] ❌ Step 4: Session or cookies not ready', {
+                    hasSession: !!session,
+                    cookiesReady,
+                    timestamp: new Date().toISOString()
+                })
+                setError('Login succeeded but session not ready. Please try again.')
+                setLoading(false)
             }
         } catch (err: any) {
-            console.error('❌ Unexpected error:', err)
+            console.error('[LOGIN] ❌ Unexpected error:', err)
             setError(`Error: ${err.message || 'An error occurred. Please try again.'}`)
-        } finally {
             setLoading(false)
         }
     }
