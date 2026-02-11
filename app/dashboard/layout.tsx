@@ -107,12 +107,39 @@ export default function DashboardLayout({
             if (!document.hidden && mounted) {
                 console.log('🔄 Tab visible - refreshing session...', { timestamp: new Date().toISOString() });
                 try {
+                    // First check if we have a valid session with a refresh token
+                    const { data: { session: currentSession } } = await supabase.auth.getSession()
+                    
+                    if (!currentSession) {
+                        console.log('⚠️ No session found, redirecting to login')
+                        router.push('/login')
+                        return
+                    }
+
+                    // Check if session has a refresh token
+                    if (!currentSession.refresh_token) {
+                        console.log('⚠️ No refresh token found, redirecting to login')
+                        router.push('/login')
+                        return
+                    }
+
                     // Just refresh the session token, don't try to fetch profile
                     // (Profile data doesn't change when you switch tabs)
                     const { data, error } = await supabase.auth.refreshSession()
 
                     if (error) {
                         console.error('Visibility: Session refresh error:', error)
+                        
+                        // If refresh token is invalid or not found, redirect to login
+                        if (error.message?.toLowerCase().includes('refresh token') || 
+                            error.message?.toLowerCase().includes('not found') ||
+                            error.message?.toLowerCase().includes('invalid')) {
+                            console.log('⚠️ Invalid refresh token, redirecting to login')
+                            setSession(null)
+                            setUserRole(null)
+                            router.push('/login')
+                            return
+                        }
                         return
                     }
 
@@ -120,9 +147,21 @@ export default function DashboardLayout({
                         // Update session state silently
                         setSession(data.session)
                         console.log('✅ Token refreshed successfully')
+                    } else if (mounted) {
+                        // No session returned, user needs to login again
+                        console.log('⚠️ No session returned from refresh, redirecting to login')
+                        setSession(null)
+                        setUserRole(null)
+                        router.push('/login')
                     }
                 } catch (err) {
                     console.error('Visibility: Unexpected error:', err)
+                    // On any unexpected error, redirect to login for safety
+                    if (mounted) {
+                        setSession(null)
+                        setUserRole(null)
+                        router.push('/login')
+                    }
                 }
             }
         }

@@ -54,7 +54,17 @@ export async function proxy(request: NextRequest) {
         }
     )
 
-    const { data: { session } } = await supabase.auth.getSession()
+    // Refresh session to ensure tokens are up to date
+    // This prevents "Invalid Refresh Token" errors by keeping sessions fresh
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    
+    // If there's a session error related to refresh tokens, clear it
+    if (sessionError && (sessionError.message?.toLowerCase().includes('refresh token') || 
+                         sessionError.message?.toLowerCase().includes('not found'))) {
+        // Clear invalid session cookies
+        response.cookies.delete('sb-access-token')
+        response.cookies.delete('sb-refresh-token')
+    }
 
     // Protected routes logic
     const isDashboard = request.nextUrl.pathname.startsWith('/dashboard')
