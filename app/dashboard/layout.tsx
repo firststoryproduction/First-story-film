@@ -65,6 +65,15 @@ export default function DashboardLayout({
     useEffect(() => {
         let mounted = true
 
+        // 5-second fail-safe timeout
+        const timeout = setTimeout(() => {
+            if (mounted && loading) {
+                console.warn('DashboardLayout: Loading timeout - forcing render');
+                setLoading(false);
+                if (userRole === null) setUserRole('USER');
+            }
+        }, 5000);
+
         const init = async () => {
             try {
                 const { data: { session: currentSession } } = await supabase.auth.getSession()
@@ -73,6 +82,11 @@ export default function DashboardLayout({
                     if (currentSession?.user) {
                         setSession(currentSession)
                         await fetchProfile(currentSession.user.id)
+                    } else {
+                        // Not logged in
+                        setLoading(false)
+                        clearTimeout(timeout)
+                        return
                     }
                 }
             } catch (error) {
@@ -80,6 +94,7 @@ export default function DashboardLayout({
             } finally {
                 if (mounted) {
                     setLoading(false)
+                    clearTimeout(timeout)
                 }
             }
         }
@@ -89,7 +104,6 @@ export default function DashboardLayout({
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
             if (!mounted) return
 
-            // Only act if the session actually changed or it's a signed-in event
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || newSession?.user?.id !== session?.user?.id) {
                 setSession(newSession)
                 if (newSession?.user) {
@@ -101,18 +115,18 @@ export default function DashboardLayout({
                 router.push('/login')
             }
 
-            // Never set loading back to true here
             setLoading(false)
         })
 
         return () => {
             mounted = false
             subscription.unsubscribe()
+            clearTimeout(timeout)
         }
-    }, []) // Removed dependency to avoid redundant trigger on session object identity change
+    }, [])
 
 
-    if (loading || (session && userRole === null)) {
+    if (loading) {
         return <Spinner fullScreen />
     }
 
