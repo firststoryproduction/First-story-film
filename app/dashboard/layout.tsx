@@ -260,35 +260,35 @@ export default function DashboardLayout({
                                         console.log('🔑 Access Token:', session?.access_token || 'No token found')
                                         console.log('📋 Full Session:', session)
 
-                                        // Clear client-side session state immediately
+                                        // 1) Proper Supabase logout (GLOBAL) – wait for it to finish
+                                        console.log('🚪 Attempting to sign out (global)...')
+                                        const { error: signOutError } = await supabase.auth.signOut({
+                                            scope: 'global',
+                                        })
+
+                                        if (signOutError) {
+                                            console.error('❌ Sign out error:', signOutError)
+                                        } else {
+                                            console.log('✅ Sign out successful (global)')
+                                        }
+
+                                        // 2) Clear all client-side session state in the app
                                         setSession(null)
                                         setUserRole(null)
                                         setShowLogout(false)
                                         setSidebarOpen(false)
 
-                                        // Start Supabase global sign out in background (all sessions for this user)
-                                        console.log('🚪 Attempting to sign out (global)...')
-                                        supabase.auth
-                                            .signOut({ scope: 'global' })
-                                            .then(({ error: signOutError }) => {
-                                                if (signOutError) {
-                                                    console.error('❌ Sign out error:', signOutError)
-                                                } else {
-                                                    console.log('✅ Sign out successful (global)')
-                                                }
-                                            })
-                                            .catch((error) => {
-                                                console.error('❌ Sign out catch error:', error)
-                                            })
-
-                                        // Force redirect immediately (don't wait for signOut to complete)
+                                        // 3) Redirect to login page AFTER logout is done
                                         console.log('🔄 Redirecting to login page...')
                                         window.location.href = '/login?message=Signed out successfully'
-                                        
                                     } catch (error) {
                                         console.error('❌ Logout error:', error)
-                                        // Even if there's an error, redirect immediately
-                                        console.log('🔄 Force redirecting to login page...')
+                                        // If anything fails, still try to clear state and redirect
+                                        setSession(null)
+                                        setUserRole(null)
+                                        setShowLogout(false)
+                                        setSidebarOpen(false)
+                                        console.log('🔄 Force redirecting to login page after error...')
                                         window.location.href = '/login?message=Signed out successfully'
                                     }
                                 }}
