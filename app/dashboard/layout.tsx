@@ -253,77 +253,22 @@ export default function DashboardLayout({
             clearTimeout(timeout)
         }
 
-        // CRITICAL: Refresh session when tab becomes visible again
-        const handleVisibilityChange = async () => {
-            if (!document.hidden && mounted) {
-                console.log('🔄 Tab visible - refreshing session...', { timestamp: new Date().toISOString() });
-                try {
-                    // First check if we have a valid session with a refresh token
-                    const { data: { session: currentSession } } = await supabase.auth.getSession()
-                    
-                    if (!currentSession) {
-                        console.log('⚠️ No session found, redirecting to login')
-                        router.push('/login')
-                        return
-                    }
-
-                    // Check if session has a refresh token
-                    if (!currentSession.refresh_token) {
-                        console.log('⚠️ No refresh token found, redirecting to login')
-                        router.push('/login')
-                        return
-                    }
-
-                    // Just refresh the session token, don't try to fetch profile
-                    // (Profile data doesn't change when you switch tabs)
-                    const { data, error } = await supabase.auth.refreshSession()
-
-                    if (error) {
-                        console.error('Visibility: Session refresh error:', error)
-                        
-                        // If refresh token is invalid or not found, redirect to login
-                        if (error.message?.toLowerCase().includes('refresh token') || 
-                            error.message?.toLowerCase().includes('not found') ||
-                            error.message?.toLowerCase().includes('invalid')) {
-                            console.log('⚠️ Invalid refresh token, redirecting to login')
-                            setSession(null)
-                            setUserRole(null)
-                            router.push('/login')
-                            return
-                        }
-                        return
-                    }
-
-                    if (data?.session && mounted) {
-                        // Update session state silently
-                        setSession(data.session)
-                        console.log('✅ Token refreshed successfully')
-                    } else if (mounted) {
-                        // No session returned, user needs to login again
-                        console.log('⚠️ No session returned from refresh, redirecting to login')
-                        setSession(null)
-                        setUserRole(null)
-                        router.push('/login')
-                    }
-                } catch (err) {
-                    console.error('Visibility: Unexpected error:', err)
-                    // On any unexpected error, redirect to login for safety
-                    if (mounted) {
-                        setSession(null)
-                        setUserRole(null)
-                        router.push('/login')
-                    }
-                }
-            }
-        }
-
-        document.addEventListener('visibilitychange', handleVisibilityChange)
+        // REMOVED: Tab visibility change handler
+        // Why removed:
+        // 1. Supabase's createBrowserClient automatically handles token refresh
+        // 2. onAuthStateChange already listens for TOKEN_REFRESHED events
+        // 3. Manually refreshing on tab switch was causing unnecessary profile fetches
+        // 4. This was causing timeouts and role resets when switching tabs
+        // 
+        // If you need to refresh session on tab visibility, let Supabase handle it automatically
+        // The onAuthStateChange('TOKEN_REFRESHED') will fire when Supabase refreshes the token
 
         // CRITICAL FIX: onAuthStateChange is the PRIMARY source of truth for new logins
         // This fires immediately when signInWithPassword succeeds
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
             if (!mounted) return
 
+            // Keep logs for debugging - they help identify issues
             console.log('[LAYOUT] 🔔 Auth state change (PRIMARY SOURCE)', {
                 event,
                 hasNewSession: !!newSession,
@@ -331,7 +276,9 @@ export default function DashboardLayout({
                 timestamp: new Date().toISOString()
             })
 
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            if (event === 'SIGNED_IN') {
+                // CRITICAL: Only fetch profile on SIGNED_IN, not on TOKEN_REFRESHED
+                // TOKEN_REFRESHED just means the token was refreshed - profile doesn't change
                 if (!newSession?.user) {
                     console.error('[LAYOUT] ❌ SIGNED_IN event but no user in session', {
                         event,
@@ -403,6 +350,17 @@ export default function DashboardLayout({
                     userId: newSession.user.id,
                     timestamp: new Date().toISOString()
                 })
+            } else if (event === 'TOKEN_REFRESHED') {
+                // CRITICAL: Ignore TOKEN_REFRESHED events completely
+                // This happens automatically when tab becomes visible (Supabase behavior)
+                // User doesn't want any state updates when changing tabs
+                // Supabase handles token refresh in background - we don't need to react to it
+                // Log it for debugging, but don't update any state
+                console.log('[LAYOUT] 🔄 Token refreshed (ignored - no state update)', {
+                    userId: newSession?.user?.id,
+                    timestamp: new Date().toISOString()
+                })
+                // DO NOT call setSession() - this prevents any updates on tab visibility
             } else if (event === 'SIGNED_OUT') {
                 console.log('[LAYOUT] 🚪 Signed out, clearing session', {
                     timestamp: new Date().toISOString()
@@ -423,7 +381,7 @@ export default function DashboardLayout({
             mounted = false
             subscription.unsubscribe()
             clearTimeout(timeout)
-            document.removeEventListener('visibilitychange', handleVisibilityChange)
+            // Removed visibilitychange listener - no longer needed
         }
         // CRITICAL FIX: Add session to dependencies to avoid stale closure
         // But use a ref or functional updates in callbacks to prevent infinite loops

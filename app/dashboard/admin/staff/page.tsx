@@ -74,20 +74,13 @@ export default function StaffPage() {
             }
         };
 
-        // Refetch data when tab becomes visible (user returns from another website/tab)
-        const handleVisibilityChange = () => {
-            if (!document.hidden && mounted) {
-                console.log('🔄 Tab visible - refreshing staff data...');
-                fetchStaff();
-            }
-        };
+        // REMOVED: Tab visibility change handler
+        // User doesn't want data to refresh when switching tabs
 
         init();
-        document.addEventListener('visibilitychange', handleVisibilityChange);
 
         return () => {
             mounted = false;
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, []); // Only run once on mount
 

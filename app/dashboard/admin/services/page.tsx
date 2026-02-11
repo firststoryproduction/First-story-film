@@ -44,20 +44,13 @@ export default function ServicesPage() {
             }
         };
 
-        // Refetch data when tab becomes visible (user returns from another website/tab)
-        const handleVisibilityChange = () => {
-            if (!document.hidden && mounted) {
-                console.log('🔄 Tab visible - refreshing services data...');
-                fetchServices();
-            }
-        };
+        // REMOVED: Tab visibility change handler
+        // User doesn't want data to refresh when switching tabs
 
         init();
-        document.addEventListener('visibilitychange', handleVisibilityChange);
 
         return () => {
             mounted = false;
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

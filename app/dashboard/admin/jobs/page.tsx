@@ -69,20 +69,13 @@ export default function JobsPage() {
             }
         };
 
-        // Refetch data when tab becomes visible (user returns from another website/tab)
-        const handleVisibilityChange = () => {
-            if (!document.hidden && mounted) {
-                console.log('🔄 Tab visible - refreshing jobs data...');
-                fetchJobs();
-            }
-        };
+        // REMOVED: Tab visibility change handler
+        // User doesn't want data to refresh when switching tabs
 
         init();
-        document.addEventListener('visibilitychange', handleVisibilityChange);
 
         return () => {
             mounted = false;
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, []);
 
