@@ -586,10 +586,10 @@ export default function JobsPage() {
             {
                 showViewModal && selectedJob && (
                     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={closeModal} />
-                        <div className="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+                        <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={closeModal} />
+                        <div className="bg-white w-full max-w-4xl rounded-lg shadow-xl relative overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
                             {/* Modal Header */}
-                            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white">
                                 <div className="flex items-center space-x-4">
                                     <div className="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm">
                                         <ClipboardList size={22} className="text-indigo-600" />
@@ -617,33 +617,33 @@ export default function JobsPage() {
                             </div>
 
                             {/* Modal Body */}
-                            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                                     {/* Left Side */}
-                                    <div className="lg:col-span-8 space-y-8">
-                                        <div className="space-y-8">
-                                            <div className="space-y-4">
-                                                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-l-4 border-indigo-500 pl-4">General Details</h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div className="flex items-center space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
-                                                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm">
-                                                            <UserIcon size={18} />
+                                    <div className="lg:col-span-8 space-y-4">
+                                        <div className="space-y-4">
+                                            <div className="space-y-3">
+                                                <h3 className="text-sm font-medium text-gray-900">General Details</h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+                                                        <div className="w-8 h-8 rounded-md bg-white border border-gray-200 flex items-center justify-center text-gray-500">
+                                                            <UserIcon size={16} />
                                                         </div>
                                                         <div className="flex flex-col overflow-hidden">
-                                                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Assigned To</span>
-                                                            <span className="text-sm font-bold text-slate-900 truncate tracking-tight">{selectedJob.staff?.name || "Unassigned"}</span>
+                                                            <span className="text-xs font-medium text-gray-600">Assigned To</span>
+                                                            <span className="text-sm font-normal text-gray-900 truncate">{selectedJob.staff?.name || "Unassigned"}</span>
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex items-center space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
-                                                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm">
-                                                            <Building2 size={18} />
+                                                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+                                                        <div className="w-8 h-8 rounded-md bg-white border border-gray-200 flex items-center justify-center text-gray-500">
+                                                            <Building2 size={16} />
                                                         </div>
                                                         <div className="flex flex-col overflow-hidden">
-                                                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Studio Contact</span>
+                                                            <span className="text-xs font-medium text-gray-600">Studio Contact</span>
                                                             <div className="flex flex-col">
-                                                                <span className="text-sm font-bold text-slate-900 truncate tracking-tight">{selectedJob.vendor?.contact_person || "N/A"}</span>
-                                                                {selectedJob.vendor?.email && <span className="text-[10px] text-slate-500 font-bold leading-none mt-0.5">{selectedJob.vendor?.email}</span>}
+                                                                <span className="text-sm font-normal text-gray-900 truncate">{selectedJob.vendor?.contact_person || "N/A"}</span>
+                                                                {selectedJob.vendor?.email && <span className="text-xs text-gray-600 leading-none mt-0.5">{selectedJob.vendor?.email}</span>}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -651,37 +651,37 @@ export default function JobsPage() {
                                             </div>
 
                                             <div>
-                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center">
-                                                    <FileText size={16} className="mr-2 text-indigo-500" />
+                                                <h3 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
+                                                    <FileText size={14} className="mr-2 text-indigo-500" />
                                                     Work Description
                                                 </h3>
-                                                <div className="p-6 bg-slate-50/80 rounded-2xl border border-slate-100/50 relative overflow-hidden group">
-                                                    <p className="text-base font-bold text-slate-800 leading-relaxed italic relative z-10 whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                                                <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
+                                                    <p className="text-sm font-normal text-gray-900 leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
                                                         {selectedJob.description || "No description provided."}
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-4">
-                                                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-l-4 border-emerald-500 pl-4">Location</h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div className="flex items-start space-x-4 p-4 bg-slate-50/80 rounded-2xl group transition-all hover:bg-slate-100 border border-slate-100/50">
-                                                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 group-hover:text-indigo-600 transition-colors shadow-sm shrink-0">
-                                                            <MapPin size={18} />
+                                            <div className="space-y-3">
+                                                <h3 className="text-sm font-medium text-gray-900">Location</h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+                                                        <div className="w-8 h-8 rounded-md bg-white border border-gray-200 flex items-center justify-center text-gray-500 shrink-0">
+                                                            <MapPin size={16} />
                                                         </div>
                                                         <div className="flex flex-col min-w-0 pt-0.5">
-                                                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Source location</span>
-                                                            <span className="text-sm font-bold text-slate-900 tracking-tight whitespace-pre-wrap leading-tight break-words overflow-wrap-anywhere">{selectedJob.data_location || "Pending"}</span>
+                                                            <span className="text-xs font-medium text-gray-600 mb-1">Source location</span>
+                                                            <span className="text-sm font-normal text-gray-900 whitespace-pre-wrap leading-tight break-words overflow-wrap-anywhere">{selectedJob.data_location || "Pending"}</span>
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex items-start space-x-4 p-4 bg-indigo-50/30 rounded-2xl border border-indigo-100/20 group transition-all hover:bg-indigo-50">
-                                                        <div className="w-10 h-10 rounded-xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm shrink-0">
-                                                            <ExternalLink size={18} />
+                                                    <div className="flex items-start space-x-3 p-3 bg-indigo-50 rounded-md border border-indigo-200">
+                                                        <div className="w-8 h-8 rounded-md bg-white border border-indigo-200 flex items-center justify-center text-indigo-600 shrink-0">
+                                                            <ExternalLink size={16} />
                                                         </div>
                                                         <div className="flex flex-col min-w-0 pt-0.5">
-                                                            <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Output location</span>
-                                                            <span className="text-sm font-bold text-indigo-900 tracking-tight whitespace-pre-wrap leading-tight break-words overflow-wrap-anywhere">{selectedJob.final_location || "Pending"}</span>
+                                                            <span className="text-xs font-medium text-indigo-600 mb-1">Output location</span>
+                                                            <span className="text-sm font-normal text-indigo-900 whitespace-pre-wrap leading-tight break-words overflow-wrap-anywhere">{selectedJob.final_location || "Pending"}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -690,61 +690,61 @@ export default function JobsPage() {
                                     </div>
 
                                     {/* Right Side (Financials & Date) */}
-                                    <div className="lg:col-span-4 space-y-6">
-                                        <div className="bg-slate-50/80 rounded-[2rem] border border-slate-100 p-7 space-y-3">
+                                    <div className="lg:col-span-4 space-y-4">
+                                        <div className="bg-gray-50 rounded-md border border-gray-200 p-4 space-y-3">
                                             <div>
-                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Production Status</h3>
+                                                <h3 className="text-sm font-medium text-gray-900 mb-3">Production Status</h3>
                                                 <div className="space-y-2">
                                                     <button
                                                         onClick={() => handleStatusUpdate(selectedJob.id, 'PENDING')}
-                                                        className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' : 'bg-white text-slate-500 border-slate-200'}`}
+                                                        className={`w-full py-2 px-4 flex items-center justify-center rounded-md transition-all space-x-2 border ${selectedJob.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-300'}`}
                                                     >
-                                                        <Clock size={14} />
-                                                        <span className="text-[10px] font-black uppercase tracking-wider">Pending</span>
+                                                        <Clock size={12} />
+                                                        <span className="text-xs font-medium">Pending</span>
                                                     </button>
                                                     <button
                                                         onClick={() => handleStatusUpdate(selectedJob.id, 'IN_PROGRESS')}
-                                                        className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'IN_PROGRESS' ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white text-slate-500 border-slate-200'}`}
+                                                        className={`w-full py-2 px-4 flex items-center justify-center rounded-md transition-all space-x-2 border ${selectedJob.status === 'IN_PROGRESS' ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white text-gray-600 border-gray-300'}`}
                                                     >
-                                                        <Zap size={14} />
-                                                        <span className="text-[10px] font-black uppercase tracking-wider">In-Progress</span>
+                                                        <Zap size={12} />
+                                                        <span className="text-xs font-medium">In-Progress</span>
                                                     </button>
                                                     <button
                                                         onClick={() => handleStatusUpdate(selectedJob.id, 'COMPLETED')}
-                                                        className={`w-full py-2.5 px-6 flex items-center justify-center rounded-xl transition-all space-x-2 border shadow-sm ${selectedJob.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-slate-500 border-slate-200'}`}
+                                                        className={`w-full py-2 px-4 flex items-center justify-center rounded-md transition-all space-x-2 border ${selectedJob.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-gray-600 border-gray-300'}`}
                                                     >
-                                                        <CheckCircle2 size={14} />
-                                                        <span className="text-[10px] font-black uppercase tracking-wider">Complete</span>
+                                                        <CheckCircle2 size={12} />
+                                                        <span className="text-xs font-medium">Complete</span>
                                                     </button>
                                                 </div>
                                             </div>
 
-                                            <div className="pt-3 border-t border-slate-200/60">
-                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Production Deadline</p>
+                                            <div className="pt-3 border-t border-gray-200">
+                                                <p className="text-xs font-medium text-gray-600 mb-1">Production Deadline</p>
                                                 <div className="flex items-center space-x-2">
-                                                    <Calendar className="text-rose-500" size={16} />
-                                                    <p className="text-xl font-black text-rose-600 font-mono tracking-tight">
+                                                    <Calendar className="text-rose-500" size={14} />
+                                                    <p className="text-base font-medium text-rose-600">
                                                         {new Date(selectedJob.job_due_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            <div className="pt-3 border-t border-slate-200/60 space-y-3">
-                                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">Financial Summary</h3>
+                                            <div className="pt-3 border-t border-gray-200 space-y-2">
+                                                <h3 className="text-xs font-medium text-gray-600 mb-2">Financial Summary</h3>
                                                 <div className="flex justify-between items-end">
                                                     <div>
-                                                        <p className="text-3xl font-black text-slate-900 tracking-tighter">{formatCurrency(selectedJob.amount)}</p>
+                                                        <p className="text-xl font-medium text-gray-900">{formatCurrency(selectedJob.amount)}</p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Commission</p>
-                                                        <div className="inline-flex items-center px-2 py-0.5 bg-rose-50 text-rose-600 rounded-lg border border-rose-100 font-black text-sm">
+                                                        <p className="text-xs font-medium text-gray-600 mb-0.5">Commission</p>
+                                                        <div className="inline-flex items-center px-2 py-0.5 bg-rose-50 text-rose-600 rounded-md border border-rose-100 text-xs font-medium">
                                                             -{formatCurrency(selectedJob.commission_amount)}
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="pt-3 border-t border-slate-200/40 flex justify-between items-center">
-                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Net Profit</span>
-                                                    <span className="text-lg font-black text-indigo-600">{formatCurrency(Number(selectedJob.amount || 0) - Number(selectedJob.commission_amount || 0))}</span>
+                                                <div className="pt-2 border-t border-gray-200 flex justify-between items-center">
+                                                    <span className="text-xs font-medium text-gray-600">Net Profit</span>
+                                                    <span className="text-base font-medium text-indigo-600">{formatCurrency(Number(selectedJob.amount || 0) - Number(selectedJob.commission_amount || 0))}</span>
                                                 </div>
                                             </div>
                                         </div>

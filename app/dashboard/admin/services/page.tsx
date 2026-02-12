@@ -257,35 +257,35 @@ export default function ServicesPage() {
 
             {/* Modal */}
             {showModal && (
-                <div className="modal-aesthetic-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal-aesthetic max-w-sm rounded-[2.5rem] p-10 animate-scale-up" onClick={e => e.stopPropagation()}>
-                        <div className="mb-6">
-                            <h2 className="text-xl font-black text-slate-900 font-heading tracking-tight leading-tight uppercase">
+                <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-5" onClick={e => e.stopPropagation()}>
+                        <div className="mb-4">
+                            <h2 className="text-lg font-semibold text-black">
                                 {editingService ? 'Edit Service' : 'New Service'}
                             </h2>
                         </div>
-                        <form onSubmit={handleSubmit} className="space-y-5">
+                        <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-black mb-2 block">Service Name</label>
+                                <label className="text-sm font-medium text-gray-900 mb-1 block">Service Name</label>
                                 <input
                                     type="text"
                                     value={serviceName}
                                     onChange={(e) => setServiceName(e.target.value)}
-                                    className="input-aesthetic h-11 px-4 text-sm"
+                                    className="w-full h-9 px-3 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none"
                                     placeholder="e.g., Wedding Highlight"
                                     required
                                     autoFocus />
                             </div>
-                            <div className="flex items-center gap-3 pt-4 border-t border-slate-50">
-                                <button type="submit" className="flex-1 h-11 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-purple-600 hover:to-indigo-500 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-indigo-100/50 transition-all duration-300">
-                                    {editingService ? 'Update' : 'Create'}
-                                </button>
+                            <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 h-11 bg-white text-slate-500 hover:text-slate-600 border border-slate-100 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all"
+                                    className="px-4 py-2.5 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md transition-all"
                                 >
                                     Cancel
+                                </button>
+                                <button type="submit" className="px-4 py-2.5 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-all">
+                                    {editingService ? 'Update' : 'Create'}
                                 </button>
                             </div>
                         </form>

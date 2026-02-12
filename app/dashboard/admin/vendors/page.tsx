@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Edit2, Trash2, Search, Building2, User, Smartphone, Mail, MapPin, CheckCircle, Eye, AlertCircle } from 'lucide-react'
+import { Plus, Edit2, Trash2, Search, Building2, User, Smartphone, Mail, MapPin, CheckCircle, Eye, AlertCircle, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Vendor } from '@/types/database'
 import Pagination from '@/components/Pagination'
@@ -377,83 +377,90 @@ export default function VendorsPage() {
             </div>
 
             {showModal && (
-                <div className="modal-aesthetic-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal-aesthetic" onClick={e => e.stopPropagation()}>
-                        <div className="mb-6">
-                            <h2 className="text-xl font-black text-slate-900 font-heading tracking-tight leading-tight uppercase">
+                <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="p-5 flex justify-between items-center border-b border-gray-200">
+                            <h2 className="text-lg font-semibold text-black">
                                 {editingVendor ? 'Edit Vendor' : 'New Vendor'}
                             </h2>
+                            <button onClick={() => setShowModal(false)} className="p-1.5 text-gray-500 hover:text-gray-900 transition-colors">
+                                <X size={18} />
+                            </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-black mb-2 block">Studio Name</label>
-                                <input
-                                    type="text"
-                                    required
-                                    className="input-aesthetic h-11 px-4 text-sm"
-                                    value={formData.studio_name}
-                                    onChange={e => setFormData({ ...formData, studio_name: e.target.value })}
-                                    placeholder="e.g. Dream Wedding Films" />
-                            </div>
-                            <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-black mb-2 block">Contact Person</label>
-                                <input
-                                    type="text"
-                                    required
-                                    className="input-aesthetic h-11 px-4 text-sm"
-                                    value={formData.contact_person}
-                                    onChange={e => setFormData({ ...formData, contact_person: e.target.value })}
-                                    placeholder="Full Name" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="label text-[10px] uppercase font-black tracking-widest text-black mb-2 block">Mobile Number</label>
-                                    <input
-                                        type="tel"
-                                        required
-                                        pattern="[0-9]{10}"
-                                        maxLength={10}
-                                        className="input-aesthetic h-11 px-4 text-sm"
-                                        value={formData.mobile}
-                                        onChange={e => {
-                                            const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 10)
-                                            setFormData({ ...formData, mobile: val })
-                                        }}
-                                        placeholder="10-digit number" />
+                        <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
+                            <div className="p-5 overflow-y-auto">
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-900 mb-1 block">Studio Name</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            className="w-full h-9 px-3 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none"
+                                            value={formData.studio_name}
+                                            onChange={e => setFormData({ ...formData, studio_name: e.target.value })}
+                                            placeholder="e.g. Dream Wedding Films" />
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-900 mb-1 block">Contact Person</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            className="w-full h-9 px-3 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none"
+                                            value={formData.contact_person}
+                                            onChange={e => setFormData({ ...formData, contact_person: e.target.value })}
+                                            placeholder="Full Name" />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-900 mb-1 block">Mobile Number</label>
+                                            <input
+                                                type="tel"
+                                                required
+                                                pattern="[0-9]{10}"
+                                                maxLength={10}
+                                                className="w-full h-9 px-3 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none"
+                                                value={formData.mobile}
+                                                onChange={e => {
+                                                    const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 10)
+                                                    setFormData({ ...formData, mobile: val })
+                                                }}
+                                                placeholder="10-digit number" />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-900 mb-1 block">Email Address</label>
+                                            <input
+                                                type="email"
+                                                className="w-full h-9 px-3 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none"
+                                                value={formData.email}
+                                                onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                                placeholder="john@studio.com" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-900 mb-1 block">Location</label>
+                                        <input
+                                            type="text"
+                                            className="w-full h-9 px-3 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none"
+                                            value={formData.location}
+                                            onChange={e => setFormData({ ...formData, location: e.target.value })}
+                                            placeholder="e.g. Mumbai, Maharashtra" />
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-900 mb-1 block">Notes / Description (Optional)</label>
+                                        <textarea
+                                            className="w-full min-h-[60px] px-3 py-2 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none resize-none"
+                                            value={formData.notes}
+                                            onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                                            placeholder="Any additional details..." />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="label text-[10px] uppercase font-black tracking-widest text-black mb-2 block">Email Address</label>
-                                    <input
-                                        type="email"
-                                        className="input-aesthetic h-11 px-4 text-sm"
-                                        value={formData.email}
-                                        onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                        placeholder="john@studio.com" />
-                                </div>
                             </div>
-                            <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-black mb-2 block">Location</label>
-                                <input
-                                    type="text"
-                                    className="input-aesthetic h-11 px-4 text-sm"
-                                    value={formData.location}
-                                    onChange={e => setFormData({ ...formData, location: e.target.value })}
-                                    placeholder="e.g. Mumbai, Maharashtra" />
-                            </div>
-                            <div>
-                                <label className="label text-[10px] uppercase font-black tracking-widest text-black mb-2 block">Notes / Description (Optional)</label>
-                                <textarea
-                                    className="input-aesthetic min-h-[60px] p-4 text-sm resize-none"
-                                    value={formData.notes}
-                                    onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                                    placeholder="Any additional details..." />
-                            </div>
-                            <div className="flex space-x-3 pt-4 border-t border-slate-50">
-                                <button type="submit" className="flex-1 h-11 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-purple-600 hover:to-indigo-500 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-indigo-100/50 transition-all duration-300">
-                                    {editingVendor ? 'Update' : 'Save'}
-                                </button>
-                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-11 bg-white text-slate-500 hover:text-slate-600 border border-slate-100 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all">
+                            <div className="p-5 border-t border-gray-200 bg-white flex justify-end gap-3">
+                                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2.5 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md transition-all">
                                     Cancel
+                                </button>
+                                <button type="submit" className="px-4 py-2.5 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-all">
+                                    {editingVendor ? 'Update' : 'Save'}
                                 </button>
                             </div>
                         </form>

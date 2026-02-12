@@ -28,7 +28,7 @@ export default function AestheticSelect({
     label,
     required = false,
     disabled = false,
-    heightClass = 'h-10'
+    heightClass = 'h-9'
 }: AestheticSelectProps) {
     const [isOpen, setIsOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)

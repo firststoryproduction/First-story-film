@@ -450,127 +450,121 @@ export default function StaffPage() {
             {/* Registration Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300">
                         {/* Modal Header */}
-                        <div className="px-8 md:px-10 pt-8 md:pt-10 flex justify-between items-center mb-6">
-                            <div>
-                                <h3 className="text-xl font-semibold text-black">
-                                    {modalMode === 'create' ? 'Register New User' : 'Edit User Profile'}
-                                </h3>
-                                <p className="text-gray-600 text-sm font-normal mt-1">Configure system access and profile settings.</p>
-                            </div>
-                            <button onClick={() => setShowModal(false)} className="p-2 text-gray-500 hover:text-gray-900 transition-colors bg-gray-50 rounded-lg">
-                                <X size={20} />
+                        <div className="p-5 flex justify-between items-center border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-black">
+                                {modalMode === 'create' ? 'Register New User' : 'Edit User Profile'}
+                            </h3>
+                            <button onClick={() => setShowModal(false)} className="p-1.5 text-gray-500 hover:text-gray-900 transition-colors">
+                                <X size={18} />
                             </button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
-                            <div className="px-8 md:px-10 pb-6">
-                                <div className="space-y-5">
+                            <div className="p-5 overflow-y-auto">
+                                <div className="space-y-4">
                                     {/* Profile Info */}
-                                    <div className="space-y-4">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="text-sm font-normal text-gray-900 mb-1 block">Full Name</label>
-                                                <input type="text" className="input-aesthetic h-11 py-0 text-sm" placeholder="John Doe" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
-                                            </div>
-                                            <div>
-                                                <label className="text-sm font-normal text-gray-900 mb-1 block">Mobile Number</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-900 mb-1 block">Full Name</label>
+                                            <input type="text" className="w-full h-9 px-3 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none" placeholder="John Doe" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-900 mb-1 block">Mobile Number</label>
+                                            <input
+                                                type="tel"
+                                                pattern="[0-9]{10}"
+                                                maxLength={10}
+                                                className="w-full h-9 px-3 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none"
+                                                placeholder="10-digit number"
+                                                value={formData.mobile}
+                                                onChange={e => {
+                                                    const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 10)
+                                                    setFormData({ ...formData, mobile: val })
+                                                }}
+                                                required />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-900 mb-1 block">Email Address</label>
+                                            <input type="email" className="w-full h-9 px-3 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none" placeholder="john@example.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-900 mb-1 block">Security Password</label>
+                                            {!showPasswordField && modalMode === 'edit' ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPasswordField(true)}
+                                                    className="w-full h-9 px-3 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-indigo-600 hover:bg-gray-200 transition-all"
+                                                >
+                                                    Reset Password
+                                                </button>
+                                            ) : (
                                                 <input
-                                                    type="tel"
-                                                    pattern="[0-9]{10}"
-                                                    maxLength={10}
-                                                    className="input-aesthetic h-11 py-0 text-sm"
-                                                    placeholder="10-digit number"
-                                                    value={formData.mobile}
-                                                    onChange={e => {
-                                                        const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 10)
-                                                        setFormData({ ...formData, mobile: val })
-                                                    }}
-                                                    required />
-                                            </div>
+                                                    type="password"
+                                                    title="Set password"
+                                                    className="w-full h-9 px-3 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none"
+                                                    placeholder={modalMode === 'create' ? "Set password" : "Enter new password"}
+                                                    value={formData.password}
+                                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                                    required={modalMode === 'create' || (modalMode === 'edit' && showPasswordField)} />
+                                            )}
                                         </div>
+                                    </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="text-sm font-normal text-gray-900 mb-1 block">Email Address</label>
-                                                <input type="email" className="input-aesthetic h-11 py-0 text-sm" placeholder="john@example.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
-                                            </div>
-                                            <div>
-                                                <label className="text-sm font-normal text-gray-900 mb-1 block">Security Password</label>
-                                                {!showPasswordField && modalMode === 'edit' ? (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowPasswordField(true)}
-                                                        className="w-full h-11 px-6 bg-gray-100 border border-gray-300 rounded-lg text-sm font-medium text-indigo-600 hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
-                                                    >
-                                                        <Save size={14} />
-                                                        Reset User Password
-                                                    </button>
-                                                ) : (
-                                                    <input
-                                                        type="password"
-                                                        title="Set password"
-                                                        className="input-aesthetic h-11 py-0 text-sm"
-                                                        placeholder={modalMode === 'create' ? "Set password" : "Enter new password"}
-                                                        value={formData.password}
-                                                        onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                                        required={modalMode === 'create' || (modalMode === 'edit' && showPasswordField)} />
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <AestheticSelect
-                                                    label="Role"
-                                                    heightClass="h-11"
-                                                    value={formData.role}
-                                                    onChange={(val) => setFormData({ ...formData, role: val as any })}
-                                                    options={[
-                                                        { id: 'USER', name: 'Staff / User' },
-                                                        { id: 'MANAGER', name: 'Manager' },
-                                                        { id: 'ADMIN', name: 'Administrator' }
-                                                    ]} />
-                                            </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <AestheticSelect
+                                                label="Role"
+                                                heightClass="h-9"
+                                                value={formData.role}
+                                                onChange={(val) => setFormData({ ...formData, role: val as any })}
+                                                options={[
+                                                    { id: 'USER', name: 'Staff / User' },
+                                                    { id: 'MANAGER', name: 'Manager' },
+                                                    { id: 'ADMIN', name: 'Administrator' }
+                                                ]} />
                                         </div>
                                     </div>
 
                                     {formData.role === 'USER' && (
-                                        <div className="space-y-4 pt-4 border-t border-gray-200">
-                                            <div className="flex justify-between items-center">
+                                        <div className="mt-4 pt-4 border-t border-gray-200">
+                                            <div className="flex justify-between items-center mb-3">
                                                 <p className="text-sm font-medium text-gray-900">Service</p>
-                                                <button type="button" onClick={handleAddCommission} className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center bg-indigo-50 px-3 py-1.5 rounded-lg">
-                                                    <Plus size={14} className="mr-1" /> Add Service
+                                                <button type="button" onClick={handleAddCommission} className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center bg-indigo-50 px-2.5 py-1 rounded-md">
+                                                    <Plus size={12} className="mr-1" /> Add Service
                                                 </button>
                                             </div>
 
                                             {commissions.length === 0 ? (
-                                                <div className="bg-gray-50 rounded-lg p-6 text-center border border-dashed border-gray-300">
+                                                <div className="border border-dashed border-gray-300 rounded-md p-3 text-center">
                                                     <p className="text-sm text-gray-600 font-normal">No services configured yet.</p>
                                                 </div>
                                             ) : (
-                                                <div className="max-h-[320px] overflow-y-auto custom-scrollbar pr-2 space-y-3">
+                                                <div className="max-h-[200px] overflow-y-auto space-y-2">
                                                     {commissions.map((comm, index) => (
-                                                        <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-4 relative transition-all hover:border-gray-300">
+                                                        <div key={index} className="bg-white p-3 rounded-md border border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-3 relative">
                                                             <div>
                                                                 <AestheticSelect
                                                                     label="Service"
-                                                                    heightClass="h-10"
+                                                                    heightClass="h-9"
                                                                     value={comm.serviceId}
                                                                     onChange={(val) => updateCommission(index, 'serviceId', val)}
                                                                     placeholder="Select Service..."
                                                                     options={services} />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-sm font-normal text-gray-900 mb-2">Rate (%)</label>
+                                                                <label className="block text-sm font-medium text-gray-900 mb-1">Rate (%)</label>
                                                                 <div className="relative">
-                                                                    <input type="number" step="0.01" className="input-aesthetic h-10 min-h-0 py-0 text-sm font-normal bg-white pr-8 border border-gray-300 rounded-lg px-4" value={comm.percentage || ''} onFocus={e => e.target.select()} onChange={e => updateCommission(index, 'percentage', e.target.value)} required min="0" max="100" />
-                                                                    <Percent size={10} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                                    <input type="number" step="0.01" className="w-full h-9 px-3 pr-8 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none" value={comm.percentage || ''} onFocus={e => e.target.select()} onChange={e => updateCommission(index, 'percentage', e.target.value)} required min="0" max="100" />
+                                                                    <Percent size={10} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
                                                                 </div>
                                                             </div>
-                                                            <button type="button" onClick={() => handleRemoveCommission(index)} className="absolute -top-2 -right-2 w-6 h-6 bg-white shadow-md border border-gray-200 rounded-full flex items-center justify-center text-gray-500 hover:text-rose-500 transition-all z-10">
-                                                                <X size={12} />
+                                                            <button type="button" onClick={() => handleRemoveCommission(index)} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white shadow-sm border border-gray-200 rounded-full flex items-center justify-center text-gray-500 hover:text-rose-500 transition-all z-10">
+                                                                <X size={10} />
                                                             </button>
                                                         </div>
                                                     ))}
@@ -581,10 +575,13 @@ export default function StaffPage() {
                                 </div>
                             </div>
 
-                            {/* Sticky Button Footer */}
-                            <div className="p-8 md:p-10 py-6 border-t border-gray-200 bg-white">
-                                <button type="submit" disabled={submitting} className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg flex items-center justify-center transition-all">
-                                    <Save size={16} className="mr-2" /> {submitting ? 'Saving...' : (modalMode === 'create' ? 'Save Profile' : 'Update Profile')}
+                            {/* Button Footer */}
+                            <div className="p-5 border-t border-gray-200 bg-white flex justify-end gap-3">
+                                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2.5 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md transition-all">
+                                    Cancel
+                                </button>
+                                <button type="submit" disabled={submitting} className="px-4 py-2.5 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-md flex items-center transition-all">
+                                    <Save size={14} className="mr-1.5" /> {submitting ? 'Saving...' : (modalMode === 'create' ? 'Save' : 'Update')}
                                 </button>
                             </div>
                         </form>
@@ -596,31 +593,31 @@ export default function StaffPage() {
             {showDeleteModal && memberToDelete && (
                 <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-                        <div className="p-8 text-center">
-                            <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <AlertTriangle size={32} />
+                        <div className="p-5">
+                            <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <AlertTriangle size={24} />
                             </div>
-                            <h3 className="text-xl font-semibold text-black mb-2">Delete Account?</h3>
-                            <p className="text-gray-600 text-sm font-normal leading-relaxed mb-8">
+                            <h3 className="text-lg font-semibold text-black mb-2 text-center">Delete Account?</h3>
+                            <p className="text-gray-600 text-sm font-normal leading-relaxed mb-5 text-center">
                                 You are about to permanently remove <span className="font-medium text-black">{memberToDelete.name}</span>'s access. This action cannot be undone.
                             </p>
 
-                            <div className="space-y-3">
-                                <button
-                                    onClick={handleDelete}
-                                    disabled={deleteLoading}
-                                    className="w-full h-12 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium transition-all flex items-center justify-center"
-                                >
-                                    {deleteLoading ? 'Processing...' : 'Delete Permanently'}
-                                </button>
+                            <div className="flex justify-end gap-3">
                                 <button
                                     onClick={() => {
                                         setShowDeleteModal(false)
                                         setMemberToDelete(null)
                                     }}
-                                    className="w-full h-12 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-medium transition-all"
+                                    className="px-4 py-2.5 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md transition-all"
                                 >
-                                    No, Keep User
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDelete}
+                                    disabled={deleteLoading}
+                                    className="px-4 py-2.5 text-sm font-medium bg-rose-600 hover:bg-rose-700 text-white rounded-md transition-all"
+                                >
+                                    {deleteLoading ? 'Processing...' : 'Delete'}
                                 </button>
                             </div>
                         </div>
