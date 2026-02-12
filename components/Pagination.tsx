@@ -21,9 +21,9 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
     const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
 
     return (
-        <div className="flex items-center justify-between px-4 py-2 border-t border-slate-50 mt-2">
-            <div className="flex items-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                Page <span className="text-indigo-600 mx-1">{currentPage}</span> of <span className="text-slate-600 ml-1">{totalPages}</span>
+        <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200 mt-2">
+            <div className="flex items-center text-sm font-normal text-gray-600">
+                Page <span className="text-indigo-600 mx-1">{currentPage}</span> of <span className="text-gray-900 ml-1">{totalPages}</span>
             </div>
 
             <div className="flex items-center space-x-1.5">
@@ -31,10 +31,10 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                     className={cn(
-                        "w-7 h-7 flex items-center justify-center rounded-lg border transition-all duration-300",
+                        "w-7 h-7 flex items-center justify-center rounded-lg border transition-all duration-200",
                         currentPage === 1
-                            ? "border-slate-50 text-slate-200 cursor-not-allowed"
-                            : "border-slate-100 text-slate-600 hover:border-indigo-600 hover:text-indigo-600 bg-white shadow-sm"
+                            ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                            : "border-gray-300 text-gray-600 hover:border-indigo-600 hover:text-indigo-600 bg-white"
                     )}
                 >
                     <ChevronLeft size={14} />
@@ -46,10 +46,10 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
                             key={page}
                             onClick={() => onPageChange(page)}
                             className={cn(
-                                "w-7 h-7 flex items-center justify-center rounded-lg text-[10px] font-black transition-all duration-300",
+                                "w-7 h-7 flex items-center justify-center rounded-lg text-sm font-normal transition-all duration-200",
                                 currentPage === page
-                                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
-                                    : "bg-white text-slate-600 border-2 border-slate-100 hover:border-indigo-600 hover:text-indigo-600"
+                                    ? "bg-indigo-600 text-white"
+                                    : "bg-white text-gray-900 border border-gray-300 hover:border-indigo-600 hover:text-indigo-600"
                             )}
                         >
                             {page}
@@ -61,10 +61,10 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className={cn(
-                        "w-10 h-10 flex items-center justify-center rounded-xl border-2 transition-all duration-300",
+                        "w-10 h-10 flex items-center justify-center rounded-lg border transition-all duration-200",
                         currentPage === totalPages
-                            ? "border-slate-50 text-slate-200 cursor-not-allowed"
-                            : "border-slate-100 text-slate-600 hover:border-indigo-600 hover:text-indigo-600 bg-white shadow-sm"
+                            ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                            : "border-gray-300 text-gray-600 hover:border-indigo-600 hover:text-indigo-600 bg-white"
                     )}
                 >
                     <ChevronRight size={18} />

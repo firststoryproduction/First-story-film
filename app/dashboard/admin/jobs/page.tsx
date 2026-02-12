@@ -390,34 +390,34 @@ export default function JobsPage() {
             <div className="w-full px-2 py-4 lg:px-4 lg:py-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
                     <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-100 flex items-center justify-center">
+                        <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
                             <ClipboardList size={18} className="text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 font-heading tracking-tight leading-tight uppercase">Job Management</h1>
+                            <h1 className="text-xl font-semibold text-black">Job Management</h1>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden">
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
 
                     {/* Toolbar Inside Card */}
-                    <div className="px-6 py-4 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="px-6 py-4 border-b border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="relative w-full md:w-[320px] group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-600 transition-colors" size={14} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={14} />
                             <input
                                 type="text"
                                 placeholder="Search by job, staff, vendor or service..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 h-9 bg-slate-100/80 border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-500 shadow-inner" />
+                                className="w-full pl-10 pr-4 h-9 bg-white border border-gray-300 rounded-lg text-sm font-normal focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder:text-gray-400" />
                         </div>
                         <button
                             onClick={() => { resetFormData(); setShowCreateModal(true); }}
-                            className="w-full md:w-auto px-5 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-purple-600 hover:to-indigo-500 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center space-x-2 group shrink-0 shadow-lg shadow-indigo-100/50"
+                            className="w-full md:w-auto px-5 h-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-all flex items-center justify-center space-x-2 group shrink-0"
                         >
-                            <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
-                            <span className="tracking-widest capitalize">Create New Job</span>
+                            <Plus size={14} />
+                            <span>Create New Job</span>
                         </button>
                     </div>
 
@@ -429,15 +429,15 @@ export default function JobsPage() {
                         ) : (
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="bg-slate-100/80 border-b border-slate-200">
-                                        <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Vendor</th>
-                                        <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Job Type</th>
-                                        <th className="pl-4 pr-1 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Work Description</th>
-                                        <th className="pl-1 pr-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Assigned To</th>
-                                        <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Amount</th>
-                                        <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 text-center">Status</th>
-                                        <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Due Date</th>
-                                        <th className="px-4 py-3 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Actions</th>
+                                    <tr className="bg-gray-50 border-b border-gray-200">
+                                        <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Vendor</th>
+                                        <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Job Type</th>
+                                        <th className="pl-4 pr-1 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Work Description</th>
+                                        <th className="pl-1 pr-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Assigned To</th>
+                                        <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Amount</th>
+                                        <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide text-center">Status</th>
+                                        <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Due Date</th>
+                                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wide">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">

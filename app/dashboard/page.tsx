@@ -264,19 +264,18 @@ export default function DashboardPage() {
             <div className="max-w-6xl mx-auto">
                 {/* Welcome Header */}
                 <div className="mb-8">
-                    <div className="h-1 w-16 bg-indigo-600 rounded-full mb-4" />
-                    <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 font-heading tracking-tight mb-2 leading-tight">
+                    <h2 className="text-xl font-semibold text-black mb-2">
                         Welcome back, <span className="text-indigo-600">{userName || 'Studio Member'}!</span>
                     </h2>
                 </div>
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div className="card-aesthetic p-6 overflow-hidden group hover:bg-slate-50 transition-colors">
+                    <div className="card-aesthetic p-6 overflow-hidden group hover:bg-gray-50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-[12px] text-slate-500 font-black uppercase tracking-widest mb-1">Total Jobs</p>
-                                <p className="text-3xl font-bold font-heading text-slate-900">{stats.totalJobs}</p>
+                                <p className="text-sm font-medium text-gray-900 mb-1">Total Jobs</p>
+                                <p className="text-3xl font-normal font-heading text-black">{stats.totalJobs}</p>
                             </div>
                             <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
                                 <ClipboardList size={22} />
@@ -284,11 +283,11 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="card-aesthetic p-6 group hover:bg-slate-50 transition-colors">
+                    <div className="card-aesthetic p-6 group hover:bg-gray-50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-[12px] text-slate-500 font-black uppercase tracking-widest mb-1">In-Progress</p>
-                                <p className="text-3xl font-bold font-heading text-slate-900">{stats.inProgress}</p>
+                                <p className="text-sm font-medium text-gray-900 mb-1">In-Progress</p>
+                                <p className="text-3xl font-normal font-heading text-black">{stats.inProgress}</p>
                             </div>
                             <div className="p-3 bg-amber-50 rounded-2xl text-amber-600 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
                                 <Clock size={22} />
@@ -296,11 +295,11 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="card-aesthetic p-6 group hover:bg-slate-50 transition-colors">
+                    <div className="card-aesthetic p-6 group hover:bg-gray-50 transition-colors">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-[12px] text-slate-500 font-black uppercase tracking-widest mb-1">Completed</p>
-                                <p className="text-3xl font-bold font-heading text-slate-900">{stats.completed}</p>
+                                <p className="text-sm font-medium text-gray-900 mb-1">Completed</p>
+                                <p className="text-3xl font-normal font-heading text-black">{stats.completed}</p>
                             </div>
                             <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
                                 <CheckCircle2 size={22} />
@@ -309,11 +308,11 @@ export default function DashboardPage() {
                     </div>
 
                     {isAdmin && (
-                        <div className="card-aesthetic p-6 group hover:bg-slate-50 transition-colors">
+                        <div className="card-aesthetic p-6 group hover:bg-gray-50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-[12px] text-slate-500 font-black uppercase tracking-widest mb-1">Total Users</p>
-                                    <p className="text-3xl font-bold font-heading text-slate-900">{stats.totalUsers}</p>
+                                    <p className="text-sm font-medium text-gray-900 mb-1">Total Users</p>
+                                    <p className="text-3xl font-normal font-heading text-black">{stats.totalUsers}</p>
                                 </div>
                                 <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                                     <Users size={22} />

@@ -318,34 +318,34 @@ export default function StaffPage() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
                     <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-100 flex items-center justify-center">
+                        <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
                             <Users size={18} className="text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 font-heading tracking-tight leading-tight uppercase">Users</h1>
+                            <h1 className="text-xl font-semibold text-black">Users</h1>
                         </div>
                     </div>
                 </div>
 
                 {/* Main Operations Card */}
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden">
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
 
                     {/* Toolbar Inside Card */}
-                    <div className="px-6 py-4 border-b border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="px-6 py-4 border-b border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="relative w-full md:w-[320px] group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-600 transition-colors" size={14} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={14} />
                             <input
                                 type="text"
                                 placeholder="Search by name, email, or role..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 h-9 bg-slate-100/80 border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-500 shadow-inner" />
+                                className="w-full pl-10 pr-4 h-9 bg-white border border-gray-300 rounded-lg text-sm font-normal focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder:text-gray-400" />
                         </div>
                         <button
                             onClick={handleOpenCreate}
-                            className="w-full md:w-auto px-5 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-purple-600 hover:to-indigo-500 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center space-x-2 group shrink-0 shadow-lg shadow-indigo-100/50"
+                            className="w-full md:w-auto px-5 h-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-all flex items-center justify-center space-x-2 group shrink-0"
                         >
-                            <Plus size={14} className="group-hover:rotate-90 transition-transform duration-300" />
+                            <Plus size={14} />
                             <span>Register User</span>
                         </button>
                     </div>
@@ -359,22 +359,22 @@ export default function StaffPage() {
                         ) : (
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="bg-slate-100/80 border-b border-slate-200">
-                                        <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">User Profile</th>
-                                        <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Email</th>
-                                        <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Mobile Number</th>
-                                        <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 text-center">Role</th>
-                                        <th className="px-6 py-3 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Actions</th>
+                                    <tr className="bg-gray-50 border-b border-gray-200">
+                                        <th className="px-6 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">User Profile</th>
+                                        <th className="px-6 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Email</th>
+                                        <th className="px-6 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Mobile Number</th>
+                                        <th className="px-6 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide text-center">Role</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wide">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-gray-200">
                                     {paginatedStaff.length === 0 && !loading ? (
                                         <tr>
                                             <td colSpan={5} className="py-20 text-center">
-                                                <div className="inline-flex p-6 bg-slate-50 rounded-full mb-3">
-                                                    <Users size={32} className="text-slate-200" />
+                                                <div className="inline-flex p-6 bg-gray-50 rounded-full mb-3">
+                                                    <Users size={32} className="text-gray-300" />
                                                 </div>
-                                                <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">No users detected</p>
+                                                <p className="text-sm font-normal text-gray-600">No users detected</p>
                                             </td>
                                         </tr>
                                     ) : (
@@ -382,30 +382,29 @@ export default function StaffPage() {
                                             <tr
                                                 key={member.id}
                                                 onClick={() => router.push(`/dashboard/admin/staff/${member.id}`)}
-                                                className="hover:bg-indigo-50/30 transition-colors group/row cursor-pointer"
+                                                className="hover:bg-gray-50 transition-colors group/row cursor-pointer"
                                             >
-                                                <td className="px-6 py-1.5">
-                                                    <div className="text-[14px] font-bold text-slate-900 group-hover/row:text-indigo-700 transition-colors flex items-center group/name">
-                                                        <div className={`w-1.5 h-1.5 rounded-full ${['bg-indigo-400', 'bg-rose-400', 'bg-amber-400', 'bg-emerald-400'][staff.indexOf(member) % 4]} mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100`} />
+                                                <td className="px-6 py-3">
+                                                    <div className="text-sm font-normal text-gray-900 flex items-center">
                                                         {member.name}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-1.5">
-                                                    <div className="text-[11px] text-slate-500 font-bold flex items-center">
-                                                        <Mail size={12} className="mr-2 text-sky-400" />
+                                                <td className="px-6 py-3">
+                                                    <div className="text-sm font-normal text-gray-900 flex items-center">
+                                                        <Mail size={12} className="mr-2 text-gray-400" />
                                                         {member.email}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-1.5">
-                                                    <div className="text-[11px] text-slate-500 font-bold flex items-center">
-                                                        <Smartphone size={12} className="mr-2 text-amber-500" />
+                                                <td className="px-6 py-3">
+                                                    <div className="text-sm font-normal text-gray-900 flex items-center">
+                                                        <Smartphone size={12} className="mr-2 text-gray-400" />
                                                         {member.mobile || 'N/A'}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-1.5 text-center">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border ${member.role === 'ADMIN' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-                                                        member.role === 'MANAGER' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                                            'bg-indigo-50 text-indigo-600 border-indigo-100'
+                                                <td className="px-6 py-3 text-center">
+                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${member.role === 'ADMIN' ? 'bg-rose-50 text-rose-700' :
+                                                        member.role === 'MANAGER' ? 'bg-amber-50 text-amber-700' :
+                                                            'bg-indigo-50 text-indigo-700'
                                                         }`}>
                                                         {member.role}
                                                     </span>
@@ -439,7 +438,7 @@ export default function StaffPage() {
                     </div>
 
                     {/* Pagination Container */}
-                    <div className="p-4 border-t border-slate-50 bg-slate-50/20">
+                    <div className="p-4 border-t border-gray-200 bg-white">
                         <Pagination
                             currentPage={currentPage}
                             totalPages={totalPages}
@@ -450,17 +449,17 @@ export default function StaffPage() {
 
             {/* Registration Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[95vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300">
                         {/* Modal Header */}
                         <div className="px-8 md:px-10 pt-8 md:pt-10 flex justify-between items-center mb-6">
                             <div>
-                                <h3 className="text-xl font-bold text-slate-900 font-heading">
+                                <h3 className="text-xl font-semibold text-black">
                                     {modalMode === 'create' ? 'Register New User' : 'Edit User Profile'}
                                 </h3>
-                                <p className="text-slate-500 text-[10px] font-medium mt-0.5">Configure system access and profile settings.</p>
+                                <p className="text-gray-600 text-sm font-normal mt-1">Configure system access and profile settings.</p>
                             </div>
-                            <button onClick={() => setShowModal(false)} className="p-2 text-slate-500 hover:text-slate-900 transition-colors bg-slate-50 rounded-xl">
+                            <button onClick={() => setShowModal(false)} className="p-2 text-gray-500 hover:text-gray-900 transition-colors bg-gray-50 rounded-lg">
                                 <X size={20} />
                             </button>
                         </div>
@@ -472,11 +471,11 @@ export default function StaffPage() {
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="text-[9px] font-bold text-black uppercase mb-1 block ml-2">Full Name</label>
+                                                <label className="text-sm font-normal text-gray-900 mb-1 block">Full Name</label>
                                                 <input type="text" className="input-aesthetic h-11 py-0 text-sm" placeholder="John Doe" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
                                             </div>
                                             <div>
-                                                <label className="text-[9px] font-bold text-black uppercase mb-1 block ml-2">Mobile Number</label>
+                                                <label className="text-sm font-normal text-gray-900 mb-1 block">Mobile Number</label>
                                                 <input
                                                     type="tel"
                                                     pattern="[0-9]{10}"
@@ -494,18 +493,18 @@ export default function StaffPage() {
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="text-[9px] font-bold text-black uppercase mb-1 block ml-2">Email Address</label>
+                                                <label className="text-sm font-normal text-gray-900 mb-1 block">Email Address</label>
                                                 <input type="email" className="input-aesthetic h-11 py-0 text-sm" placeholder="john@example.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
                                             </div>
                                             <div>
-                                                <label className="text-[9px] font-bold text-black uppercase mb-1 block ml-2">Security Password</label>
+                                                <label className="text-sm font-normal text-gray-900 mb-1 block">Security Password</label>
                                                 {!showPasswordField && modalMode === 'edit' ? (
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowPasswordField(true)}
-                                                        className="w-full h-11 px-6 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest text-indigo-600 hover:bg-white hover:border-indigo-200 transition-all flex items-center justify-center gap-2 group/reset"
+                                                        className="w-full h-11 px-6 bg-gray-100 border border-gray-300 rounded-lg text-sm font-medium text-indigo-600 hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
                                                     >
-                                                        <Save size={14} className="group-hover/reset:scale-110 transition-transform" />
+                                                        <Save size={14} />
                                                         Reset User Password
                                                     </button>
                                                 ) : (
@@ -538,22 +537,22 @@ export default function StaffPage() {
                                     </div>
 
                                     {formData.role === 'USER' && (
-                                        <div className="space-y-4 pt-4 border-t border-slate-50">
+                                        <div className="space-y-4 pt-4 border-t border-gray-200">
                                             <div className="flex justify-between items-center">
-                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-l-2 border-indigo-600 pl-3">Service </p>
-                                                <button type="button" onClick={handleAddCommission} className="text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 flex items-center bg-indigo-50 px-2.5 py-1 rounded-lg">
+                                                <p className="text-sm font-medium text-gray-900">Service</p>
+                                                <button type="button" onClick={handleAddCommission} className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center bg-indigo-50 px-3 py-1.5 rounded-lg">
                                                     <Plus size={14} className="mr-1" /> Add Service
                                                 </button>
                                             </div>
 
                                             {commissions.length === 0 ? (
-                                                <div className="bg-slate-50 rounded-2xl p-6 text-center border border-dashed border-slate-200">
-                                                    <p className="text-xs text-slate-500 font-medium italic">No services configured yet.</p>
+                                                <div className="bg-gray-50 rounded-lg p-6 text-center border border-dashed border-gray-300">
+                                                    <p className="text-sm text-gray-600 font-normal">No services configured yet.</p>
                                                 </div>
                                             ) : (
                                                 <div className="max-h-[320px] overflow-y-auto custom-scrollbar pr-2 space-y-3">
                                                     {commissions.map((comm, index) => (
-                                                        <div key={index} className="bg-white p-4 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4 relative shadow-sm transition-all hover:border-indigo-100">
+                                                        <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-4 relative transition-all hover:border-gray-300">
                                                             <div>
                                                                 <AestheticSelect
                                                                     label="Service"
@@ -564,13 +563,13 @@ export default function StaffPage() {
                                                                     options={services} />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-black mb-2 ml-1">Rate (%)</label>
+                                                                <label className="block text-sm font-normal text-gray-900 mb-2">Rate (%)</label>
                                                                 <div className="relative">
-                                                                    <input type="number" step="0.01" className="input-aesthetic h-10 min-h-0 py-0 text-[10px] font-black uppercase tracking-widest bg-white pr-8 border-2 border-slate-100 rounded-full px-4" value={comm.percentage || ''} onFocus={e => e.target.select()} onChange={e => updateCommission(index, 'percentage', e.target.value)} required min="0" max="100" />
-                                                                    <Percent size={10} className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-400" />
+                                                                    <input type="number" step="0.01" className="input-aesthetic h-10 min-h-0 py-0 text-sm font-normal bg-white pr-8 border border-gray-300 rounded-lg px-4" value={comm.percentage || ''} onFocus={e => e.target.select()} onChange={e => updateCommission(index, 'percentage', e.target.value)} required min="0" max="100" />
+                                                                    <Percent size={10} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                                                 </div>
                                                             </div>
-                                                            <button type="button" onClick={() => handleRemoveCommission(index)} className="absolute -top-2 -right-2 w-6 h-6 bg-white shadow-md border border-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:text-rose-500 transition-all z-10">
+                                                            <button type="button" onClick={() => handleRemoveCommission(index)} className="absolute -top-2 -right-2 w-6 h-6 bg-white shadow-md border border-gray-200 rounded-full flex items-center justify-center text-gray-500 hover:text-rose-500 transition-all z-10">
                                                                 <X size={12} />
                                                             </button>
                                                         </div>
@@ -583,8 +582,8 @@ export default function StaffPage() {
                             </div>
 
                             {/* Sticky Button Footer */}
-                            <div className="p-8 md:p-10 py-6 border-t border-slate-50 bg-white">
-                                <button type="submit" disabled={submitting} className="btn-aesthetic w-full h-12 text-xs flex items-center justify-center tracking-widest shadow-lg shadow-indigo-100/50">
+                            <div className="p-8 md:p-10 py-6 border-t border-gray-200 bg-white">
+                                <button type="submit" disabled={submitting} className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg flex items-center justify-center transition-all">
                                     <Save size={16} className="mr-2" /> {submitting ? 'Saving...' : (modalMode === 'create' ? 'Save Profile' : 'Update Profile')}
                                 </button>
                             </div>
@@ -595,22 +594,22 @@ export default function StaffPage() {
 
             {/* Deletion Confirmation Modal */}
             {showDeleteModal && memberToDelete && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-300">
                         <div className="p-8 text-center">
-                            <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6 scale-110">
+                            <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <AlertTriangle size={32} />
                             </div>
-                            <h3 className="text-xl font-black text-slate-900 font-heading mb-2 uppercase tracking-tight">Delete Account?</h3>
-                            <p className="text-slate-500 text-sm leading-relaxed mb-8">
-                                You are about to permanently remove <span className="font-bold text-slate-900">{memberToDelete.name}</span>'s access. This action cannot be undone.
+                            <h3 className="text-xl font-semibold text-black mb-2">Delete Account?</h3>
+                            <p className="text-gray-600 text-sm font-normal leading-relaxed mb-8">
+                                You are about to permanently remove <span className="font-medium text-black">{memberToDelete.name}</span>'s access. This action cannot be undone.
                             </p>
 
                             <div className="space-y-3">
                                 <button
                                     onClick={handleDelete}
                                     disabled={deleteLoading}
-                                    className="w-full h-12 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-lg shadow-rose-100 flex items-center justify-center"
+                                    className="w-full h-12 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium transition-all flex items-center justify-center"
                                 >
                                     {deleteLoading ? 'Processing...' : 'Delete Permanently'}
                                 </button>
@@ -619,7 +618,7 @@ export default function StaffPage() {
                                         setShowDeleteModal(false)
                                         setMemberToDelete(null)
                                     }}
-                                    className="w-full h-12 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] transition-all"
+                                    className="w-full h-12 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-medium transition-all"
                                 >
                                     No, Keep User
                                 </button>
@@ -632,7 +631,7 @@ export default function StaffPage() {
             {/* Notification Toast */}
             {notification && (
                 <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${notification.type === 'success'
+                    <div className={`flex items-center space-x-3 px-6 py-3 rounded-lg shadow-xl border ${notification.type === 'success'
                         ? 'bg-emerald-500 border-emerald-400 text-white'
                         : 'bg-rose-500 border-rose-400 text-white'
                         }`}>
@@ -641,7 +640,7 @@ export default function StaffPage() {
                         ) : (
                             <XCircle size={18} className="text-white" />
                         )}
-                        <p className="text-[11px] font-black uppercase tracking-widest">{notification.message}</p>
+                        <p className="text-sm font-medium">{notification.message}</p>
                     </div>
                 </div>
             )}

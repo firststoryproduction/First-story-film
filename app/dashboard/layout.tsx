@@ -334,7 +334,7 @@ export default function DashboardLayout({
                         <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                             <Sparkles className="text-white" size={20} />
                         </div>
-                        <h1 className="text-xl font-bold font-heading tracking-tighter text-slate-900">
+                        <h1 className="text-xl font-semibold font-heading tracking-tighter text-black">
                             FIRST STORY <span className="text-indigo-600">FILMS</span>
                         </h1>
                     </div>
@@ -344,7 +344,7 @@ export default function DashboardLayout({
 
                 {/* Navigation Menu */}
                 <nav className="space-y-1">
-                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-4 ml-4">Main Menu</p>
+                    <p className="text-sm font-medium text-gray-900 mb-4 ml-4">Main Menu</p>
                     {navItems.map((item) => {
                         const Icon = item.icon
                         const isActive = pathname === item.href
@@ -416,9 +416,9 @@ export default function DashboardLayout({
                                         window.location.href = '/login?message=Signed out successfully'
                                     }
                                 }}
-                                className="w-full p-4 flex items-center justify-between text-rose-600 hover:bg-rose-50 rounded-xl transition-colors group/logout"
+                                className="w-full p-4 flex items-center justify-between text-rose-600 hover:bg-rose-50 rounded-lg transition-colors group/logout"
                             >
-                                <span className="text-xs font-black uppercase tracking-widest">Confirm Logout</span>
+                                <span className="text-sm font-medium">Confirm Logout</span>
                                 <LogOut size={16} className="group-hover/logout:translate-x-1 transition-transform" />
                             </button>
                         </div>
@@ -437,10 +437,10 @@ export default function DashboardLayout({
                             <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
                         </div>
                         <div className="overflow-hidden flex-1">
-                            <p className="font-bold text-[10px] text-slate-900 truncate uppercase tracking-tight leading-none mb-1">
+                            <p className="font-normal text-sm text-black truncate leading-none mb-1">
                                 {userName || 'User'}
                             </p>
-                            <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{userRole}</p>
+                            <p className="text-xs font-normal text-gray-600">{userRole}</p>
                         </div>
                         <div className={`text-slate-300 transition-transform duration-300 ${showLogout ? 'rotate-180 text-indigo-500' : ''}`}>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>

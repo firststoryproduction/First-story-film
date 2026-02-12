@@ -48,7 +48,7 @@ export default function AestheticSelect({
     return (
         <div className="relative w-full" ref={containerRef}>
             {label && (
-                <label className="block text-[12px] font-black uppercase tracking-[0.2em] text-black mb-2 ml-1">
+                <label className="block text-sm font-normal text-gray-900 mb-2">
                     {label} {required && <span className="text-rose-500">*</span>}
                 </label>
             )}
@@ -58,15 +58,15 @@ export default function AestheticSelect({
                 disabled={disabled}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 className={cn(
-                    "w-full bg-white border-2 border-slate-100 rounded-full px-4 flex items-center justify-between transition-all duration-300",
+                    "w-full bg-white border border-gray-300 rounded-lg px-4 flex items-center justify-between transition-all duration-200",
                     heightClass,
-                    "hover:border-slate-200 hover:bg-slate-50/50",
-                    isOpen && "border-indigo-600 ring-2 ring-indigo-50 bg-white",
-                    disabled && "opacity-50 cursor-not-allowed bg-slate-50",
-                    !selectedOption && "text-slate-500"
+                    "hover:border-gray-400",
+                    isOpen && "border-indigo-600 ring-1 ring-indigo-500 bg-white",
+                    disabled && "opacity-50 cursor-not-allowed bg-gray-50",
+                    !selectedOption && "text-gray-400"
                 )}
             >
-                <span className={cn("text-[11px] transition-all truncate font-black uppercase tracking-widest leading-none", selectedOption ? "text-slate-900" : "text-slate-500")}>
+                <span className={cn("text-sm transition-all truncate font-normal leading-none", selectedOption ? "text-black" : "text-gray-400")}>
                     {selectedOption ? selectedOption.name : placeholder}
                 </span>
                 <ChevronDown
@@ -80,10 +80,10 @@ export default function AestheticSelect({
 
             {/* CURVED DROPDOWN MENU */}
             {isOpen && (
-                <div className="absolute top-[calc(100%+4px)] left-0 w-full min-w-[160px] bg-white border border-slate-100 rounded-[1.25rem] shadow-2xl p-1.5 z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="max-h-40 overflow-y-auto custom-scrollbar text-[12px]">
+                <div className="absolute top-[calc(100%+4px)] left-0 w-full min-w-[160px] bg-white border border-gray-200 rounded-lg shadow-xl p-1.5 z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="max-h-40 overflow-y-auto custom-scrollbar text-sm">
                         {options.length === 0 ? (
-                            <div className="px-4 py-8 text-center text-slate-500 text-sm font-bold uppercase tracking-widest">
+                            <div className="px-4 py-8 text-center text-gray-600 text-sm font-normal">
                                 No options available
                             </div>
                         ) : (
@@ -97,10 +97,10 @@ export default function AestheticSelect({
                                             setIsOpen(false)
                                         }}
                                         className={cn(
-                                            "w-full px-3 py-2 rounded-xl text-left text-[12px] uppercase tracking-widest transition-all flex items-center justify-between group",
+                                            "w-full px-3 py-2 rounded-lg text-left text-sm transition-all flex items-center justify-between group",
                                             value === option.id
-                                                ? "bg-indigo-600 text-white font-black"
-                                                : "text-slate-600 hover:bg-slate-50 hover:text-indigo-600 font-bold"
+                                                ? "bg-indigo-600 text-white font-medium"
+                                                : "text-gray-900 hover:bg-gray-50 hover:text-indigo-600 font-normal"
                                         )}
                                     >
                                         <span className="whitespace-nowrap">{option.name}</span>
