@@ -179,9 +179,9 @@ export default function DashboardLayout({
                 })
 
                 // CRITICAL FIX: Only run init if we don't already have a session
-                // onAuthStateChange handles new logins, init() only for page refresh
+                // init() handles both: new logins (redirect from login page) and page refreshes
                 if (session?.user) {
-                    console.log('[LAYOUT] ⏭️ Skipping init - session already exists (from onAuthStateChange)', {
+                    console.log('[LAYOUT] ⏭️ Skipping init - session already exists', {
                         userId: session.user.id,
                         timestamp: new Date().toISOString()
                     })
@@ -192,7 +192,7 @@ export default function DashboardLayout({
                     return
                 }
 
-                // For page refresh: check session once
+                // Check session: works for both new logins and page refreshes
                 const { data, error } = await supabase.auth.getSession()
                         
                 console.log('[LAYOUT] 📊 Session check (page refresh)', {
@@ -240,8 +240,10 @@ export default function DashboardLayout({
             }
         }
 
-        // Only run init if we don't have a session yet
-        // onAuthStateChange will handle new logins
+        // Run init if we don't have a session yet
+        // init() handles: new logins (after redirect from login page) and page refreshes
+        // When user logs in and redirects to /dashboard, session state is null initially,
+        // so init() runs, gets session from cookies, and fetches profile
         if (!session) {
             init()
         } else {
@@ -253,134 +255,27 @@ export default function DashboardLayout({
             clearTimeout(timeout)
         }
 
-        // REMOVED: Tab visibility change handler
+        // REMOVED: onAuthStateChange subscription
         // Why removed:
-        // 1. Supabase's createBrowserClient automatically handles token refresh
-        // 2. onAuthStateChange already listens for TOKEN_REFRESHED events
-        // 3. Manually refreshing on tab switch was causing unnecessary profile fetches
-        // 4. This was causing timeouts and role resets when switching tabs
-        // 
-        // If you need to refresh session on tab visibility, let Supabase handle it automatically
-        // The onAuthStateChange('TOKEN_REFRESHED') will fire when Supabase refreshes the token
-
-        // CRITICAL FIX: onAuthStateChange is the PRIMARY source of truth for new logins
-        // This fires immediately when signInWithPassword succeeds
-        // CRITICAL: Only listen to user-initiated auth events (SIGNED_IN, SIGNED_OUT)
-        // Ignore automatic token refreshes (TOKEN_REFRESHED) - no live updates
-        // User wants manual refresh only, not automatic updates
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-            if (!mounted) return
-
-            // CRITICAL: Ignore TOKEN_REFRESHED completely - it's automatic, not user-initiated
-            // User only wants updates on manual actions (login/logout)
-            if (event === 'TOKEN_REFRESHED') {
-                // Completely ignore - no logs, no updates, nothing
-                return
-            }
-
-            // Only log and handle user-initiated events
-            console.log('[LAYOUT] 🔔 Auth state change (USER ACTION)', {
-                event,
-                hasNewSession: !!newSession,
-                newUserId: newSession?.user?.id,
-                timestamp: new Date().toISOString()
-            })
-
-            if (event === 'SIGNED_IN') {
-                // CRITICAL: Only fetch profile on SIGNED_IN, not on TOKEN_REFRESHED
-                // TOKEN_REFRESHED just means the token was refreshed - profile doesn't change
-                if (!newSession?.user) {
-                    console.error('[LAYOUT] ❌ SIGNED_IN event but no user in session', {
-                        event,
-                        timestamp: new Date().toISOString()
-                    })
-                    return
-                }
-
-                console.log('[LAYOUT] ✅ Setting session from auth state change (PRIMARY)', {
-                    event,
-                    userId: newSession.user.id,
-                    email: newSession.user.email,
-                    timestamp: new Date().toISOString()
-                })
-                
-                // CRITICAL: Set session immediately - this is the source of truth
-                sessionInitialized = true
-                setSession(newSession)
-                
-                // CRITICAL: Set a timeout for profile fetch to prevent infinite loader
-                // If profile fetch takes more than 5 seconds, set default role and continue
-                let profileFetchCompleted = false
-                const profileFetchTimeout = setTimeout(() => {
-                    if (!profileFetchCompleted) {
-                        console.warn('[LAYOUT] ⏰ Profile fetch timeout - setting default USER role', {
-                            userId: newSession.user.id,
-                            timestamp: new Date().toISOString()
-                        })
-                        setUserRole('USER')
-                        setLoading(false)
-                        clearTimeout(timeout)
-                        profileFetchCompleted = true
-                    }
-                }, 5000)
-                
-                // Fetch profile to get role
-                // CRITICAL: Use try-catch to ensure loading is set even if profile fetch fails
-                try {
-                    await fetchProfile(newSession.user.id)
-                    profileFetchCompleted = true
-                    clearTimeout(profileFetchTimeout) // Clear timeout if fetch completes
-                    console.log('[LAYOUT] ✅ Profile fetch completed', {
-                        userId: newSession.user.id,
-                        timestamp: new Date().toISOString()
-                    })
-                } catch (profileError) {
-                    profileFetchCompleted = true
-                    clearTimeout(profileFetchTimeout) // Clear timeout on error
-                    console.error('[LAYOUT] ❌ Profile fetch failed in onAuthStateChange', {
-                        error: profileError,
-                        userId: newSession.user.id,
-                        timestamp: new Date().toISOString()
-                    })
-                    // CRITICAL: Always set a role, even on error
-                    // fetchProfile should have set it, but ensure it's set here too
-                    console.log('[LAYOUT] ⚠️ Setting default role USER due to profile fetch failure')
-                    setUserRole('USER')
-                }
-                
-                // CRITICAL: Always set loading false after profile fetch (success or failure)
-                // We have the session, so we can render even if role defaults to USER
-                // fetchProfile always sets a role (either from DB or default USER)
-                // Don't check userRole here - React state updates are async
-                setLoading(false)
-                clearTimeout(timeout)
-                
-                console.log('[LAYOUT] ✅ Auth state change complete', {
-                    event,
-                    userId: newSession.user.id,
-                    timestamp: new Date().toISOString()
-                })
-            } else if (event === 'SIGNED_OUT') {
-                console.log('[LAYOUT] 🚪 Signed out, clearing session', {
-                    timestamp: new Date().toISOString()
-                })
-                sessionInitialized = false
-                setSession(null)
-                setUserRole(null)
-                setLoading(false)
-                clearTimeout(timeout)
-                router.push('/login')
-            }
-        })
+        // 1. User wants manual refresh only, no automatic updates
+        // 2. No WebSocket/real-time subscriptions needed
+        // 3. Session is checked on page load via init() function
+        // 4. Login flow works: login page redirects → layout init() gets session → profile fetched
+        // 5. Logout is handled by logout button which redirects to /login
+        //
+        // Session management is now:
+        // - On page load: init() checks session and fetches profile
+        // - On login: redirect to /dashboard → init() runs → session found → profile fetched
+        // - On logout: logout button → signOut() → redirect to /login
+        // - No automatic subscriptions or event listeners
 
         return () => {
             console.log('[LAYOUT] 🧹 Cleanup', {
                 timestamp: new Date().toISOString()
             })
             mounted = false
-            subscription.unsubscribe()
             clearTimeout(timeout)
-            // Removed visibilitychange listener - no longer needed
+            // No subscriptions to clean up - removed onAuthStateChange
         }
         // CRITICAL FIX: Add session to dependencies to avoid stale closure
         // But use a ref or functional updates in callbacks to prevent infinite loops
