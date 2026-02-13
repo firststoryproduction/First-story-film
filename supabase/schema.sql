@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   data_location TEXT,
   final_location TEXT,
   job_due_date TIMESTAMPTZ NOT NULL,
+  staff_due_date TIMESTAMPTZ,
   status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_PROGRESS', 'PAUSE', 'COMPLETED')),
   amount NUMERIC(10,2) NOT NULL,
   commission_amount NUMERIC(10,2) NOT NULL,
@@ -75,6 +76,7 @@ CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_jobs_staff_id ON jobs(staff_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
 CREATE INDEX IF NOT EXISTS idx_jobs_due_date ON jobs(job_due_date);
+CREATE INDEX IF NOT EXISTS idx_jobs_staff_due_date ON jobs(staff_due_date);
 CREATE INDEX IF NOT EXISTS idx_staff_service_configs_staff ON staff_service_configs(staff_id);
 
 -- TRIGGERS (Auto-update 'updated_at')

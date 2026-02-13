@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Search, Calendar, Building2, Edit2, ClipboardList, Clock, Zap, CheckCircle2, AlertCircle, ExternalLink, Trash2, CheckCircle, XCircle, X, FileText, User as UserIcon, Save, ArrowLeft, Mail, Smartphone, MapPin, DollarSign, Briefcase, FileSearch } from 'lucide-react'
+import { Plus, Search, Calendar, Building2, Edit2, ClipboardList, Clock, Zap, CheckCircle2, AlertCircle, ExternalLink, Trash2, CheckCircle, XCircle, X, FileText, User as UserIcon, Save, ArrowLeft, Mail, Smartphone, MapPin, DollarSign, Briefcase, FileSearch, Filter, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { supabase } from '../../../../lib/supabase'
 import { Job, Service, Vendor, User as StaffUser } from '../../../../types/database'
 import { formatCurrency, getStatusColor, getStatusLabel, calculateCommission } from '../../../../lib/utils'
@@ -21,6 +21,14 @@ export default function JobsPage() {
     const [totalCount, setTotalCount] = useState(0)
     const ITEMS_PER_PAGE = 10
     const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null)
+    
+    // Filter States
+    const [filterJobType, setFilterJobType] = useState('')
+    const [filterAssignedTo, setFilterAssignedTo] = useState('')
+    const [filterVendor, setFilterVendor] = useState('')
+    
+    // Sort State
+    const [sortBy, setSortBy] = useState<{ field: 'staff_due_date' | 'job_due_date' | 'status' | null, direction: 'asc' | 'desc' }>({ field: null, direction: 'desc' })
 
     // Modal States
     const [showCreateModal, setShowCreateModal] = useState(false)
@@ -32,6 +40,7 @@ export default function JobsPage() {
     // Form Data States for Create/Edit
     const [services, setServices] = useState<Service[]>([])
     const [vendors, setVendors] = useState<Vendor[]>([])
+    const [allStaff, setAllStaff] = useState<StaffUser[]>([])
     const [filteredStaffList, setFilteredStaffList] = useState<any[]>([])
     const [selectedService, setSelectedService] = useState('')
     const [selectedVendor, setSelectedVendor] = useState('')
@@ -42,6 +51,7 @@ export default function JobsPage() {
         data_location: '',
         final_location: '',
         job_due_date: '',
+        staff_due_date: '',
         amount: 0,
         status: 'PENDING'
     })
@@ -79,7 +89,7 @@ export default function JobsPage() {
         };
     }, []);
 
-    // Re-fetch jobs when pagination or search changes
+    // Re-fetch jobs when pagination, search, filters, or sort changes
     useEffect(() => {
         // Skip initial render (handled by init effect above)
         if (loading) return;
@@ -87,7 +97,7 @@ export default function JobsPage() {
         setLoading(true);
         fetchJobs();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentPage, searchTerm]);
+    }, [currentPage, searchTerm, filterJobType, filterAssignedTo, filterVendor, sortBy]);
 
     const fetchJobs = async () => {
         try {
@@ -103,12 +113,30 @@ export default function JobsPage() {
                     staff:users(name, email, mobile)
                 `, { count: 'exact' })
 
+            // Search only in description
             if (searchTerm) {
-                query = query.or(`description.ilike.%${searchTerm}%,status.ilike.%${searchTerm}%`)
+                query = query.ilike('description', `%${searchTerm}%`)
+            }
+
+            // Apply filters
+            if (filterJobType) {
+                query = query.eq('service_id', filterJobType)
+            }
+            if (filterAssignedTo) {
+                query = query.eq('staff_id', filterAssignedTo)
+            }
+            if (filterVendor) {
+                query = query.eq('vendor_id', filterVendor)
+            }
+
+            // Apply sorting
+            if (sortBy.field) {
+                query = query.order(sortBy.field, { ascending: sortBy.direction === 'asc' })
+            } else {
+                query = query.order('created_at', { ascending: false })
             }
 
             const { data, error, count } = await query
-                .order('created_at', { ascending: false })
                 .range(start, end)
 
             if (error) throw error
@@ -124,13 +152,15 @@ export default function JobsPage() {
     const fetchCommonData = async () => {
         try {
             await supabase.auth.getUser()
-            const [sRes, vRes] = await Promise.all([
+            const [sRes, vRes, staffRes] = await Promise.all([
                 supabase.from('services').select('*').order('name'),
-                supabase.from('vendors').select('*').order('studio_name')
+                supabase.from('vendors').select('*').order('studio_name'),
+                supabase.from('users').select('id, name').order('name')
             ])
 
             if (sRes.data) setServices(sRes.data)
             if (vRes.data) setVendors(vRes.data)
+            if (staffRes.data) setAllStaff(staffRes.data)
         } catch (error) {
             console.error('Error fetching common data:', error)
         }
@@ -226,6 +256,7 @@ export default function JobsPage() {
                     data_location: formData.data_location,
                     final_location: formData.final_location,
                     job_due_date: new Date(formData.job_due_date).toISOString(),
+                    staff_due_date: formData.staff_due_date ? new Date(formData.staff_due_date).toISOString() : null,
                     status: formData.status,
                     amount: formData.amount,
                     commission_amount: commission,
@@ -255,6 +286,7 @@ export default function JobsPage() {
                     data_location: formData.data_location,
                     final_location: formData.final_location,
                     job_due_date: new Date(formData.job_due_date).toISOString(),
+                    staff_due_date: formData.staff_due_date ? new Date(formData.staff_due_date).toISOString() : null,
                     amount: formData.amount,
                     commission_amount: commission,
                     status: formData.status
@@ -277,6 +309,7 @@ export default function JobsPage() {
             data_location: '',
             final_location: '',
             job_due_date: '',
+            staff_due_date: '',
             amount: 0,
             status: 'PENDING'
         })
@@ -293,6 +326,7 @@ export default function JobsPage() {
             data_location: job.data_location || '',
             final_location: job.final_location || '',
             job_due_date: job.job_due_date ? new Date(job.job_due_date).toISOString().slice(0, 16) : '',
+            staff_due_date: job.staff_due_date ? new Date(job.staff_due_date).toISOString().slice(0, 16) : '',
             amount: job.amount || 0,
             status: job.status || 'PENDING'
         })
@@ -383,7 +417,7 @@ export default function JobsPage() {
     useEffect(() => {
         if (currentPage !== 1) setCurrentPage(1)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchTerm])
+    }, [searchTerm, filterJobType, filterAssignedTo, filterVendor])
 
     return (
         <div className="min-h-screen bg-[#f1f5f9] lg:ml-72">
@@ -397,28 +431,93 @@ export default function JobsPage() {
                             <h1 className="text-xl font-semibold text-black">Job Management</h1>
                         </div>
                     </div>
+                    <button
+                        onClick={() => { resetFormData(); setShowCreateModal(true); }}
+                        className="px-5 h-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-all flex items-center justify-center space-x-2 shrink-0"
+                    >
+                        <Plus size={14} />
+                        <span>Create New Job</span>
+                    </button>
                 </div>
 
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
 
                     {/* Toolbar Inside Card */}
-                    <div className="px-6 py-4 border-b border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div className="relative w-full md:w-[320px] group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={14} />
-                            <input
-                                type="text"
-                                placeholder="Search by job, staff, vendor or service..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 h-9 bg-white border border-gray-300 rounded-lg text-sm font-normal focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder:text-gray-400" />
+                    <div className="px-6 py-4 border-b border-gray-200">
+                        <div className="flex flex-col md:flex-row items-center gap-3">
+                            {/* Search */}
+                            <div className="relative flex-1 max-w-[280px] group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={14} />
+                                <input
+                                    type="text"
+                                    placeholder="Search by description..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 h-9 bg-white border border-gray-300 rounded-lg text-xs font-normal focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder:text-gray-400" />
+                            </div>
+                            
+                            {/* Filters - Job Type */}
+                            <div className="w-[160px]">
+                                <AestheticSelect
+                                    label=""
+                                    heightClass="h-9"
+                                    textSize="xs"
+                                    options={[{ id: '', name: 'All Job Types' }, ...services.map(s => ({ id: s.id, name: s.name }))]}
+                                    value={filterJobType}
+                                    onChange={setFilterJobType}
+                                    placeholder="All Job Types" />
+                            </div>
+                            
+                            {/* Filters - Staff */}
+                            <div className="w-[160px]">
+                                <AestheticSelect
+                                    label=""
+                                    heightClass="h-9"
+                                    textSize="xs"
+                                    options={[{ id: '', name: 'All Staff' }, ...allStaff.map(s => ({ id: s.id, name: s.name }))]}
+                                    value={filterAssignedTo}
+                                    onChange={setFilterAssignedTo}
+                                    placeholder="All Staff" />
+                            </div>
+                            
+                            {/* Filters - Vendor */}
+                            <div className="w-[160px]">
+                                <AestheticSelect
+                                    label=""
+                                    heightClass="h-9"
+                                    textSize="xs"
+                                    options={[{ id: '', name: 'All Vendors' }, ...vendors.map(v => ({ id: v.id, name: v.studio_name }))]}
+                                    value={filterVendor}
+                                    onChange={setFilterVendor}
+                                    placeholder="All Vendors" />
+                            </div>
+                            
+                            {/* Sort */}
+                            <div className="w-[160px]">
+                                <select
+                                    value={sortBy.field || ''}
+                                    onChange={(e) => {
+                                        const field = e.target.value as 'staff_due_date' | 'job_due_date' | 'status' | ''
+                                        setSortBy({ field: field || null, direction: sortBy.direction })
+                                    }}
+                                    className="w-full h-9 px-3 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none bg-white"
+                                >
+                                    <option value="">Sort By</option>
+                                    <option value="staff_due_date">Staff Due Date</option>
+                                    <option value="job_due_date">Job Due Date</option>
+                                    <option value="status">Status</option>
+                                </select>
+                            </div>
+                            
+                            {sortBy.field && (
+                                <button
+                                    onClick={() => setSortBy({ ...sortBy, direction: sortBy.direction === 'asc' ? 'desc' : 'asc' })}
+                                    className="h-9 w-9 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 shrink-0"
+                                >
+                                    {sortBy.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                                </button>
+                            )}
                         </div>
-                        <button
-                            onClick={() => { resetFormData(); setShowCreateModal(true); }}
-                            className="w-full md:w-auto px-5 h-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-all flex items-center justify-center space-x-2 group shrink-0"
-                        >
-                            <Plus size={14} />
-                            <span>Create New Job</span>
-                        </button>
                     </div>
 
                     <div className="overflow-x-auto relative">
@@ -430,20 +529,21 @@ export default function JobsPage() {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-gray-50 border-b border-gray-200">
-                                        <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Vendor</th>
                                         <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Job Type</th>
-                                        <th className="pl-4 pr-1 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Work Description</th>
-                                        <th className="pl-1 pr-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Assigned To</th>
+                                        <th className="pl-4 pr-1 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Description</th>
+                                        <th className="pl-1 pr-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Staff</th>
+                                        <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Vendor</th>
                                         <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Amount</th>
                                         <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide text-center">Status</th>
-                                        <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Due Date</th>
-                                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wide">Actions</th>
+                                        <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Job Due Date</th>
+                                        <th className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">Staff Due Date</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wide">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     {paginatedJobs.length === 0 && !loading ? (
                                         <tr>
-                                            <td colSpan={8} className="py-20 text-center">
+                                            <td colSpan={9} className="py-20 text-center">
                                                 <div className="inline-flex p-5 bg-slate-50 rounded-full mb-3">
                                                     <ClipboardList size={28} className="text-slate-200" />
                                                 </div>
@@ -458,37 +558,36 @@ export default function JobsPage() {
                                                 className="hover:bg-indigo-50/30 transition-colors group/row cursor-pointer"
                                             >
                                                 <td className="px-4 py-1.5 whitespace-nowrap">
+                                                    <div className="font-semibold text-slate-900 group-hover/row:text-indigo-600 transition-colors text-[14px] leading-none flex items-center group/name">
+                                                        {job.service?.name}
+                                                    </div>
+                                                </td>
+                                                <td className="pl-4 pr-1 py-1.5">
+                                                    <div className="text-[14px] text-slate-500 font-normal leading-relaxed max-w-[200px] line-clamp-2">{job.description}</div>
+                                                </td>
+                                                <td className="pl-1 pr-4 py-1.5 whitespace-nowrap">
+                                                    <div className="text-[14px] font-semibold text-slate-900 group-hover/row:text-indigo-600 transition-colors flex items-center">
+                                                        {job.staff?.name || 'Unassigned'}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-1.5 whitespace-nowrap">
                                                     <div
-                                                        className="text-[11px] text-slate-900 font-bold flex items-center hover:text-indigo-600 cursor-pointer"
+                                                        className="text-[14px] text-slate-900 font-semibold flex items-center hover:text-indigo-600 cursor-pointer"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             if (job.vendor_id) router.push(`/dashboard/admin/vendors/view/${job.vendor_id}`);
                                                         }}
                                                     >
-                                                        <div className={`w-1.5 h-1.5 rounded-full ${['bg-indigo-400', 'bg-rose-400', 'bg-amber-400', 'bg-emerald-400'][jIdx % 4]} mr-3 opacity-0 group-hover/row:opacity-100 transition-all scale-0 group-hover/row:scale-100`} />
-                                                        <Building2 size={12} className="mr-2 text-sky-400" />
+                                                        <Building2 size={14} className="mr-2 text-sky-400" />
                                                         {job.vendor?.studio_name || 'N/A'}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-1.5 whitespace-nowrap">
-                                                    <div className="font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors text-[13px] leading-none flex items-center group/name">
-                                                        {job.service?.name}
-                                                    </div>
-                                                </td>
-                                                <td className="pl-4 pr-1 py-1.5">
-                                                    <div className="text-[12px] text-slate-500 font-bold leading-relaxed max-w-[200px] line-clamp-1 italic">{job.description}</div>
-                                                </td>
-                                                <td className="pl-1 pr-4 py-1.5 whitespace-nowrap">
-                                                    <div className="text-[13px] font-bold text-slate-900 group-hover/row:text-indigo-600 transition-colors flex items-center">
-                                                        {job.staff?.name || 'Unassigned'}
-                                                    </div>
-                                                </td>
-                                                <td className="px-4 py-1.5 whitespace-nowrap">
-                                                    <div className="text-[12px] font-black text-slate-900">{formatCurrency(job.amount)}</div>
-                                                    <div className="text-[9px] text-emerald-600 font-black uppercase tracking-wider">Comm: {formatCurrency(job.commission_amount)}</div>
+                                                    <div className="text-[14px] font-black text-slate-900">{formatCurrency(job.amount)}</div>
+                                                    <div className="text-[10px] text-emerald-600 font-black uppercase tracking-wider">Comm: {formatCurrency(job.commission_amount)}</div>
                                                 </td>
                                                 <td className="px-4 py-1.5 text-center whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-sm border ${job.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' :
+                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-sm border ${job.status === 'COMPLETED' ? 'bg-emerald-500 text-white border-emerald-600' :
                                                         job.status === 'PENDING' ? 'bg-amber-400 text-white border-amber-500' :
                                                             'bg-indigo-600 text-white border-indigo-700'
                                                         }`}>
@@ -498,36 +597,41 @@ export default function JobsPage() {
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-1.5 whitespace-nowrap">
-                                                    <div className="text-[11px] text-slate-500 font-bold flex items-center">
-                                                        <Calendar size={13} className="mr-2 text-amber-500" /> {new Date(job.job_due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    <div className="text-[13px] text-slate-500 font-bold flex items-center">
+                                                        <Calendar size={14} className="mr-2 text-amber-500" /> {new Date(job.job_due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-1.5 whitespace-nowrap">
+                                                    <div className="text-[13px] text-slate-500 font-bold flex items-center">
+                                                        <Calendar size={14} className="mr-2 text-blue-500" /> {job.staff_due_date ? new Date(job.staff_due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-1.5">
-                                                    <div className="flex items-center justify-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                                                    <div className="flex items-center justify-end space-x-1.5" onClick={(e) => e.stopPropagation()}>
                                                         <Tooltip text="Pending">
                                                             <button
                                                                 onClick={() => handleStatusUpdate(job.id, 'PENDING')}
-                                                                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'PENDING' ? 'bg-[#F59E0B] text-white border-[#F59E0B]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#F59E0B] hover:border-amber-200'}`}
+                                                                className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'PENDING' ? 'bg-[#F59E0B] text-white border-[#F59E0B]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#F59E0B] hover:border-amber-200'}`}
                                                             >
-                                                                <Clock size={14} strokeWidth={2.5} />
+                                                                <Clock size={12} strokeWidth={2.5} />
                                                             </button>
                                                         </Tooltip>
 
                                                         <Tooltip text="In-Progress">
                                                             <button
                                                                 onClick={() => handleStatusUpdate(job.id, 'IN_PROGRESS')}
-                                                                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'IN_PROGRESS' ? 'bg-[#4F46E5] text-white border-[#4F46E5]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#4F46E5] hover:border-indigo-200'}`}
+                                                                className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'IN_PROGRESS' ? 'bg-[#4F46E5] text-white border-[#4F46E5]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#4F46E5] hover:border-indigo-200'}`}
                                                             >
-                                                                <Zap size={14} strokeWidth={2.5} />
+                                                                <Zap size={12} strokeWidth={2.5} />
                                                             </button>
                                                         </Tooltip>
 
                                                         <Tooltip text="Complete">
                                                             <button
                                                                 onClick={() => handleStatusUpdate(job.id, 'COMPLETED')}
-                                                                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'COMPLETED' ? 'bg-[#10B981] text-white border-[#10B981]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#10B981] hover:border-emerald-200'}`}
+                                                                className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all border shadow-sm ${job.status === 'COMPLETED' ? 'bg-[#10B981] text-white border-[#10B981]' : 'bg-white text-slate-500 border-slate-100 hover:text-[#10B981] hover:border-emerald-200'}`}
                                                             >
-                                                                <CheckCircle2 size={14} strokeWidth={2.5} />
+                                                                <CheckCircle2 size={12} strokeWidth={2.5} />
                                                             </button>
                                                         </Tooltip>
 
@@ -536,18 +640,18 @@ export default function JobsPage() {
                                                         <Tooltip text="Edit">
                                                             <button
                                                                 onClick={() => openEditModal(job)}
-                                                                className="w-8 h-8 flex items-center justify-center bg-white text-sky-400 hover:text-sky-600 rounded-lg transition-all border border-slate-100 hover:border-slate-100 shadow-sm"
+                                                                className="w-7 h-7 flex items-center justify-center bg-white text-sky-400 hover:text-sky-600 rounded-lg transition-all border border-slate-100 hover:border-slate-100 shadow-sm"
                                                             >
-                                                                <Edit2 size={14} strokeWidth={2.5} />
+                                                                <Edit2 size={12} strokeWidth={2.5} />
                                                             </button>
                                                         </Tooltip>
 
                                                         <Tooltip text="Delete">
                                                             <button
                                                                 onClick={() => handleDelete(job.id)}
-                                                                className="w-8 h-8 flex items-center justify-center bg-white text-rose-400 hover:text-rose-600 rounded-lg transition-all border border-slate-100 hover:border-slate-100 shadow-sm"
+                                                                className="w-7 h-7 flex items-center justify-center bg-white text-rose-400 hover:text-rose-600 rounded-lg transition-all border border-slate-100 hover:border-slate-100 shadow-sm"
                                                             >
-                                                                <Trash2 size={14} strokeWidth={2.5} />
+                                                                <Trash2 size={12} strokeWidth={2.5} />
                                                             </button>
                                                         </Tooltip>
                                                     </div>
@@ -763,7 +867,7 @@ export default function JobsPage() {
                         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={closeModal} />
                         <div className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col max-h-[95vh] animate-in zoom-in-95 duration-200">
                             {/* Modal Header */}
-                            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
+                            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white">
                                 <div className="flex items-center space-x-4">
                                     <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center justify-center shadow-sm text-indigo-600">
                                         {(selectedJob && showEditModal) ? <Edit2 size={24} /> : <Plus size={24} />}
@@ -781,13 +885,13 @@ export default function JobsPage() {
                             </div>
 
                             {/* Modal Body */}
-                            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                                <form onSubmit={handleSubmit} className="space-y-6">
-                                    <section className="space-y-5">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    <section className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <AestheticSelect
                                                 label="Production Studio (Vendor)"
-                                                heightClass="h-11"
+                                                heightClass="h-10"
                                                 required
                                                 options={vendors.map(v => ({ id: v.id, name: v.studio_name }))}
                                                 value={selectedVendor}
@@ -795,7 +899,7 @@ export default function JobsPage() {
                                                 placeholder="Select Vendor..." />
                                             <AestheticSelect
                                                 label="Service / Job Type"
-                                                heightClass="h-11"
+                                                heightClass="h-10"
                                                 required
                                                 options={services.map(s => ({ id: s.id, name: s.name }))}
                                                 value={selectedService}
@@ -803,10 +907,10 @@ export default function JobsPage() {
                                                 placeholder="Select Service..." />
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-end">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <AestheticSelect
                                                 label="Assign User"
-                                                heightClass="h-11"
+                                                heightClass="h-10"
                                                 required
                                                 disabled={!selectedService}
                                                 options={filteredStaffList.map(s => ({ id: s.id, name: s.name }))}
@@ -815,54 +919,63 @@ export default function JobsPage() {
                                                 placeholder={selectedService ? 'Select Assigned User...' : 'Choose Service First'} />
 
                                             <div>
-                                                <label className="label text-[12px] uppercase font-black tracking-widest text-black mb-2 block ml-1">Job Due Date <span className="text-rose-500">*</span></label>
+                                                <label className="label text-[12px] uppercase font-black tracking-widest text-black mb-1.5 block ml-1">Job Due Date <span className="text-rose-500">*</span></label>
                                                 <input
                                                     type="datetime-local"
-                                                    className="w-full h-8 bg-white border-2 border-slate-100 rounded-full px-4 text-[12px] font-black uppercase tracking-widest text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-50 transition-all duration-300"
+                                                    className="w-full h-10 bg-white border-2 border-slate-100 rounded-lg px-4 text-[12px] font-black uppercase tracking-widest text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-50 transition-all duration-300"
                                                     value={formData.job_due_date}
                                                     onChange={e => setFormData({ ...formData, job_due_date: e.target.value })}
                                                     required />
                                             </div>
+
+                                            <div>
+                                                <label className="label text-[12px] uppercase font-black tracking-widest text-black mb-1.5 block ml-1">Staff Due Date</label>
+                                                <input
+                                                    type="datetime-local"
+                                                    className="w-full h-10 bg-white border-2 border-slate-100 rounded-lg px-4 text-[12px] font-black uppercase tracking-widest text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-50 transition-all duration-300"
+                                                    value={formData.staff_due_date}
+                                                    onChange={e => setFormData({ ...formData, staff_due_date: e.target.value })} />
+                                            </div>
                                         </div>
 
                                         <div>
-                                            <label className="label text-[12px] uppercase font-black tracking-widest text-black mb-2 block">Work Description <span className="text-rose-500">*</span></label>
+                                            <label className="label text-[12px] uppercase font-black tracking-widest text-black mb-1.5 block">Work Description <span className="text-rose-500">*</span></label>
                                             <textarea
-                                                className="input-aesthetic min-h-[100px] resize-none text-base p-4"
+                                                className="input-aesthetic min-h-[80px] resize-none text-base p-3"
                                                 placeholder="Provide clear instructions for the staff..."
                                                 value={formData.description}
                                                 onChange={e => setFormData({ ...formData, description: e.target.value })}
                                                 required />
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="label text-[12px] uppercase font-black tracking-widest text-black mb-2 block">Source location</label>
+                                                <label className="label text-[12px] uppercase font-black tracking-widest text-black mb-1.5 block">Source location</label>
                                                 <textarea
-                                                    className="input-aesthetic min-h-[80px] py-3 px-4 text-base resize-none"
+                                                    className="input-aesthetic min-h-[70px] py-2.5 px-3 text-base resize-none"
                                                     placeholder="Source location details..."
                                                     value={formData.data_location}
                                                     onChange={e => setFormData({ ...formData, data_location: e.target.value })} />
                                             </div>
 
                                             <div>
-                                                <label className="label text-[12px] uppercase font-black tracking-widest text-black mb-2 block">Final destination</label>
+                                                <label className="label text-[12px] uppercase font-black tracking-widest text-black mb-1.5 block">Final destination</label>
                                                 <textarea
-                                                    className="input-aesthetic min-h-[80px] py-3 px-4 text-base resize-none"
+                                                    className="input-aesthetic min-h-[70px] py-2.5 px-3 text-base resize-none"
                                                     placeholder="Final destination details..."
                                                     value={formData.final_location}
                                                     onChange={e => setFormData({ ...formData, final_location: e.target.value })} />
                                             </div>
                                         </div>
 
-                                        <div className="pt-6 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
+                                        <div className="pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                                             <div>
-                                                <label className="label text-[12px] uppercase font-black tracking-widest text-black mb-2 block">Job Total Amount (Base) <span className="text-rose-500">*</span></label>
+                                                <label className="label text-[12px] uppercase font-black tracking-widest text-black mb-1.5 block">Job Total Amount (Base) <span className="text-rose-500">*</span></label>
                                                 <div className="relative">
                                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">₹</span>
                                                     <input
                                                         type="number"
-                                                        className="input-aesthetic h-12 pl-10 font-bold text-lg text-slate-900 border-2 border-slate-50"
+                                                        className="input-aesthetic h-10 pl-10 font-bold text-base text-slate-900 border-2 border-slate-50"
                                                         placeholder="0"
                                                         value={formData.amount || ''}
                                                         onFocus={(e) => e.target.select()}
@@ -870,7 +983,7 @@ export default function JobsPage() {
                                                         required
                                                         min="0" />
                                                 </div>
-                                                <div className="mt-2 flex items-center justify-between px-2">
+                                                <div className="mt-1.5 flex items-center justify-between px-2">
                                                     <span className="text-[12px] font-black text-black uppercase tracking-widest">Est. Commission</span>
                                                     <span className="text-sm font-black text-indigo-600">{formatCurrency(calculateCommission(formData.amount, staffPercentage))}</span>
                                                 </div>
@@ -880,14 +993,14 @@ export default function JobsPage() {
                                                 <button
                                                     type="button"
                                                     onClick={closeModal}
-                                                    className="flex-1 px-5 h-12 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-[1.25rem] font-black text-[11px] uppercase tracking-widest transition-all"
+                                                    className="flex-1 px-5 h-10 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg font-black text-[11px] uppercase tracking-widest transition-all"
                                                 >
                                                     Cancel
                                                 </button>
                                                 <button
                                                     type="submit"
                                                     disabled={modalLoading || !selectedStaff || !formData.job_due_date}
-                                                    className="flex-[2] bg-indigo-600 hover:bg-slate-900 text-white rounded-[1.25rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center h-12 shadow-lg shadow-indigo-100 disabled:opacity-50"
+                                                    className="flex-[2] bg-indigo-600 hover:bg-slate-900 text-white rounded-lg font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center h-10 shadow-lg shadow-indigo-100 disabled:opacity-50"
                                                 >
                                                     <Save size={16} className="mr-2" />
                                                     {modalLoading ? 'Processing...' : selectedJob ? 'Update Job' : 'Post Job'}

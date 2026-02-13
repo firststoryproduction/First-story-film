@@ -18,6 +18,7 @@ interface AestheticSelectProps {
     required?: boolean
     disabled?: boolean
     heightClass?: string
+    textSize?: 'xs' | 'sm'
 }
 
 export default function AestheticSelect({
@@ -28,7 +29,8 @@ export default function AestheticSelect({
     label,
     required = false,
     disabled = false,
-    heightClass = 'h-9'
+    heightClass = 'h-9',
+    textSize = 'sm'
 }: AestheticSelectProps) {
     const [isOpen, setIsOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -66,7 +68,11 @@ export default function AestheticSelect({
                     !selectedOption && "text-gray-400"
                 )}
             >
-                <span className={cn("text-sm transition-all font-normal leading-none flex-1 text-left overflow-hidden text-ellipsis whitespace-nowrap", selectedOption ? "text-black" : "text-gray-400")}>
+                <span className={cn(
+                    textSize === 'xs' ? "text-xs" : "text-sm",
+                    "transition-all font-normal leading-none flex-1 text-left overflow-hidden text-ellipsis whitespace-nowrap",
+                    selectedOption ? "text-black" : "text-gray-400"
+                )}>
                     {selectedOption ? selectedOption.name : placeholder}
                 </span>
                 <ChevronDown
@@ -81,9 +87,9 @@ export default function AestheticSelect({
             {/* CURVED DROPDOWN MENU */}
             {isOpen && (
                 <div className="absolute top-[calc(100%+4px)] left-0 w-full min-w-[160px] bg-white border border-gray-200 rounded-lg shadow-xl p-1.5 z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="max-h-40 overflow-y-auto custom-scrollbar text-sm">
+                    <div className={cn("max-h-40 overflow-y-auto custom-scrollbar", textSize === 'xs' ? "text-xs" : "text-sm")}>
                         {options.length === 0 ? (
-                            <div className="px-4 py-8 text-center text-gray-600 text-sm font-normal">
+                            <div className={cn("px-4 py-8 text-center text-gray-600 font-normal", textSize === 'xs' ? "text-xs" : "text-sm")}>
                                 No options available
                             </div>
                         ) : (
@@ -97,7 +103,8 @@ export default function AestheticSelect({
                                             setIsOpen(false)
                                         }}
                                         className={cn(
-                                            "w-full px-3 py-2 rounded-lg text-left text-sm transition-all flex items-center justify-between group",
+                                            "w-full px-3 py-2 rounded-lg text-left transition-all flex items-center justify-between group",
+                                            textSize === 'xs' ? "text-xs" : "text-sm",
                                             value === option.id
                                                 ? "bg-indigo-600 text-white font-medium"
                                                 : "text-gray-900 hover:bg-gray-50 hover:text-indigo-600 font-normal"

@@ -51,6 +51,7 @@ export interface Job {
     data_location: string | null
     final_location: string | null
     job_due_date: string
+    staff_due_date: string | null
     status: JobStatus
     amount: number
     commission_amount: number
