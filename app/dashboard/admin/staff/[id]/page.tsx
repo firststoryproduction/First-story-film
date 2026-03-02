@@ -22,7 +22,7 @@ import {
   MapPin,
   FileText,
   Edit2,
-  LayoutList, 
+  LayoutList,
   CreditCard,
   Plus,
   Trash2,
@@ -36,6 +36,7 @@ import { User, Service } from "@/types/database";
 import Badge from "@/components/Badge";
 import Tooltip from "@/components/Tooltip";
 import StaffForm from "@/components/StaffForm";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
 
 export default function UserDetailPage({
   params,
@@ -67,20 +68,27 @@ export default function UserDetailPage({
     completedJobs: 0,
     totalEarnt: 0,
   });
-  
+
   // Payment State
-  const [activeTab, setActiveTab] = useState<'jobs' | 'payments'>('jobs');
+  const [activeTab, setActiveTab] = useState<"jobs" | "payments">("jobs");
   const [payments, setPayments] = useState<any[]>([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentForm, setPaymentForm] = useState({
-    amount: '',
-    date: new Date().toISOString().split('T')[0],
-    note: ''
+    amount: "",
+    date: new Date().toISOString().split("T")[0],
+    note: "",
+    account_id: "",
   });
   const [paymentStats, setPaymentStats] = useState({
     totalPaid: 0,
-    remaining: 0
+    remaining: 0,
   });
+  const [accounts, setAccounts] = useState<
+    { id: string; account_name: string; is_default: boolean }[]
+  >([]);
+  const [confirmDeletePaymentId, setConfirmDeletePaymentId] = useState<
+    string | null
+  >(null);
 
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -195,18 +203,20 @@ export default function UserDetailPage({
 
   const fetchPayments = async () => {
     try {
-      const { data, error } = await (supabase
-        .from('staff_payments') as any)
-        .select('*')
-        .eq('staff_id', id)
-        .order('payment_date', { ascending: false });
+      const { data, error } = await (supabase.from("staff_payments") as any)
+        .select("*")
+        .eq("staff_id", id)
+        .order("payment_date", { ascending: false });
 
       if (error) {
         // If table doesn't exist yet, we just ignore for now to prevent crashing
-        console.warn("Could not fetch payments (table might be missing):", error);
+        console.warn(
+          "Could not fetch payments (table might be missing):",
+          error,
+        );
         return;
       }
-      
+
       setPayments(data || []);
     } catch (err) {
       console.error("Error in fetchPayments:", err);
@@ -215,26 +225,56 @@ export default function UserDetailPage({
 
   useEffect(() => {
     if (user && stats) {
-      const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      const totalPaid = payments.reduce(
+        (sum, p) => sum + Number(p.amount || 0),
+        0,
+      );
       setPaymentStats({
         totalPaid,
-        remaining: stats.totalEarnt - totalPaid
+        remaining: stats.totalEarnt - totalPaid,
       });
     }
   }, [payments, stats, user]);
+
+  const fetchAccounts = async () => {
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      if (!token) return;
+      const res = await fetch("/api/accounting/accounts", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (json.data) {
+        setAccounts(json.data);
+        // Pre-select default account
+        const def = json.data.find((a: any) => a.is_default) || json.data[0];
+        if (def) {
+          setPaymentForm((prev) => ({ ...prev, account_id: def.id }));
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching accounts:", err);
+    }
+  };
 
   const handleAddPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!paymentForm.amount) return;
 
     try {
-      const { data, error } = await (supabase
-        .from('staff_payments') as any)
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
+
+      const { data, error } = await (supabase.from("staff_payments") as any)
         .insert({
           staff_id: id,
           amount: Number(paymentForm.amount),
           payment_date: paymentForm.date,
-          note: paymentForm.note
+          note: paymentForm.note,
+          account_id: paymentForm.account_id || null,
+          created_by: currentUser?.id || null,
         })
         .select()
         .single();
@@ -243,10 +283,12 @@ export default function UserDetailPage({
 
       setPayments([data, ...payments]);
       setShowPaymentModal(false);
+      const def = accounts.find((a) => a.is_default) || accounts[0];
       setPaymentForm({
-        amount: '',
-        date: new Date().toISOString().split('T')[0],
-        note: ''
+        amount: "",
+        date: new Date().toISOString().split("T")[0],
+        note: "",
+        account_id: def?.id || "",
       });
       showNotification("Payment added successfully");
     } catch (error: any) {
@@ -256,17 +298,14 @@ export default function UserDetailPage({
   };
 
   const handleDeletePayment = async (paymentId: string) => {
-    if (!confirm("Are you sure you want to delete this payment?")) return;
-
     try {
-      const { error } = await (supabase
-        .from('staff_payments') as any)
+      const { error } = await (supabase.from("staff_payments") as any)
         .delete()
-        .eq('id', paymentId);
+        .eq("id", paymentId);
 
       if (error) throw error;
 
-      setPayments(payments.filter(p => p.id !== paymentId));
+      setPayments(payments.filter((p) => p.id !== paymentId));
       showNotification("Payment deleted successfully");
     } catch (error: any) {
       console.error("Error deleting payment:", error);
@@ -277,6 +316,7 @@ export default function UserDetailPage({
   useEffect(() => {
     fetchData();
     fetchPayments();
+    fetchAccounts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -509,174 +549,202 @@ export default function UserDetailPage({
 
           <div className="flex items-center space-x-1 mb-6 bg-white p-1.5 rounded-lg border border-gray-200 w-fit shadow-sm">
             <button
-              onClick={() => setActiveTab('jobs')}
+              onClick={() => setActiveTab("jobs")}
               className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 rounded-md transition-all ${
-                activeTab === 'jobs'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
+                activeTab === "jobs"
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
               }`}
             >
               <LayoutList size={16} />
               <span>Job History</span>
             </button>
             <button
-              onClick={() => setActiveTab('payments')}
+              onClick={() => setActiveTab("payments")}
               className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 rounded-md transition-all ${
-                activeTab === 'payments'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
+                activeTab === "payments"
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
               }`}
             >
               <Wallet size={16} />
               <span>Payment History</span>
             </button>
           </div>
-          
+
           {/* Job History Section */}
-          {activeTab === 'jobs' && (
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden animate-in fade-in duration-300">
-            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-              <h2 className="text-base font-semibold text-gray-900">
-                Job History
-              </h2>
-              <div className="bg-indigo-600 px-3 py-1 rounded-md text-white text-xs font-medium">
-                {jobs.length} Jobs
+          {activeTab === "jobs" && (
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden animate-in fade-in duration-300">
+              <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+                <h2 className="text-base font-semibold text-gray-900">
+                  Job History
+                </h2>
+                <div className="bg-indigo-600 px-3 py-1 rounded-md text-white text-xs font-medium">
+                  {jobs.length} Jobs
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                {jobs.length === 0 ? (
+                  <div className="p-10 text-center">
+                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3 text-gray-400">
+                      <ClipboardList size={20} />
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      No jobs assigned to this staff member yet.
+                    </p>
+                  </div>
+                ) : (
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 py-3">Service</th>
+                        <th className="px-4 py-3">Studio</th>
+                        <th className="px-4 py-3">Due Date</th>
+                        <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3 text-right">Amount</th>
+                        <th className="px-4 py-3 text-right">Commission</th>
+                        <th className="px-4 py-3 text-center">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {jobs.map((job) => (
+                        <tr
+                          key={job.id}
+                          className="hover:bg-gray-50 transition-colors cursor-pointer group"
+                          onClick={() => {
+                            setSelectedJob({ ...job, staff: user });
+                            setShowViewModal(true);
+                          }}
+                        >
+                          <td className="px-4 py-3 font-medium text-gray-900 group-hover:text-indigo-600 transition-colors">
+                            {job.services?.name}
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              className="flex items-center text-gray-600 hover:text-indigo-600 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (job.vendor_id)
+                                  router.push(
+                                    `/dashboard/admin/vendors/view/${job.vendor_id}`,
+                                  );
+                              }}
+                            >
+                              <Building2
+                                size={13}
+                                className="mr-1.5 text-gray-400 shrink-0"
+                              />
+                              {job.vendors?.studio_name || "Unknown"}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">
+                            <div className="flex items-center">
+                              <Calendar
+                                size={13}
+                                className="mr-1.5 text-gray-400 shrink-0"
+                              />
+                              {new Date(job.job_due_date).toLocaleDateString(
+                                "en-IN",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge color={getStatusColor(job.status) as any}>
+                              {getStatusLabel(job.status)}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-right font-medium text-gray-900">
+                            {formatCurrency(job.amount)}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span className="inline-flex items-center px-2 py-0.5 bg-rose-50 text-rose-600 rounded-md border border-rose-100 text-xs font-medium">
+                              {formatCurrency(job.commission_amount)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <Tooltip text="View Details" position="left">
+                              <button
+                                className="w-8 h-8 rounded-md bg-white border border-gray-200 flex items-center justify-center text-gray-400 group-hover:text-indigo-600 group-hover:border-indigo-200 group-hover:bg-indigo-50 transition-all mx-auto"
+                                title="View Details"
+                              >
+                                <Eye size={14} />
+                              </button>
+                            </Tooltip>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
-
-            <div className="overflow-x-auto">
-              {jobs.length === 0 ? (
-                <div className="p-10 text-center">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3 text-gray-400">
-                    <ClipboardList size={20} />
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    No jobs assigned to this staff member yet.
-                  </p>
-                </div>
-              ) : (
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
-                    <tr>
-                      <th className="px-4 py-3">Service</th>
-                      <th className="px-4 py-3">Studio</th>
-                      <th className="px-4 py-3">Due Date</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 text-right">Amount</th>
-                      <th className="px-4 py-3 text-right">Commission</th>
-                      <th className="px-4 py-3 text-center">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {jobs.map((job) => (
-                      <tr
-                        key={job.id}
-                        className="hover:bg-gray-50 transition-colors cursor-pointer group"
-                        onClick={() => {
-                          setSelectedJob({ ...job, staff: user });
-                          setShowViewModal(true);
-                        }}
-                      >
-                        <td className="px-4 py-3 font-medium text-gray-900 group-hover:text-indigo-600 transition-colors">
-                          {job.services?.name}
-                        </td>
-                        <td className="px-4 py-3">
-                          <button
-                            className="flex items-center text-gray-600 hover:text-indigo-600 transition-colors"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (job.vendor_id)
-                                router.push(`/dashboard/admin/vendors/view/${job.vendor_id}`);
-                            }}
-                          >
-                            <Building2 size={13} className="mr-1.5 text-gray-400 shrink-0" />
-                            {job.vendors?.studio_name || "Unknown"}
-                          </button>
-                        </td>
-                        <td className="px-4 py-3 text-gray-600">
-                          <div className="flex items-center">
-                            <Calendar size={13} className="mr-1.5 text-gray-400 shrink-0" />
-                            {new Date(job.job_due_date).toLocaleDateString("en-IN", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge color={getStatusColor(job.status) as any}>
-                            {getStatusLabel(job.status)}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium text-gray-900">
-                          {formatCurrency(job.amount)}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <span className="inline-flex items-center px-2 py-0.5 bg-rose-50 text-rose-600 rounded-md border border-rose-100 text-xs font-medium">
-                            {formatCurrency(job.commission_amount)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <Tooltip text="View Details" position="left">
-                            <button
-                              className="w-8 h-8 rounded-md bg-white border border-gray-200 flex items-center justify-center text-gray-400 group-hover:text-indigo-600 group-hover:border-indigo-200 group-hover:bg-indigo-50 transition-all mx-auto"
-                              title="View Details"
-                            >
-                              <Eye size={14} />
-                            </button>
-                          </Tooltip>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
           )}
 
-
           {/* Payment History Section */}
-          {activeTab === 'payments' && (
+          {activeTab === "payments" && (
             <div className="space-y-6 animate-in fade-in duration-300">
               {/* Payment Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-medium text-gray-500">Total Payable</h3>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Total Payable
+                    </h3>
                     <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
                       <Banknote size={20} />
                     </div>
                   </div>
                   <div className="flex items-baseline">
-                    <span className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalEarnt)}</span>
-                    <span className="ml-2 text-xs text-gray-500">Total Earnings</span>
+                    <span className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(stats.totalEarnt)}
+                    </span>
+                    <span className="ml-2 text-xs text-gray-500">
+                      Total Earnings
+                    </span>
                   </div>
                 </div>
 
                 <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-medium text-gray-500">Total Paid</h3>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Total Paid
+                    </h3>
                     <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
                       <Wallet size={20} />
                     </div>
                   </div>
                   <div className="flex items-baseline">
-                    <span className="text-2xl font-bold text-emerald-600">{formatCurrency(paymentStats.totalPaid)}</span>
-                    <span className="ml-2 text-xs text-gray-500">Disbursed</span>
+                    <span className="text-2xl font-bold text-emerald-600">
+                      {formatCurrency(paymentStats.totalPaid)}
+                    </span>
+                    <span className="ml-2 text-xs text-gray-500">
+                      Disbursed
+                    </span>
                   </div>
                 </div>
 
                 <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-medium text-gray-500">Pending Amount</h3>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Pending Amount
+                    </h3>
                     <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
                       <History size={20} />
                     </div>
                   </div>
                   <div className="flex items-baseline">
-                    <span className="text-2xl font-bold text-amber-600">{formatCurrency(paymentStats.remaining)}</span>
-                    <span className="ml-2 text-xs text-gray-500">Remaining</span>
+                    <span className="text-2xl font-bold text-amber-600">
+                      {formatCurrency(paymentStats.remaining)}
+                    </span>
+                    <span className="ml-2 text-xs text-gray-500">
+                      Remaining
+                    </span>
                   </div>
                 </div>
               </div>
@@ -687,7 +755,7 @@ export default function UserDetailPage({
                   <h2 className="text-base font-semibold text-gray-900">
                     Payment History
                   </h2>
-                  <button 
+                  <button
                     onClick={() => setShowPaymentModal(true)}
                     className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
                   >
@@ -709,17 +777,28 @@ export default function UserDetailPage({
                     <tbody className="divide-y divide-gray-100">
                       {payments.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                          <td
+                            colSpan={4}
+                            className="px-4 py-8 text-center text-gray-500"
+                          >
                             No payments recorded yet.
                           </td>
                         </tr>
                       ) : (
                         payments.map((payment) => (
-                          <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
+                          <tr
+                            key={payment.id}
+                            className="hover:bg-gray-50 transition-colors"
+                          >
                             <td className="px-4 py-3">
                               <div className="flex items-center">
-                                <Calendar size={14} className="mr-2 text-gray-400" />
-                                {new Date(payment.payment_date).toLocaleDateString("en-IN", {
+                                <Calendar
+                                  size={14}
+                                  className="mr-2 text-gray-400"
+                                />
+                                {new Date(
+                                  payment.payment_date,
+                                ).toLocaleDateString("en-IN", {
                                   day: "2-digit",
                                   month: "short",
                                   year: "numeric",
@@ -734,7 +813,9 @@ export default function UserDetailPage({
                             </td>
                             <td className="px-4 py-3 text-right">
                               <button
-                                onClick={() => handleDeletePayment(payment.id)}
+                                onClick={() =>
+                                  setConfirmDeletePaymentId(payment.id)
+                                }
                                 className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-all"
                                 title="Delete Payment"
                               >
@@ -757,13 +838,12 @@ export default function UserDetailPage({
       {/* Payment Modal */}
       {showPaymentModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
-            onClick={() => setShowPaymentModal(false)}
-          />
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" />
           <div className="bg-white w-full max-w-md rounded-lg shadow-xl relative overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Record Payment</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Record Payment
+              </h3>
               <button
                 onClick={() => setShowPaymentModal(false)}
                 className="text-gray-400 hover:text-gray-500"
@@ -771,7 +851,7 @@ export default function UserDetailPage({
                 <X size={20} />
               </button>
             </div>
-            
+
             <form onSubmit={handleAddPayment} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -784,7 +864,9 @@ export default function UserDetailPage({
                   <input
                     type="number"
                     value={paymentForm.amount}
-                    onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
+                    onChange={(e) =>
+                      setPaymentForm({ ...paymentForm, amount: e.target.value })
+                    }
                     className="block w-full pl-7 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-10 border"
                     placeholder="0.00"
                     required
@@ -793,6 +875,37 @@ export default function UserDetailPage({
                 </div>
               </div>
 
+              {accounts.length > 0 && (
+                <div>
+                  <label
+                    htmlFor="payment-account"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Account
+                  </label>
+                  <select
+                    id="payment-account"
+                    title="Select account"
+                    value={paymentForm.account_id}
+                    onChange={(e) =>
+                      setPaymentForm({
+                        ...paymentForm,
+                        account_id: e.target.value,
+                      })
+                    }
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-10 border px-3 bg-white"
+                  >
+                    <option value="">Select account…</option>
+                    {accounts.map((acc) => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.account_name}
+                        {acc.is_default ? " (Default)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Payment Date
@@ -800,7 +913,9 @@ export default function UserDetailPage({
                 <input
                   type="date"
                   value={paymentForm.date}
-                  onChange={(e) => setPaymentForm({...paymentForm, date: e.target.value})}
+                  onChange={(e) =>
+                    setPaymentForm({ ...paymentForm, date: e.target.value })
+                  }
                   className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-10 border px-3"
                   required
                 />
@@ -813,7 +928,9 @@ export default function UserDetailPage({
                 <input
                   type="text"
                   value={paymentForm.note}
-                  onChange={(e) => setPaymentForm({...paymentForm, note: e.target.value})}
+                  onChange={(e) =>
+                    setPaymentForm({ ...paymentForm, note: e.target.value })
+                  }
                   className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-10 border px-3"
                   placeholder="e.g. advance, settlement"
                 />
@@ -838,7 +955,7 @@ export default function UserDetailPage({
           </div>
         </div>
       )}
-      
+
       {showViewModal && selectedJob && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div
@@ -1080,6 +1197,21 @@ export default function UserDetailPage({
         onRemoveCommission={handleRemoveCommission}
         onUpdateCommission={updateCommission}
         submitting={submitting}
+      />
+
+      {/* Delete Payment Confirmation */}
+      <ConfirmationDialog
+        open={!!confirmDeletePaymentId}
+        title="Delete Payment"
+        message="Are you sure you want to delete this payment? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={() => {
+          if (confirmDeletePaymentId)
+            handleDeletePayment(confirmDeletePaymentId);
+          setConfirmDeletePaymentId(null);
+        }}
+        onCancel={() => setConfirmDeletePaymentId(null)}
       />
 
       {/* Notification Toast */}

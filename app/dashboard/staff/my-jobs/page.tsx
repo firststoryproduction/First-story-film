@@ -377,7 +377,6 @@ export default function MyJobsPage() {
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-            onClick={closeModal}
           />
           <div className="bg-gradient-to-br from-slate-50 via-white to-slate-100 w-full max-w-4xl rounded-xl shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 border border-slate-200">
             {/* Modal Header */}
@@ -397,7 +396,6 @@ export default function MyJobsPage() {
                   </div>
                 </div>
                 <button
-                  onClick={closeModal}
                   aria-label="Close modal"
                   className="w-11 h-11 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 rounded-xl transition-all"
                 >

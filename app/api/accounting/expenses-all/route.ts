@@ -73,9 +73,12 @@ export async function GET(request: Request) {
     // ── 2. Staff payments (read-only) ───────────────────────────────────────
     let spQ = supabaseAdmin
       .from("staff_payments")
-      .select(`id, payment_date, amount, note, staff_id, users(id, name)`);
+      .select(
+        `id, payment_date, amount, note, staff_id, account_id, accounts(id, account_name), users!staff_payments_staff_id_fkey(id, name), creator:users!staff_payments_created_by_fkey(id, name)`,
+      );
     if (dateFrom) spQ = spQ.gte("payment_date", dateFrom);
     if (dateTo) spQ = spQ.lte("payment_date", dateTo);
+    if (accountId) spQ = spQ.eq("account_id", accountId);
     const { data: staffPayments } =
       sourceFilter && sourceFilter !== "staff_payment"
         ? { data: [] }
@@ -106,10 +109,10 @@ export async function GET(request: Request) {
       amount: Number(p.amount),
       remarks: p.note || "",
       source: "staff_payment",
-      account: "—",
-      account_id: null,
+      account: (p.accounts as any)?.account_name || "—",
+      account_id: p.account_id || null,
       category: "Staff Payment",
-      created_by: "—",
+      created_by: (p.creator as any)?.name || "—",
       ref_name: (p.users as any)?.name || "—",
       ref_sub: "",
       deletable: false,

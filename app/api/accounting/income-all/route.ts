@@ -108,7 +108,7 @@ export async function GET(request: Request) {
       source: "vendor_payment",
       account: (p.accounts as any)?.account_name || "—",
       account_id: p.account_id || null,
-      category: (p.vendors as any)?.studio_name || "Vendor Payment",
+      category: "Vendor Payment",
       created_by: "—",
       ref_name: (p.vendors as any)?.studio_name || "—",
       deletable: false,

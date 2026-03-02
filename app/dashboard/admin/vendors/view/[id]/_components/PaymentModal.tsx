@@ -93,10 +93,7 @@ export default function PaymentModal({
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" />
       <div className="bg-white w-full max-w-md rounded-lg shadow-xl relative overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
   Wallet,
@@ -178,6 +178,7 @@ function AccountsTab({
   notify: (m: string, t?: "success" | "error") => void;
 }) {
   const h = { Authorization: `Bearer ${token}` };
+  const router = useRouter();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [balanceMap, setBalanceMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -345,16 +346,25 @@ function AccountsTab({
           loading={loading}
           emptyIcon={<Wallet size={28} className="text-slate-200" />}
           emptyMessage="No accounts found"
+          onRowClick={(a) =>
+            router.push(`/dashboard/admin/accounting/accounts/${a.id}`)
+          }
           renderCell={(column, a) => {
             const bal = balanceMap[a.id] ?? Number(a.opening_balance);
             if (column.key === "account_name")
               return (
-                <div className="flex items-center space-x-3 py-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/dashboard/admin/accounting/accounts/${a.id}`);
+                  }}
+                  className="flex items-center space-x-3 py-1 text-left hover:opacity-80 transition-opacity"
+                >
                   <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Wallet size={14} className="text-indigo-600" />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-800 group-hover/row:text-indigo-600 transition-colors">
+                    <p className="font-bold text-slate-800 hover:text-indigo-600 transition-colors underline-offset-2 hover:underline">
                       {a.account_name}
                     </p>
                     {a.is_default && (
@@ -363,7 +373,7 @@ function AccountsTab({
                       </Badge>
                     )}
                   </div>
-                </div>
+                </button>
               );
             if (column.key === "opening_balance")
               return (
@@ -418,10 +428,7 @@ function AccountsTab({
       </div>
 
       {showModal && (
-        <div
-          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setShowModal(false)}
-        >
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
             className="bg-white rounded-lg shadow-xl w-full max-w-md flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
@@ -1244,10 +1251,7 @@ function TransactionsList({
 
       {/* Add Modal */}
       {showModal && (
-        <div
-          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setShowModal(false)}
-        >
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
             className="bg-white rounded-lg shadow-xl w-full max-w-md flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
@@ -1456,6 +1460,7 @@ function ExpenseModule({
 // ══════════════════════════════════════════════════════════════════════════
 function ReportsModule({ token }: { token: string }) {
   const h = { Authorization: `Bearer ${token}` };
+  const router = useRouter();
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -1625,6 +1630,9 @@ function ReportsModule({ token }: { token: string }) {
                 ]}
                 data={summary.accountBalances}
                 loading={false}
+                onRowClick={(a) =>
+                  router.push(`/dashboard/admin/accounting/accounts/${a.id}`)
+                }
                 emptyIcon={<Wallet size={28} className="text-slate-200" />}
                 emptyMessage="No account data."
                 renderCell={(column, a) => {

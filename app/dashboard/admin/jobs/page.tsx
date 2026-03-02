@@ -51,6 +51,7 @@ import Pagination from "../../../../components/Pagination";
 import Table from "../../../../components/Table";
 import Tooltip from "../../../../components/Tooltip";
 import AestheticSelect from "../../../../components/AestheticSelect";
+import ConfirmationDialog from "../../../../components/ConfirmationDialog";
 import SearchableSelect from "../../../../components/SearchableSelect";
 import Badge from "../../../../components/Badge";
 import VendorForm from "../../../../components/VendorForm";
@@ -575,14 +576,12 @@ export default function JobsPage() {
     }
   };
 
-  const handleDelete = async (jobId: string) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this job? This action cannot be undone.",
-      )
-    )
-      return;
+  const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
 
+  const handleDelete = async () => {
+    if (!deleteJobId) return;
+    const jobId = deleteJobId;
+    setDeleteJobId(null);
     try {
       const { error } = await (supabase.from("jobs") as any)
         .delete()
@@ -699,26 +698,27 @@ export default function JobsPage() {
 
               {/* Sort */}
               <div className="w-[160px]">
-                <select
+                <AestheticSelect
+                  label=""
+                  heightClass="h-9"
+                  textSize="xs"
+                  options={[
+                    { id: "", name: "Sort By" },
+                    { id: "staff_due_date", name: "Staff Due Date" },
+                    { id: "job_due_date", name: "Job Due Date" },
+                    { id: "status", name: "Status" },
+                  ]}
                   value={sortBy.field || ""}
-                  onChange={(e) => {
-                    const field = e.target.value as
-                      | "staff_due_date"
-                      | "job_due_date"
-                      | "status"
-                      | "";
+                  onChange={(val) =>
                     setSortBy({
-                      field: field || null,
+                      field:
+                        (val as "staff_due_date" | "job_due_date" | "status") ||
+                        null,
                       direction: sortBy.direction,
-                    });
-                  }}
-                  className="w-full h-9 px-3 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 outline-none bg-white"
-                >
-                  <option value="">Sort By</option>
-                  <option value="staff_due_date">Staff Due Date</option>
-                  <option value="job_due_date">Job Due Date</option>
-                  <option value="status">Status</option>
-                </select>
+                    })
+                  }
+                  placeholder="Sort By"
+                />
               </div>
 
               {sortBy.field && (
@@ -907,7 +907,7 @@ export default function JobsPage() {
                     </Tooltip>
                     <Tooltip text="Delete">
                       <button
-                        onClick={() => handleDelete(job.id)}
+                        onClick={() => setDeleteJobId(job.id)}
                         className="w-7 h-7 flex items-center justify-center bg-white text-rose-400 hover:text-rose-600 rounded-lg transition-all border border-slate-100 hover:border-slate-100 shadow-sm"
                       >
                         <Trash2 size={12} strokeWidth={2.5} />
@@ -929,6 +929,23 @@ export default function JobsPage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={!!deleteJobId}
+        title="Delete Job"
+        confirmText="Delete"
+        message={
+          <span>
+            Are you sure you want to delete this job?{" "}
+            <span className="font-semibold text-slate-700">
+              This action cannot be undone.
+            </span>
+          </span>
+        }
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteJobId(null)}
+      />
 
       {/* Notification Toast */}
       {notification && (
@@ -1182,10 +1199,7 @@ export default function JobsPage() {
 
       {/* Create / Edit Modal */}
       {(showCreateModal || showEditModal) && (
-        <div
-          className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={closeModal}
-        >
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div
             className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}

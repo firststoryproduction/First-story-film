@@ -57,6 +57,23 @@ export default function Sidebar({
   const searchParams = useSearchParams();
   const profileRef = useRef<HTMLDivElement>(null);
 
+  // Auto-expand the parent menu whose child matches the current pathname
+  useEffect(() => {
+    const activeParent = navItems.find((item) =>
+      item.subItems?.some((s) => {
+        const subPath = s.href.split("?")[0];
+        const subSection = new URLSearchParams(s.href.split("?")[1] || "").get(
+          "section",
+        );
+        const curSection = searchParams.get("section");
+        if (subSection)
+          return pathname === subPath && curSection === subSection;
+        return pathname === subPath || pathname.startsWith(subPath + "/");
+      }),
+    );
+    if (activeParent) setExpandedMenu(activeParent.href);
+  }, [pathname, searchParams]);
+
   // Close logout menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -155,20 +172,27 @@ export default function Sidebar({
         </button>
 
         {/* Branding */}
-        <div className={`transition-all duration-300 ${isCollapsed ? "lg:mb-3 lg:mt-2 mb-2" : "mb-2"}`}>
-          <div className={`flex items-center ${isCollapsed ? "lg:justify-center" : "space-x-2"}`}>
-
+        <div
+          className={`transition-all duration-300 ${isCollapsed ? "lg:mb-3 lg:mt-2 mb-2" : "mb-2"}`}
+        >
+          <div
+            className={`flex items-center ${isCollapsed ? "lg:justify-center" : "space-x-2"}`}
+          >
             {/* Collapsed: FSP Monogram Badge */}
             <div
               className={`flex-shrink-0 transition-all duration-300 ${isCollapsed ? "lg:flex hidden" : "hidden"}`}
             >
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-200 ring-2 ring-white">
-                <span className="text-white font-black text-sm tracking-tight leading-none select-none">FSP</span>
+                <span className="text-white font-black text-sm tracking-tight leading-none select-none">
+                  FSP
+                </span>
               </div>
             </div>
 
             {/* Expanded: Full brand name */}
-            <div className={`transition-all duration-300 overflow-hidden ${isCollapsed ? "lg:w-0 lg:opacity-0 lg:hidden" : "opacity-100"}`}>
+            <div
+              className={`transition-all duration-300 overflow-hidden ${isCollapsed ? "lg:w-0 lg:opacity-0 lg:hidden" : "opacity-100"}`}
+            >
               <div className="flex items-center space-x-2">
                 {/* <div className="w-8 h-8 rounded-sm bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-100 flex-shrink-0">
                   <span className="text-white font-black text-[10px] tracking-tight leading-none select-none">FSP</span>
@@ -183,63 +207,101 @@ export default function Sidebar({
             {/* Mobile: always show full name */}
             <div className={`lg:hidden flex items-center space-x-2`}>
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-md flex-shrink-0">
-                <span className="text-white font-black text-[10px] tracking-tight">FSP</span>
+                <span className="text-white font-black text-[10px] tracking-tight">
+                  FSP
+                </span>
               </div>
               <h1 className="text-sm font-bold text-black whitespace-nowrap">
                 FIRST STORY <span className="text-indigo-600">PRODUCTION</span>
               </h1>
             </div>
-
           </div>
         </div>
 
         {/* Navigation Menu */}
-        <nav className={`transition-all duration-300 ${isCollapsed ? "lg:space-y-0" : "space-y-0.5"}`}>
+        <nav
+          className={`transition-all duration-300 ${isCollapsed ? "lg:space-y-0" : "space-y-0.5"}`}
+        >
           {navItems.map((item) => {
             const Icon = item.icon;
-            const hasSubItems = !!(item.subItems?.length);
-            const isChildActive = hasSubItems && item.subItems!.some(s => {
-              const subPath = s.href.split('?')[0];
-              const subSection = new URLSearchParams(s.href.split('?')[1] || '').get('section');
-              if (subSection) return pathname === subPath && searchParams.get('section') === subSection;
-              return pathname.startsWith(subPath);
-            });
-            const isActive = !hasSubItems ? pathname === item.href : isChildActive;
-            const isExpanded = expandedMenu === item.href || isChildActive;
+            const hasSubItems = !!item.subItems?.length;
+            const isChildActive =
+              hasSubItems &&
+              item.subItems!.some((s) => {
+                const subPath = s.href.split("?")[0];
+                const subSection = new URLSearchParams(
+                  s.href.split("?")[1] || "",
+                ).get("section");
+                if (subSection)
+                  return (
+                    pathname === subPath &&
+                    searchParams.get("section") === subSection
+                  );
+                return pathname.startsWith(subPath);
+              });
+            const isActive = !hasSubItems
+              ? pathname === item.href ||
+                (item.href !== "/dashboard" &&
+                  pathname.startsWith(item.href + "/"))
+              : isChildActive;
+            const isExpanded = expandedMenu === item.href;
 
             // Full expanded nav item (used on mobile always, desktop when not collapsed)
             const fullItem = (
               <div key={item.href}>
                 {hasSubItems ? (
                   <button
-                    onClick={() => setExpandedMenu(isExpanded && !isChildActive ? null : item.href)}
-                    className={`nav-aesthetic mb-0.5 w-full text-left ${isActive ? "active" : ""}`}
+                    onClick={() =>
+                      setExpandedMenu(
+                        expandedMenu === item.href ? null : item.href,
+                      )
+                    }
+                    className={`nav-aesthetic mb-0.5 w-full text-left`}
                   >
                     <Icon size={20} className="flex-shrink-0" />
-                    <span className="text-sm font-medium flex-1 text-left whitespace-nowrap overflow-hidden">{item.label}</span>
-                    <ChevronRight size={12} className={`flex-shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""} opacity-60`} />
+                    <span className="text-sm font-medium flex-1 text-left whitespace-nowrap overflow-hidden">
+                      {item.label}
+                    </span>
+                    <ChevronRight
+                      size={12}
+                      className={`flex-shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""} opacity-60`}
+                    />
                   </button>
                 ) : (
-                  <Link href={item.href} onClick={() => setSidebarOpen(false)}
-                    className={`nav-aesthetic mb-1 ${isActive ? "active" : ""}`}>
+                  <Link
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`nav-aesthetic mb-1 ${isActive ? "active" : ""}`}
+                  >
                     <Icon size={20} className="flex-shrink-0" />
-                    <span className="text-sm font-medium whitespace-nowrap overflow-hidden">{item.label}</span>
+                    <span className="text-sm font-medium whitespace-nowrap overflow-hidden">
+                      {item.label}
+                    </span>
                   </Link>
                 )}
                 {hasSubItems && isExpanded && (
                   <div className="ml-3 mb-1 pl-3 border-l border-indigo-200 space-y-0.5">
-                    {item.subItems!.map(sub => {
+                    {item.subItems!.map((sub) => {
                       const SubIcon = sub.icon;
-                      const subPath = sub.href.split('?')[0];
-                      const subSection = new URLSearchParams(sub.href.split('?')[1] || '').get('section');
+                      const subPath = sub.href.split("?")[0];
+                      const subSection = new URLSearchParams(
+                        sub.href.split("?")[1] || "",
+                      ).get("section");
                       const isSubActive = subSection
-                        ? pathname === subPath && searchParams.get('section') === subSection
+                        ? pathname === subPath &&
+                          searchParams.get("section") === subSection
                         : pathname === subPath;
                       return (
-                        <Link key={sub.href} href={sub.href} onClick={() => setSidebarOpen(false)}
+                        <Link
+                          key={sub.href}
+                          href={sub.href}
+                          onClick={() => setSidebarOpen(false)}
                           className={`flex items-center space-x-2 px-2.5 py-2.5 rounded-lg text-sm transition-all ${
-                            isSubActive ? "bg-indigo-50 text-indigo-700 font-semibold" : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
-                          }`}>
+                            isSubActive
+                              ? "bg-indigo-50 text-indigo-700 font-semibold"
+                              : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                          }`}
+                        >
                           <SubIcon size={20} className="flex-shrink-0" />
                           <span>{sub.label}</span>
                         </Link>
@@ -251,15 +313,15 @@ export default function Sidebar({
             );
 
             return (
-              <div key={item.href + '-wrap'}>
+              <div key={item.href + "-wrap"}>
                 {/* Collapsed desktop: icon only */}
                 {isCollapsed && (
                   <div className="hidden lg:block">
                     <Tooltip text={item.label} position="right">
                       <Link
-                        href={hasSubItems ? (item.subItems![0].href) : item.href}
+                        href={hasSubItems ? item.subItems![0].href : item.href}
                         onClick={() => setSidebarOpen(false)}
-                        className={`nav-aesthetic mb-1 ${isActive ? "active" : ""} lg:justify-center lg:p-0 lg:w-10 lg:h-10`}
+                        className={`nav-aesthetic mb-1 ${!hasSubItems && isActive ? "active" : ""} lg:justify-center lg:p-0 lg:w-10 lg:h-10`}
                       >
                         <Icon size={20} className="flex-shrink-0" />
                       </Link>
@@ -267,9 +329,7 @@ export default function Sidebar({
                   </div>
                 )}
                 {/* Expanded or mobile: full item */}
-                <div className={isCollapsed ? "lg:hidden" : ""}>
-                  {fullItem}
-                </div>
+                <div className={isCollapsed ? "lg:hidden" : ""}>{fullItem}</div>
               </div>
             );
           })}

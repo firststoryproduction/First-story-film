@@ -52,11 +52,16 @@ export default function StaffForm({
   return (
     <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 overflow-y-auto">
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-xl my-8 relative animate-in fade-in zoom-in-95 duration-300">
+        <div
+          className="bg-white rounded-lg shadow-xl w-full max-w-xl my-8 relative animate-in fade-in zoom-in-95 duration-300"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Modal Header */}
           <div className="p-5 flex justify-between items-center border-b border-gray-200">
             <h3 className="text-lg font-semibold text-black">
-              {modalMode === "create" ? "Register New User" : "Edit User Profile"}
+              {modalMode === "create"
+                ? "Register New User"
+                : "Edit User Profile"}
             </h3>
             <button
               onClick={onClose}
@@ -182,9 +187,7 @@ export default function StaffForm({
               {formData.role === "USER" && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex justify-between items-center mb-3">
-                    <p className="text-sm font-medium text-gray-900">
-                      Service
-                    </p>
+                    <p className="text-sm font-medium text-gray-900">Service</p>
                     <button
                       type="button"
                       onClick={onAddCommission}
