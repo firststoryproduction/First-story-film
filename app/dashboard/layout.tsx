@@ -10,10 +10,8 @@ import {
   Building2,
   ClipboardList,
   BarChart3,
-  Wallet,
-  TrendingUp,
-  TrendingDown,
-  BookOpen,
+  ShieldCheck,
+  FileBarChart,
 } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import Spinner from "../../components/Spinner";
@@ -335,12 +333,21 @@ export default function DashboardLayout({
     { href: "/dashboard/admin/vendors", icon: Building2, label: "Vendors" },
     { href: "/dashboard/admin/services", icon: Briefcase, label: "Services" },
     { href: "/dashboard/admin/staff", icon: Users, label: "Users" },
-    { href: "/dashboard/admin/accounting", icon: BarChart3, label: "Accounting", subItems: [
-      { href: "/dashboard/admin/accounting?section=accounts", label: "Account", icon: Wallet },
-      { href: "/dashboard/admin/accounting?section=income", label: "Income ", icon: TrendingUp },
-      { href: "/dashboard/admin/accounting?section=expense", label: "Expense", icon: TrendingDown },
-      { href: "/dashboard/admin/accounting?section=reports", label: "Ledger / Reports", icon: BookOpen },
-    ] },
+    {
+      href: "/dashboard/admin/accounting",
+      icon: BarChart3,
+      label: "Accounting",
+    },
+    {
+      href: "/dashboard/admin/reports",
+      icon: FileBarChart,
+      label: "Reports",
+    },
+    {
+      href: "/dashboard/admin/activity-logs",
+      icon: ShieldCheck,
+      label: "Activity Log",
+    },
   ];
 
   const managerNavItems = [

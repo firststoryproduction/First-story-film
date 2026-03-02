@@ -29,35 +29,6 @@ const SOURCE_LABELS: Record<
   staff_payment: { label: "Staff Payment", color: "#6d28d9", bg: "#ede9fe" },
 };
 
-function SubTabs({
-  tabs,
-  active,
-  onChange,
-}: {
-  tabs: { key: string; label: string; icon: any }[];
-  active: string;
-  onChange: (k: string) => void;
-}) {
-  return (
-    <div className="flex space-x-1 bg-slate-100 rounded-lg p-1 w-fit flex-shrink-0">
-      {tabs.map(({ key, label, icon: Ic }) => (
-        <button
-          key={key}
-          onClick={() => onChange(key)}
-          className={`flex items-center space-x-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all ${
-            active === key
-              ? "bg-white text-slate-800 shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          <Ic size={12} />
-          <span>{label}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
 // ──────────────────────────────────────────────────────────────────────────
 function AccountDetailContent() {
   const params = useParams();
@@ -69,12 +40,13 @@ function AccountDetailContent() {
   const [currentBalance, setCurrentBalance] = useState(0);
   const [loadingAccount, setLoadingAccount] = useState(true);
 
-  const [tab, setTab] = useState<"in" | "out">("in");
+  const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">(
+    "all",
+  );
   const [txs, setTxs] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
   const [loadingTxs, setLoadingTxs] = useState(true);
   const [page, setPage] = useState(1);
-  const LIMIT = 15;
+  const LIMIT = 20;
 
   // Filters
   const [filters, setFilters] = useState({
@@ -115,16 +87,19 @@ function AccountDetailContent() {
     loadAccount();
   }, [loadAccount]);
 
-  // Reset page when tab or filters change
+  // Reset page when typeFilter or filters change
   useEffect(() => {
     setPage(1);
-  }, [tab, filters]);
+  }, [typeFilter, filters]);
 
-  // Load categories for current tab
+  // Load categories for active type
   const loadCategories = useCallback(async () => {
-    if (!token) return;
+    if (!token || typeFilter === "all") {
+      setCategories([]);
+      return;
+    }
     const api =
-      tab === "in"
+      typeFilter === "income"
         ? "/api/accounting/income-categories"
         : "/api/accounting/expense-categories";
     const r = await fetch(api, {
@@ -132,50 +107,86 @@ function AccountDetailContent() {
     });
     const d = await r.json();
     setCategories(d.data || []);
-  }, [token, tab]);
+  }, [token, typeFilter]);
 
   useEffect(() => {
     loadCategories();
   }, [loadCategories]);
 
-  // Fetch transactions
+  // Fetch transactions — "all" fetches both and merges
   const loadTxs = useCallback(async () => {
     if (!token || !id) return;
     setLoadingTxs(true);
     const h = { Authorization: `Bearer ${token}` };
-    const api =
-      tab === "in"
-        ? "/api/accounting/income-all"
-        : "/api/accounting/expenses-all";
-    const params: Record<string, string> = {
+    const baseParams: Record<string, string> = {
       page: String(page),
       limit: String(LIMIT),
       account_id: id,
     };
-    if (filters.date_from) params.date_from = filters.date_from;
-    if (filters.date_to) params.date_to = filters.date_to;
-    if (filters.category_id) params.category_id = filters.category_id;
-    if (filters.source) params.source = filters.source;
-    const qp = new URLSearchParams(params);
-    const r = await fetch(`${api}?${qp}`, { headers: h });
-    const d = await r.json();
-    setTxs(d.data || []);
-    setTotal(d.count || 0);
-    setLoadingTxs(false);
-  }, [tab, page, token, id, filters]);
+    if (filters.date_from) baseParams.date_from = filters.date_from;
+    if (filters.date_to) baseParams.date_to = filters.date_to;
+    if (filters.category_id) baseParams.category_id = filters.category_id;
+    if (filters.source) baseParams.source = filters.source;
+
+    try {
+      if (typeFilter === "all") {
+        // Fetch both with a large limit and merge client-side
+        const bigParams = { ...baseParams, page: "1", limit: "500" };
+        const [ri, re] = await Promise.all([
+          fetch(
+            `/api/accounting/income-all?${new URLSearchParams(bigParams)}`,
+            { headers: h },
+          ),
+          fetch(
+            `/api/accounting/expenses-all?${new URLSearchParams(bigParams)}`,
+            { headers: h },
+          ),
+        ]);
+        const [di, de] = await Promise.all([ri.json(), re.json()]);
+        const income = (di.data || []).map((t: any) => ({
+          ...t,
+          _type: "income",
+        }));
+        const expense = (de.data || []).map((t: any) => ({
+          ...t,
+          _type: "expense",
+        }));
+        const merged = [...income, ...expense].sort((a, b) => {
+          const da = a.date || a.income_date || a.expense_date || "";
+          const db = b.date || b.income_date || b.expense_date || "";
+          return db.localeCompare(da);
+        });
+        setTxs(merged);
+      } else {
+        const api =
+          typeFilter === "income"
+            ? "/api/accounting/income-all"
+            : "/api/accounting/expenses-all";
+        const r = await fetch(`${api}?${new URLSearchParams(baseParams)}`, {
+          headers: h,
+        });
+        const d = await r.json();
+        setTxs((d.data || []).map((t: any) => ({ ...t, _type: typeFilter })));
+      }
+    } finally {
+      setLoadingTxs(false);
+    }
+  }, [typeFilter, page, token, id, filters]);
 
   useEffect(() => {
     loadTxs();
   }, [loadTxs]);
 
-  const totalPages = Math.ceil(total / LIMIT);
-  const isIncome = tab === "in";
+  const totalPages = Math.ceil(txs.length / LIMIT);
+  const pagedTxs =
+    typeFilter === "all" ? txs.slice((page - 1) * LIMIT, page * LIMIT) : txs;
 
-  const getDate = (tx: any) =>
-    tx.date || (isIncome ? tx.income_date : tx.expense_date);
+  const getDate = (tx: any) => tx.date || tx.income_date || tx.expense_date;
   const getCat = (tx: any) =>
     tx.category ||
-    (isIncome ? tx.income_categories?.name : tx.expense_categories?.name) ||
+    (tx._type === "income"
+      ? tx.income_categories?.name
+      : tx.expense_categories?.name) ||
     "—";
   const getSource = (tx: any): string => tx.source || "manual";
   const getRefName = (tx: any) => tx.ref_name || "";
@@ -261,15 +272,48 @@ function AccountDetailContent() {
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           {/* Toolbar */}
           <div className="px-4 py-3 border-b border-gray-200 flex flex-wrap items-center gap-3">
-            {/* In/Out Tabs */}
-            <SubTabs
-              tabs={[
-                { key: "in", label: "In (Income)", icon: TrendingUp },
-                { key: "out", label: "Out (Expense)", icon: TrendingDown },
-              ]}
-              active={tab}
-              onChange={(k) => setTab(k as "in" | "out")}
-            />
+            {/* Type filter */}
+            <div className="flex items-center bg-slate-100 rounded-lg p-1 gap-1 flex-shrink-0">
+              {(
+                [
+                  { key: "all", label: "All", icon: null },
+                  { key: "income", label: "Income", icon: TrendingUp },
+                  { key: "expense", label: "Expense", icon: TrendingDown },
+                ] as const
+              ).map(({ key, label, icon: Ic }) => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setTypeFilter(key);
+                    setFilters({
+                      date_from: "",
+                      date_to: "",
+                      category_id: "",
+                      source: "",
+                    });
+                  }}
+                  className={`flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all ${
+                    typeFilter === key
+                      ? "bg-white text-slate-800 shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  {Ic && (
+                    <Ic
+                      size={12}
+                      className={
+                        typeFilter === key
+                          ? key === "income"
+                            ? "text-emerald-500"
+                            : "text-rose-500"
+                          : ""
+                      }
+                    />
+                  )}
+                  {label}
+                </button>
+              ))}
+            </div>
             <div className="flex flex-wrap items-center gap-3 ml-auto">
               {/* Date From */}
               <div className="flex flex-col gap-0.5">
@@ -299,26 +343,28 @@ function AccountDetailContent() {
                   className="h-9 px-3 text-xs border border-gray-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
-              {/* Category */}
-              <div className="flex flex-col gap-0.5 w-[170px]">
-                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide px-0.5">
-                  Category
-                </span>
-                <AestheticSelect
-                  label=""
-                  heightClass="h-9"
-                  textSize="xs"
-                  options={[
-                    { id: "", name: "All Categories" },
-                    ...categories.map((c) => ({ id: c.id, name: c.name })),
-                  ]}
-                  value={filters.category_id}
-                  onChange={(val) =>
-                    setFilters((f) => ({ ...f, category_id: val }))
-                  }
-                  placeholder="All Categories"
-                />
-              </div>
+              {/* Category — only when income or expense selected */}
+              {typeFilter !== "all" && (
+                <div className="flex flex-col gap-0.5 w-[170px]">
+                  <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide px-0.5">
+                    Category
+                  </span>
+                  <AestheticSelect
+                    label=""
+                    heightClass="h-9"
+                    textSize="xs"
+                    options={[
+                      { id: "", name: "All Categories" },
+                      ...categories.map((c) => ({ id: c.id, name: c.name })),
+                    ]}
+                    value={filters.category_id}
+                    onChange={(val) =>
+                      setFilters((f) => ({ ...f, category_id: val }))
+                    }
+                    placeholder="All Categories"
+                  />
+                </div>
+              )}
               {/* Source */}
               <div className="flex flex-col gap-0.5 w-[160px]">
                 <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide px-0.5">
@@ -332,7 +378,7 @@ function AccountDetailContent() {
                     { id: "", name: "All Sources" },
                     { id: "manual", name: "Manual" },
                     { id: "vendor_payment", name: "Vendor Payment" },
-                    ...(tab === "out"
+                    ...(typeFilter !== "income"
                       ? [{ id: "staff_payment", name: "Staff Payment" }]
                       : []),
                   ]}
@@ -365,33 +411,47 @@ function AccountDetailContent() {
           {/* Row count */}
           <div className="px-6 py-2 border-b border-gray-100">
             <p className="text-xs text-slate-400">
-              {total} transaction{total !== 1 ? "s" : ""}
+              {txs.length} transaction{txs.length !== 1 ? "s" : ""}
             </p>
           </div>
           <Table
             columns={[
               { key: "date", header: "Date", align: "left" },
+              { key: "type", header: "Type", align: "left" },
               { key: "category", header: "Category", align: "left" },
               { key: "source", header: "Source", align: "left" },
               { key: "remarks", header: "Remarks / Ref", align: "left" },
               { key: "amount", header: "Amount", align: "right" },
             ]}
-            data={txs}
+            data={pagedTxs}
             loading={loadingTxs}
-            emptyIcon={
-              isIncome ? (
-                <TrendingUp size={28} className="text-slate-200" />
-              ) : (
-                <TrendingDown size={28} className="text-slate-200" />
-              )
-            }
-            emptyMessage={`No ${isIncome ? "income" : "expense"} transactions for this account.`}
+            emptyIcon={<TrendingUp size={28} className="text-slate-200" />}
+            emptyMessage="No transactions found for this account."
             renderCell={(column, tx) => {
               if (column.key === "date") {
                 const raw = getDate(tx);
                 const display = raw ? raw.split("-").reverse().join("-") : "—";
                 return (
                   <span className="text-slate-600 text-sm">{display}</span>
+                );
+              }
+              if (column.key === "type") {
+                const isIn = tx._type === "income";
+                return (
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      isIn
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-rose-50 text-rose-700"
+                    }`}
+                  >
+                    {isIn ? (
+                      <TrendingUp size={10} />
+                    ) : (
+                      <TrendingDown size={10} />
+                    )}
+                    {isIn ? "Income" : "Expense"}
+                  </span>
                 );
               }
               if (column.key === "category")
@@ -425,15 +485,17 @@ function AccountDetailContent() {
                     )}
                   </span>
                 );
-              if (column.key === "amount")
+              if (column.key === "amount") {
+                const isIn = tx._type === "income";
                 return (
                   <span
-                    className={`font-bold text-sm ${isIncome ? "text-emerald-600" : "text-rose-600"}`}
+                    className={`font-bold text-sm ${isIn ? "text-emerald-600" : "text-rose-600"}`}
                   >
-                    {isIncome ? "+" : "-"}
+                    {isIn ? "+" : "-"}
                     {fmt(Number(tx.amount || 0))}
                   </span>
                 );
+              }
               return null;
             }}
           />

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { logActivity } from "@/lib/activity-logger";
 
 const getSupabaseAdmin = () =>
   createClient(
@@ -19,12 +20,16 @@ async function verifyAuth(request: Request) {
   if (error || !user) return { error: "Invalid Session", status: 401 };
   const { data: profile } = await supabaseAdmin
     .from("users")
-    .select("role")
+    .select("role, name")
     .eq("id", user.id)
     .single();
   if (!["ADMIN", "MANAGER"].includes(profile?.role))
     return { error: "Forbidden", status: 403 };
-  return { user, supabaseAdmin };
+  return {
+    user,
+    supabaseAdmin,
+    userName: (profile?.name as string) || "Admin",
+  };
 }
 
 export async function GET(
@@ -90,6 +95,14 @@ export async function PUT(
       .single();
 
     if (error) throw error;
+    await logActivity({
+      userId: auth.user.id,
+      userName: auth.userName,
+      actionType: "UPDATE",
+      moduleName: "Accounts",
+      recordId: id,
+      description: `Updated account "${data.account_name}"`,
+    });
     return NextResponse.json(data);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -129,6 +142,14 @@ export async function DELETE(
       .delete()
       .eq("id", id);
     if (error) throw error;
+    await logActivity({
+      userId: auth.user.id,
+      userName: auth.userName,
+      actionType: "DELETE",
+      moduleName: "Accounts",
+      recordId: id,
+      description: `Deleted account ID ${id}`,
+    });
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
