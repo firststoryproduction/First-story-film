@@ -1,4 +1,4 @@
-# First Story Films - Job Management System
+# First Story Films - Job Management System 
 
 A professional job management and commission tracking system for First Story Films production studio.
 
