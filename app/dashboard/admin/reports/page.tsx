@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -17,13 +17,53 @@ import Spinner from "../../../../components/Spinner";
 const fmt = (n: number) =>
   "₹" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 });
 
+// Custom date input that displays DD/MM/YYYY but stores YYYY-MM-DD
+function DateInputDDMMYYYY({
+  value,
+  onChange,
+  className,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  className?: string;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const displayValue = value ? value.split("-").reverse().join("/") : "";
+  return (
+    <div className="relative" onClick={() => ref.current?.showPicker?.()}>
+      <input
+        type="text"
+        readOnly
+        value={displayValue}
+        placeholder="DD/MM/YYYY"
+        className={`cursor-pointer ${className ?? ""}`}
+      />
+      <input
+        ref={ref}
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+        tabIndex={-1}
+      />
+    </div>
+  );
+}
+
+const toYMD = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
 const getDefaultDates = () => {
   const now = new Date();
-  const from = new Date(now.getFullYear(), now.getMonth(), 1);
-  const to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const from = new Date(now.getFullYear(), now.getMonth(), 1); // 1st of current month
+  const to = new Date(now.getFullYear(), now.getMonth() + 1, 0); // last day of current month
   return {
-    from: from.toISOString().split("T")[0],
-    to: to.toISOString().split("T")[0],
+    from: toYMD(from),
+    to: toYMD(to),
   };
 };
 
@@ -45,6 +85,7 @@ export default function ReportsPage() {
   const defaults = getDefaultDates();
   const [dateFrom, setDateFrom] = useState(defaults.from);
   const [dateTo, setDateTo] = useState(defaults.to);
+  const [selectedPreset, setSelectedPreset] = useState<string>("This Month");
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState("");
   const [data, setData] = useState<SummaryData | null>(null);
@@ -175,32 +216,28 @@ export default function ReportsPage() {
               <label className="block text-[10px] text-slate-400 mb-1 uppercase tracking-wide">
                 From
               </label>
-              <input
-                type="date"
+              <DateInputDDMMYYYY
                 value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                onChange={(v) => {
+                  setDateFrom(v);
+                  setSelectedPreset("");
+                }}
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-36"
               />
             </div>
             <div>
               <label className="block text-[10px] text-slate-400 mb-1 uppercase tracking-wide">
                 To
               </label>
-              <input
-                type="date"
+              <DateInputDDMMYYYY
                 value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                onChange={(v) => {
+                  setDateTo(v);
+                  setSelectedPreset("");
+                }}
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-36"
               />
             </div>
-            <button
-              onClick={fetchReport}
-              disabled={loading}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-60 transition-all"
-            >
-              <RefreshCw size={13} />
-              Apply
-            </button>
           </div>
 
           {/* Quick range presets */}
@@ -212,6 +249,7 @@ export default function ReportsPage() {
                   const d = getDefaultDates();
                   setDateFrom(d.from);
                   setDateTo(d.to);
+                  setSelectedPreset("This Month");
                 },
               },
               {
@@ -224,8 +262,9 @@ export default function ReportsPage() {
                     1,
                   );
                   const to = new Date(now.getFullYear(), now.getMonth(), 0);
-                  setDateFrom(from.toISOString().split("T")[0]);
-                  setDateTo(to.toISOString().split("T")[0]);
+                  setDateFrom(toYMD(from));
+                  setDateTo(toYMD(to));
+                  setSelectedPreset("Last Month");
                 },
               },
               {
@@ -234,20 +273,26 @@ export default function ReportsPage() {
                   const yr = new Date().getFullYear();
                   setDateFrom(`${yr}-01-01`);
                   setDateTo(`${yr}-12-31`);
+                  setSelectedPreset("This Year");
                 },
               },
               {
                 label: "All Time",
                 fn: () => {
                   setDateFrom("2000-01-01");
-                  setDateTo(new Date().toISOString().split("T")[0]);
+                  setDateTo(toYMD(new Date()));
+                  setSelectedPreset("All Time");
                 },
               },
             ].map(({ label, fn }) => (
               <button
                 key={label}
                 onClick={fn}
-                className="text-[11px] px-2.5 py-1 rounded-full border border-gray-200 text-slate-500 hover:border-indigo-300 hover:text-indigo-600 transition-all"
+                className={`text-[14px] px-3.5 py-1 rounded-full border transition-all ${
+                  selectedPreset === label
+                    ? "bg-indigo-600 border-indigo-600 text-white"
+                    : "border-gray-200 text-slate-500 hover:border-indigo-300 hover:text-indigo-600"
+                }`}
               >
                 {label}
               </button>

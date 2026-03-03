@@ -376,62 +376,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Income vs Expense by Category */}
-          {(finance.incomeByCategory.length > 0 ||
-            finance.expenseByCategory.length > 0) && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-              <div className="bg-white rounded-xl border border-gray-200 p-5">
-                <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4">
-                  Top Income Categories
-                </h2>
-                <div className="space-y-3">
-                  {finance.incomeByCategory.map((c) => (
-                    <div key={c.name}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-slate-600 truncate max-w-[60%]">
-                          {c.name}
-                        </span>
-                        <span className="font-semibold text-emerald-700">
-                          {fmt(c.amount)}
-                        </span>
-                      </div>
-                      <div className="h-1.5 bg-emerald-50 rounded-full">
-                        <div
-                          className="h-1.5 bg-emerald-500 rounded-full"
-                          style={{ width: `${(c.amount / maxIncome) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-5">
-                <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4">
-                  Top Expense Categories
-                </h2>
-                <div className="space-y-3">
-                  {finance.expenseByCategory.map((c) => (
-                    <div key={c.name}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-slate-600 truncate max-w-[60%]">
-                          {c.name}
-                        </span>
-                        <span className="font-semibold text-rose-700">
-                          {fmt(c.amount)}
-                        </span>
-                      </div>
-                      <div className="h-1.5 bg-rose-50 rounded-full">
-                        <div
-                          className="h-1.5 bg-rose-500 rounded-full"
-                          style={{ width: `${(c.amount / maxExpense) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+     
 
           {/* Quick Links */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

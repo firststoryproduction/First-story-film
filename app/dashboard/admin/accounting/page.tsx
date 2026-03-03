@@ -442,7 +442,7 @@ function EntriesTab({
       {/* Action & Filter Bar + Table */}
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="px-5 py-4 border-b border-gray-200 flex flex-wrap items-end justify-between gap-3">
-          <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-wrap items-end gap-1">
             {/* Search by Remarks */}
             <div>
               <label className="text-xs font-medium text-slate-500 mb-1 block">
@@ -450,7 +450,7 @@ function EntriesTab({
               </label>
               <div className="relative">
                 <Search
-                  size={13}
+                  size={14}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
                 />
                 <input
@@ -574,7 +574,6 @@ function EntriesTab({
               className="flex items-center space-x-1.5 px-3 h-9 border border-gray-300 rounded-lg text-slate-600 hover:bg-gray-50 text-xs font-medium transition-all whitespace-nowrap"
             >
               <RefreshCw size={12} />
-              <span>Reset</span>
             </button>
           </div>
         </div>
@@ -603,16 +602,27 @@ function EntriesTab({
               );
             if (column.key === "type")
               return (
-                <Badge color={e.entryType === "income" ? "emerald" : "rose"}>
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
+                    e.entryType === "income"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-rose-50 text-rose-700"
+                  }`}
+                >
+                  {e.entryType === "income" ? (
+                    <TrendingUp size={10} />
+                  ) : (
+                    <TrendingDown size={10} />
+                  )}
                   {e.entryType === "income" ? "Income" : "Expense"}
-                </Badge>
+                </span>
               );
             if (column.key === "account")
               return <span className="text-slate-700">{e.account}</span>;
             if (column.key === "category")
               return (
                 <div>
-                  <Badge color={e.entryType === "income" ? "emerald" : "rose"}>
+                  <Badge color={e.entryType === "income" ? "blue" : "amber"}>
                     {e.category}
                   </Badge>
                   {e.ref_name && (
@@ -1448,7 +1458,7 @@ function CategoriesTab({
                 <div className="flex items-center space-x-2 py-0.5">
                   <div
                     className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                      c.type === "income" ? "bg-emerald-500" : "bg-rose-500"
+                      c.type === "income" ? "bg-blue-500" : "bg-amber-500"
                     }`}
                   />
                   <span className="font-semibold text-slate-800">{c.name}</span>

@@ -20,15 +20,6 @@ import AestheticSelect from "@/components/AestheticSelect";
 const fmt = (n: number) =>
   "₹" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 });
 
-const SOURCE_LABELS: Record<
-  string,
-  { label: string; color: string; bg: string }
-> = {
-  manual: { label: "Manual", color: "#475569", bg: "#f1f5f9" },
-  vendor_payment: { label: "Vendor Payment", color: "#b45309", bg: "#fef3c7" },
-  staff_payment: { label: "Staff Payment", color: "#6d28d9", bg: "#ede9fe" },
-};
-
 // ──────────────────────────────────────────────────────────────────────────
 function AccountDetailContent() {
   const params = useParams();
@@ -53,7 +44,6 @@ function AccountDetailContent() {
     date_from: "",
     date_to: "",
     category_id: "",
-    source: "",
   });
   const [categories, setCategories] = useState<{ id: string; name: string }[]>(
     [],
@@ -94,17 +84,31 @@ function AccountDetailContent() {
 
   // Load categories for active type
   const loadCategories = useCallback(async () => {
-    if (!token || typeFilter === "all") {
+    if (!token) {
       setCategories([]);
+      return;
+    }
+    const h = { Authorization: `Bearer ${token}` };
+    if (typeFilter === "all") {
+      const [ri, re] = await Promise.all([
+        fetch("/api/accounting/income-categories", { headers: h }),
+        fetch("/api/accounting/expense-categories", { headers: h }),
+      ]);
+      const [di, de] = await Promise.all([ri.json(), re.json()]);
+      const merged = [
+        ...(di.data || []),
+        ...(de.data || []).filter(
+          (c: any) => !(di.data || []).find((i: any) => i.id === c.id),
+        ),
+      ];
+      setCategories(merged);
       return;
     }
     const api =
       typeFilter === "income"
         ? "/api/accounting/income-categories"
         : "/api/accounting/expense-categories";
-    const r = await fetch(api, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const r = await fetch(api, { headers: h });
     const d = await r.json();
     setCategories(d.data || []);
   }, [token, typeFilter]);
@@ -126,7 +130,6 @@ function AccountDetailContent() {
     if (filters.date_from) baseParams.date_from = filters.date_from;
     if (filters.date_to) baseParams.date_to = filters.date_to;
     if (filters.category_id) baseParams.category_id = filters.category_id;
-    if (filters.source) baseParams.source = filters.source;
 
     try {
       if (typeFilter === "all") {
@@ -188,7 +191,6 @@ function AccountDetailContent() {
       ? tx.income_categories?.name
       : tx.expense_categories?.name) ||
     "—";
-  const getSource = (tx: any): string => tx.source || "manual";
   const getRefName = (tx: any) => tx.ref_name || "";
 
   if (loadingAccount) {
@@ -211,7 +213,7 @@ function AccountDetailContent() {
     <div className="min-h-screen bg-[#f1f5f9] lg:ml-[var(--sidebar-offset)]">
       <div className="w-full px-2 py-4 lg:px-4 lg:py-6">
         {/* Header — single row */}
-        <div className="bg-white rounded-lg border border-gray-200 px-4 py-3 mb-5 flex items-center gap-3 flex-wrap">
+        <div className="bg-white rounded-lg border border-gray-200 px-4 py-3 mb-2 flex items-center gap-3 flex-wrap">
           {/* Back button */}
           <button
             onClick={() =>
@@ -229,9 +231,16 @@ function AccountDetailContent() {
 
           {/* Name + badges */}
           <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-            <h1 className="text-base font-bold text-slate-800 whitespace-nowrap">
-              {account.account_name}
-            </h1>
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-base font-bold text-slate-800 leading-tight whitespace-nowrap">
+                {account.account_name}
+              </h1>
+              {account.notes && (
+                <span className="text-xs text-slate-400 truncate max-w-[220px]">
+                  {account.notes}
+                </span>
+              )}
+            </div>
             {account.is_default && (
               <Badge color="amber" icon={Star}>
                 Default
@@ -240,9 +249,6 @@ function AccountDetailContent() {
             <Badge color={account.status === "active" ? "emerald" : "slate"}>
               {account.status.charAt(0).toUpperCase() + account.status.slice(1)}
             </Badge>
-            {account.notes && (
-              <span className="text-xs text-slate-400">{account.notes}</span>
-            )}
           </div>
 
           {/* Balances */}
@@ -289,7 +295,6 @@ function AccountDetailContent() {
                       date_from: "",
                       date_to: "",
                       category_id: "",
-                      source: "",
                     });
                   }}
                   className={`flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all ${
@@ -343,67 +348,41 @@ function AccountDetailContent() {
                   className="h-9 px-3 text-xs border border-gray-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
-              {/* Category — only when income or expense selected */}
-              {typeFilter !== "all" && (
-                <div className="flex flex-col gap-0.5 w-[170px]">
-                  <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide px-0.5">
-                    Category
-                  </span>
-                  <AestheticSelect
-                    label=""
-                    heightClass="h-9"
-                    textSize="xs"
-                    options={[
-                      { id: "", name: "All Categories" },
-                      ...categories.map((c) => ({ id: c.id, name: c.name })),
-                    ]}
-                    value={filters.category_id}
-                    onChange={(val) =>
-                      setFilters((f) => ({ ...f, category_id: val }))
-                    }
-                    placeholder="All Categories"
-                  />
-                </div>
-              )}
-              {/* Source */}
-              <div className="flex flex-col gap-0.5 w-[160px]">
+              {/* Category */}
+              <div className="flex flex-col gap-0.5 w-[170px]">
                 <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide px-0.5">
-                  Source
+                  Category
                 </span>
                 <AestheticSelect
                   label=""
                   heightClass="h-9"
                   textSize="xs"
                   options={[
-                    { id: "", name: "All Sources" },
-                    { id: "manual", name: "Manual" },
-                    { id: "vendor_payment", name: "Vendor Payment" },
-                    ...(typeFilter !== "income"
-                      ? [{ id: "staff_payment", name: "Staff Payment" }]
-                      : []),
+                    { id: "", name: "All Categories" },
+                    ...categories.map((c) => ({ id: c.id, name: c.name })),
                   ]}
-                  value={filters.source}
-                  onChange={(val) => setFilters((f) => ({ ...f, source: val }))}
-                  placeholder="All Sources"
+                  value={filters.category_id}
+                  onChange={(val) =>
+                    setFilters((f) => ({ ...f, category_id: val }))
+                  }
+                  placeholder="All Categories"
                 />
               </div>
               {/* Clear */}
               {(filters.date_from ||
                 filters.date_to ||
-                filters.category_id ||
-                filters.source) && (
+                filters.category_id) && (
                 <button
                   onClick={() =>
                     setFilters({
                       date_from: "",
                       date_to: "",
                       category_id: "",
-                      source: "",
                     })
                   }
-                  className="h-9 px-3 flex items-center gap-1.5 text-xs text-rose-500 border border-rose-200 rounded-lg hover:bg-rose-50 transition-colors"
+                  className="h-9 px-3 flex items-center gap-1.5 text-xs text-rose-500 border border-rose-200 rounded-lg hover:bg-rose-50 transition-colors mt-3.5"
                 >
-                  <X size={11} /> Clear
+                  <X size={18} />
                 </button>
               )}
             </div>
@@ -419,9 +398,8 @@ function AccountDetailContent() {
               { key: "date", header: "Date", align: "left" },
               { key: "type", header: "Type", align: "left" },
               { key: "category", header: "Category", align: "left" },
-              { key: "source", header: "Source", align: "left" },
-              { key: "remarks", header: "Remarks / Ref", align: "left" },
-              { key: "amount", header: "Amount", align: "right" },
+              { key: "amount", header: "Amount", align: "left" },
+              { key: "remarks", header: "Remarks / Ref", align: "right" },
             ]}
             data={pagedTxs}
             loading={loadingTxs}
@@ -456,19 +434,18 @@ function AccountDetailContent() {
               }
               if (column.key === "category")
                 return (
-                  <span className="text-sm font-medium text-slate-700">
+                  <Badge color={tx._type === "income" ? "blue" : "amber"}>
                     {getCat(tx)}
-                  </span>
+                  </Badge>
                 );
-              if (column.key === "source") {
-                const src = getSource(tx);
-                const s = SOURCE_LABELS[src] || SOURCE_LABELS.manual;
+              if (column.key === "amount") {
+                const isIn = tx._type === "income";
                 return (
                   <span
-                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                    style={{ color: s.color, backgroundColor: s.bg }}
+                    className={`font-bold text-sm ${isIn ? "text-emerald-600" : "text-rose-600"}`}
                   >
-                    {s.label}
+                    {isIn ? "+" : "-"}
+                    {fmt(Number(tx.amount || 0))}
                   </span>
                 );
               }
@@ -485,17 +462,6 @@ function AccountDetailContent() {
                     )}
                   </span>
                 );
-              if (column.key === "amount") {
-                const isIn = tx._type === "income";
-                return (
-                  <span
-                    className={`font-bold text-sm ${isIn ? "text-emerald-600" : "text-rose-600"}`}
-                  >
-                    {isIn ? "+" : "-"}
-                    {fmt(Number(tx.amount || 0))}
-                  </span>
-                );
-              }
               return null;
             }}
           />
