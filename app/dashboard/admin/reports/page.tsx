@@ -5,14 +5,16 @@ import {
   TrendingUp,
   TrendingDown,
   BarChart3,
-  Wallet,
   Download,
   Printer,
-  RefreshCw,
-  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { supabase } from "../../../../lib/supabase";
 import Spinner from "../../../../components/Spinner";
+import Table from "../../../../components/Table";
+import Badge from "../../../../components/Badge";
+import AestheticSelect from "../../../../components/AestheticSelect";
 
 const fmt = (n: number) =>
   "₹" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 });
@@ -81,6 +83,18 @@ interface SummaryData {
   expenseByCategory: { name: string; amount: number }[];
 }
 
+interface TxRow {
+  id: string;
+  date: string;
+  type: "income" | "expense";
+  category: string;
+  remarks: string;
+  ref_name: string;
+  amount: number;
+  source: string;
+  account: string;
+}
+
 export default function ReportsPage() {
   const defaults = getDefaultDates();
   const [dateFrom, setDateFrom] = useState(defaults.from);
@@ -90,6 +104,11 @@ export default function ReportsPage() {
   const [token, setToken] = useState("");
   const [data, setData] = useState<SummaryData | null>(null);
   const [error, setError] = useState("");
+  const [selectedAccount, setSelectedAccount] = useState("");
+  const [transactions, setTransactions] = useState<TxRow[]>([]);
+  const [txLoading, setTxLoading] = useState(false);
+  const [txPage, setTxPage] = useState(1);
+  const TX_LIMIT = 20;
 
   // Get auth token once on mount
   useEffect(() => {
@@ -107,6 +126,7 @@ export default function ReportsPage() {
         date_from: dateFrom,
         date_to: dateTo,
       });
+      if (selectedAccount) params.set("account_id", selectedAccount);
       const res = await fetch(`/api/accounting/summary?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -118,12 +138,71 @@ export default function ReportsPage() {
     } finally {
       setLoading(false);
     }
-  }, [token, dateFrom, dateTo]);
+  }, [token, dateFrom, dateTo, selectedAccount]);
+
+  const fetchTransactions = useCallback(async () => {
+    if (!token) return;
+    setTxLoading(true);
+    try {
+      const params = new URLSearchParams({
+        date_from: dateFrom,
+        date_to: dateTo,
+        limit: "500",
+      });
+      if (selectedAccount) params.set("account_id", selectedAccount);
+      const [incRes, expRes] = await Promise.all([
+        fetch(`/api/accounting/income-all?${params}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`/api/accounting/expenses-all?${params}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+      const [incJson, expJson] = await Promise.all([
+        incRes.json(),
+        expRes.json(),
+      ]);
+      const incRows: TxRow[] = (incJson.data || []).map((t: any) => ({
+        id: t.id,
+        date: t.date,
+        type: "income" as const,
+        category: t.category,
+        remarks: t.remarks,
+        ref_name: t.ref_name,
+        amount: t.amount,
+        source: t.source,
+        account: t.account || "—",
+      }));
+      const expRows: TxRow[] = (expJson.data || []).map((t: any) => ({
+        id: t.id,
+        date: t.date,
+        type: "expense" as const,
+        category: t.category,
+        remarks: t.remarks,
+        ref_name: t.ref_name,
+        amount: t.amount,
+        source: t.source,
+        account: t.account || "—",
+      }));
+      const all = [...incRows, ...expRows].sort((a, b) =>
+        b.date.localeCompare(a.date),
+      );
+      setTransactions(all);
+      setTxPage(1);
+    } catch {
+      // silent
+    } finally {
+      setTxLoading(false);
+    }
+  }, [token, dateFrom, dateTo, selectedAccount]);
 
   // Auto-fetch when token is ready or dates change
   useEffect(() => {
-    if (token) fetchReport();
-  }, [token, fetchReport]);
+    if (token) {
+      fetchReport();
+      fetchTransactions();
+    }
+  }, [token, fetchReport, fetchTransactions]);
 
   const handlePrint = () => window.print();
 
@@ -143,17 +222,22 @@ export default function ReportsPage() {
           : "0%",
       ],
       [],
-      ["Account", "Balance"],
-      ...data.accountBalances.map((a) => [
-        a.account_name,
-        String(a.current_balance),
-      ]),
-      [],
       ["Income Category", "Amount"],
       ...data.incomeByCategory.map((c) => [c.name, String(c.amount)]),
       [],
       ["Expense Category", "Amount"],
       ...data.expenseByCategory.map((c) => [c.name, String(c.amount)]),
+      [],
+      ["Date", "Type", "Category", "Description", "Amount"],
+      ...transactions.map((t) => [
+        t.date,
+        t.type.toUpperCase(),
+        t.category,
+        t.ref_name
+          ? `${t.ref_name}${t.remarks ? " - " + t.remarks : ""}`
+          : t.remarks,
+        String(t.amount),
+      ]),
     ];
     const csv = rows
       .map((r) => r.map((cell) => `"${cell}"`).join(","))
@@ -182,7 +266,7 @@ export default function ReportsPage() {
   return (
     <main className="lg:ml-[var(--sidebar-offset)] p-4 lg:p-6 print:p-4">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 print:hidden">
         <div>
           <h1 className="text-xl font-bold text-slate-900">
             Financial Reports
@@ -209,7 +293,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Date Filters */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 print:hidden">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 mb-2 print:hidden">
         <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3">
           <div className="flex flex-wrap items-end gap-3 flex-1">
             <div>
@@ -236,6 +320,26 @@ export default function ReportsPage() {
                   setSelectedPreset("");
                 }}
                 className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-36"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] text-slate-400 mb-1 uppercase tracking-wide">
+                Account
+              </label>
+              <AestheticSelect
+                label=""
+                heightClass="h-9"
+                textSize="sm"
+                options={[
+                  { id: "", name: "All Accounts" },
+                  ...(data?.accountBalances ?? []).map((acc) => ({
+                    id: acc.id,
+                    name: acc.account_name + (acc.is_default ? " (Default)" : ""),
+                  })),
+                ]}
+                value={selectedAccount}
+                onChange={(val) => setSelectedAccount(val)}
+                placeholder="All Accounts"
               />
             </div>
           </div>
@@ -302,7 +406,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Print header (only visible in print) */}
-      <div className="hidden print:block mb-6">
+      <div className="hidden print:block mb-4">
         <h1 className="text-2xl font-bold">Financial Report</h1>
         <p className="text-sm text-gray-600">
           Period: {dateFrom} to {dateTo}
@@ -310,7 +414,7 @@ export default function ReportsPage() {
       </div>
 
       {error && (
-        <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl px-4 py-3 mb-6">
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl px-4 py-3 mb-4">
           {error}
         </div>
       )}
@@ -325,7 +429,7 @@ export default function ReportsPage() {
       {data && (
         <>
           {/* Summary Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
             {/* Total Income */}
             <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between">
               <div>
@@ -405,7 +509,7 @@ export default function ReportsPage() {
           </div>
 
           {/* Income vs Expense Breakdown */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-2">
             {/* Income by Category */}
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4 flex items-center gap-2">
@@ -505,88 +609,115 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          {/* Account Balances */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4 flex items-center gap-2">
-              <Wallet size={14} className="text-slate-400" /> Account Balances
-            </h2>
-            {data.accountBalances.length === 0 ? (
-              <p className="text-xs text-slate-400 text-center py-6">
-                No accounts found
-              </p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="text-left text-xs font-semibold text-slate-500 pb-2 pr-4">
-                        Account Name
-                      </th>
-                      <th className="text-right text-xs font-semibold text-slate-500 pb-2">
-                        Current Balance
-                      </th>
-                      <th className="text-right text-xs font-semibold text-slate-500 pb-2 pl-4">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {data.accountBalances.map((acc) => (
-                      <tr key={acc.id} className="hover:bg-slate-50/50">
-                        <td className="py-2.5 pr-4">
-                          <div className="flex items-center gap-2">
-                            <Wallet
-                              size={13}
-                              className="text-slate-400 shrink-0"
-                            />
-                            <span className="text-slate-700 font-medium">
-                              {acc.account_name}
-                            </span>
-                            {acc.is_default && (
-                              <span className="text-[9px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-bold">
-                                DEFAULT
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-2.5 text-right">
-                          <span
-                            className={`font-bold text-sm ${acc.current_balance >= 0 ? "text-emerald-600" : "text-rose-600"}`}
-                          >
-                            {fmt(acc.current_balance)}
-                          </span>
-                        </td>
-                        <td className="py-2.5 text-right pl-4">
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${acc.current_balance >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}
-                          >
-                            {acc.current_balance >= 0 ? "POSITIVE" : "NEGATIVE"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="border-t-2 border-gray-200">
-                      <td className="pt-3 text-xs font-bold text-slate-600">
-                        Total Balance
-                      </td>
-                      <td className="pt-3 text-right">
-                        <span
-                          className={`font-bold text-sm ${data.accountBalances.reduce((s, a) => s + a.current_balance, 0) >= 0 ? "text-emerald-600" : "text-rose-600"}`}
-                        >
-                          {fmt(
-                            data.accountBalances.reduce(
-                              (s, a) => s + a.current_balance,
-                              0,
-                            ),
-                          )}
-                        </span>
-                      </td>
-                      <td />
-                    </tr>
-                  </tfoot>
-                </table>
+          {/* Transactions */}
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-2">
+            {/* Toolbar */}
+            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
+                <BarChart3 size={14} className="text-indigo-400" /> Transactions
+              </h2>
+              {txLoading && <Spinner className="w-4" />}
+            </div>
+
+            <Table
+              loading={txLoading}
+              data={transactions}
+              emptyMessage="No transactions found for this period"
+              emptyIcon={<TrendingUp size={28} className="text-slate-200" />}
+              columns={[
+                { key: "date", header: "Date", align: "left" },
+                { key: "type", header: "Type", align: "left" },
+                { key: "account", header: "Account", align: "left" },
+                { key: "category", header: "Category", align: "left" },
+                { key: "amount", header: "Amount", align: "left" },
+                { key: "description", header: "Remarks / Ref", align: "right" },
+              ]}
+              renderCell={(col, tx) => {
+                if (col.key === "date") {
+                  const display = tx.date
+                    ? tx.date.split("-").reverse().join("-")
+                    : "—";
+                  return (
+                    <span className="text-slate-600 text-sm">{display}</span>
+                  );
+                }
+                if (col.key === "type") {
+                  const isIn = tx.type === "income";
+                  return (
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        isIn
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-rose-50 text-rose-700"
+                      }`}
+                    >
+                      {isIn ? (
+                        <TrendingUp size={10} />
+                      ) : (
+                        <TrendingDown size={10} />
+                      )}
+                      {isIn ? "Income" : "Expense"}
+                    </span>
+                  );
+                }
+                if (col.key === "account") {
+                  return (
+                    <span className="text-slate-600 text-sm">{tx.account}</span>
+                  );
+                }
+                if (col.key === "category") {
+                  return (
+                    <Badge color={tx.type === "income" ? "blue" : "amber"}>
+                      {tx.category}
+                    </Badge>
+                  );
+                }
+                if (col.key === "amount") {
+                  const isIn = tx.type === "income";
+                  return (
+                    <span
+                      className={`font-bold text-sm ${isIn ? "text-emerald-600" : "text-rose-600"}`}
+                    >
+                      {fmt(tx.amount)}
+                    </span>
+                  );
+                }
+                if (col.key === "description") {
+                  const desc = tx.ref_name
+                    ? tx.remarks
+                      ? `${tx.ref_name} — ${tx.remarks}`
+                      : tx.ref_name
+                    : tx.remarks || "—";
+                  return <span className="text-xs text-slate-500">{desc}</span>;
+                }
+                return null;
+              }}
+            />
+            {Math.ceil(transactions.length / TX_LIMIT) > 1 && (
+              <div className="px-6 py-3 border-t border-gray-200 flex items-center justify-between">
+                <p className="text-xs text-slate-500">
+                  Page {txPage} of {Math.ceil(transactions.length / TX_LIMIT)}
+                </p>
+                <div className="flex items-center space-x-2">
+                  <button
+                    title="Previous page"
+                    disabled={txPage <= 1}
+                    onClick={() => setTxPage((p) => p - 1)}
+                    className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-slate-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  <button
+                    title="Next page"
+                    disabled={
+                      txPage >= Math.ceil(transactions.length / TX_LIMIT)
+                    }
+                    onClick={() => setTxPage((p) => p + 1)}
+                    className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-slate-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
               </div>
             )}
           </div>

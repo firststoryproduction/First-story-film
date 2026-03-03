@@ -585,7 +585,7 @@ function EntriesTab({
             { key: "type", header: "Type", align: "left" },
             { key: "account", header: "Account", align: "left" },
             { key: "category", header: "Category", align: "left" },
-            { key: "amount", header: "Amount", align: "right" },
+            { key: "amount", header: "Amount", align: "left" },
             { key: "remarks", header: "Remarks", align: "left" },
             { key: "actions", header: "Actions", align: "right" },
           ]}
@@ -641,7 +641,7 @@ function EntriesTab({
                       : "text-rose-600"
                   }`}
                 >
-                  {e.entryType === "income" ? "+" : "-"}
+                  {e.entryType === "income" ? "" : ""}
                   {fmt(e.amount)}
                 </span>
               );
