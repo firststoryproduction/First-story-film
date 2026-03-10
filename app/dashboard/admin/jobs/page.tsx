@@ -249,25 +249,23 @@ export default function JobsPage() {
         return;
       }
 
-      const { data, error } = await (
-        supabase.from("staff_service_configs") as any
-      )
-        .select(
-          `
-                    staff_id,
-                    percentage,
-                    due_date,
-                    users!staff_id(id, name)
-                `,
-        )
-        .eq("service_id", selectedService);
+      const [usersRes, configRes] = await Promise.all([
+        supabase.from("users").select("id, name").order("name"),
+        (supabase.from("staff_service_configs") as any)
+          .select("staff_id, percentage, due_date")
+          .eq("service_id", selectedService),
+      ]);
 
-      if (!error && data) {
-        const list = data.map((item: any) => ({
-          id: item.users.id,
-          name: item.users.name,
-          default_percentage: item.percentage,
-          default_due_date: item.due_date,
+      if (usersRes.data) {
+        const configMap: Record<string, any> = {};
+        (configRes.data || []).forEach((c: any) => {
+          configMap[c.staff_id] = c;
+        });
+        const list = usersRes.data.map((u: any) => ({
+          id: u.id,
+          name: u.name,
+          default_percentage: configMap[u.id]?.percentage ?? 0,
+          default_due_date: configMap[u.id]?.due_date ?? null,
         }));
         setFilteredStaffList(list);
       } else {
@@ -1269,7 +1267,7 @@ export default function JobsPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <AestheticSelect
+                    <SearchableSelect
                       label="Assign User"
                       heightClass="h-10"
                       required
@@ -1285,6 +1283,8 @@ export default function JobsPage() {
                           ? "Select Assigned User..."
                           : "Choose Service First"
                       }
+                      labelStyle="normal"
+                      inputStyle="normal"
                     />
 
                     <div>

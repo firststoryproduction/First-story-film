@@ -164,10 +164,7 @@ export default function InvoiceDetailModal({
                       Job Name
                     </th>
                     <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      Full Amount
-                    </th>
-                    <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      Invoiced Amount
+                      Amount
                     </th>
                   </tr>
                 </thead>
@@ -195,9 +192,6 @@ export default function InvoiceDetailModal({
                             </p>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-right text-sm text-gray-500">
-                          {formatCurrency(job.amount)}
-                        </td>
                         <td className="px-4 py-3 text-right">
                           <span className="font-semibold text-gray-800 text-sm">
                             {formatCurrency(isPartial ? remaining : job.amount)}
@@ -214,10 +208,7 @@ export default function InvoiceDetailModal({
                 </tbody>
                 <tfoot className="bg-gray-50 border-t border-gray-200">
                   <tr>
-                    <td
-                      className="px-4 py-3 text-sm font-bold text-gray-700"
-                      colSpan={2}
-                    >
+                    <td className="px-4 py-3 text-sm font-bold text-gray-700">
                       Total
                     </td>
                     <td className="px-4 py-3 text-right text-base font-bold text-indigo-700">

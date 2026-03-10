@@ -1,6 +1,7 @@
 "use client";
 
 import { X, Trash2, Search, Loader2 } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 
 interface InvoiceModalProps {
@@ -22,6 +23,8 @@ interface InvoiceModalProps {
   filteredJobsForInvoice: any[];
   invoiceTotalAmount: number;
   invoiceTotalCommission: number;
+  invoicePaymentType: string;
+  setInvoicePaymentType: (v: string) => void;
   getStatusLabel: (status: string) => string;
   getJobRemainingAmount: (jobId: string) => number;
 }
@@ -45,9 +48,29 @@ export default function InvoiceModal({
   filteredJobsForInvoice,
   invoiceTotalAmount,
   invoiceTotalCommission,
+  invoicePaymentType,
+  setInvoicePaymentType,
   getStatusLabel,
   getJobRemainingAmount,
 }: InvoiceModalProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dropdownRect, setDropdownRect] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (showJobDropdown && inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownRect({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+  }, [showJobDropdown]);
+
   if (!isOpen) return null;
 
   return (
@@ -122,6 +145,37 @@ export default function InvoiceModal({
               </div>
             </div>
 
+            {/* Payment Type */}
+            <div>
+              <label className="text-sm font-medium text-gray-900 mb-2 block">
+                Payment Type <span className="text-rose-500">*</span>
+              </label>
+              <div className="inline-flex rounded-md border border-gray-300 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setInvoicePaymentType("commission")}
+                  className={`px-5 py-2 text-sm font-medium transition-colors ${
+                    invoicePaymentType === "commission"
+                      ? "bg-indigo-600 text-white"
+                      : "bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  Commission
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInvoicePaymentType("salary")}
+                  className={`px-5 py-2 text-sm font-medium border-l border-gray-300 transition-colors ${
+                    invoicePaymentType === "salary"
+                      ? "bg-indigo-600 text-white"
+                      : "bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  Salary
+                </button>
+              </div>
+            </div>
+
             {/* Job Selection & Note */}
             <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
               {/* Job Selection */}
@@ -143,6 +197,7 @@ export default function InvoiceModal({
                       className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                     />
                     <input
+                      ref={inputRef}
                       type="text"
                       value={jobSearchQuery}
                       onChange={(e) => {
@@ -157,8 +212,17 @@ export default function InvoiceModal({
                       className="w-full h-9 pl-8 pr-3 rounded-md border border-gray-300 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
                     />
                   </div>
-                  {showJobDropdown && (
-                    <div className="mt-1 w-full bg-white border border-gray-200 rounded-md shadow-md max-h-52 overflow-y-auto">
+                  {showJobDropdown && dropdownRect && (
+                    <div
+                      style={{
+                        position: "fixed",
+                        top: dropdownRect.top,
+                        left: dropdownRect.left,
+                        width: dropdownRect.width,
+                        zIndex: 9999,
+                      }}
+                      className="bg-white border border-gray-200 rounded-md shadow-lg max-h-52 overflow-y-auto"
+                    >
                       {filteredJobsForInvoice.length === 0 ? (
                         <p className="px-3 py-2.5 text-xs text-gray-400 italic">
                           No pending jobs found
@@ -269,6 +333,18 @@ export default function InvoiceModal({
                         ))}
                       </tbody>
                       <tfoot className="bg-gray-50 border-t border-gray-200">
+                        {invoicePaymentType === "commission" &&
+                          invoiceTotalCommission > 0 && (
+                            <tr>
+                              <td className="px-3 py-2 text-xs text-gray-500">
+                                Commission Info
+                              </td>
+                              <td className="px-3 py-2 text-right text-xs text-rose-500 font-medium">
+                                {formatCurrency(invoiceTotalCommission)}
+                              </td>
+                              <td />
+                            </tr>
+                          )}
                         <tr>
                           <td className="px-3 py-2 text-xs font-bold text-gray-700">
                             Total

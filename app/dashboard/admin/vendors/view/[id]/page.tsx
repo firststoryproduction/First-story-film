@@ -98,6 +98,8 @@ export default function VendorDetailPage({
   const [viewingPayment, setViewingPayment] = useState<any | null>(null);
   const [isSavingInvoice, setIsSavingInvoice] = useState(false);
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+  const [invoicePaymentType, setInvoicePaymentType] =
+    useState<string>("commission");
   const [showPrintInvoiceModal, setShowPrintInvoiceModal] = useState(false);
   const [printInvoiceData, setPrintInvoiceData] = useState<any | null>(null);
   const [confirmDeletePaymentId, setConfirmDeletePaymentId] = useState<
@@ -124,12 +126,14 @@ export default function VendorDetailPage({
     setJobSearchQuery("");
     setShowJobDropdown(false);
     setEditingInvoiceId(null);
+    setInvoicePaymentType("commission");
   };
 
   const openEditInvoiceModal = (inv: any) => {
     setEditingInvoiceId(inv.id);
     setInvoiceJobIds(inv.job_ids || []);
     setInvoiceNote(inv.note || "");
+    setInvoicePaymentType(inv.payment_type || "commission");
     setShowInvoiceModal(true);
   };
 
@@ -266,7 +270,7 @@ export default function VendorDetailPage({
       if (jobsError) throw jobsError;
       setRecentJobs(jobsData || []);
 
-      // Calculate total payable = sum of all job amounts for this vendor
+      // Calculate total receivable = sum of all job amounts for this vendor
       const totalPayable = (jobsData || []).reduce(
         (sum: number, j: any) => sum + Number(j.amount || 0),
         0,
@@ -577,7 +581,8 @@ export default function VendorDetailPage({
             job_ids: invoiceJobIds,
             total_amount: invoiceTotalAmount,
             total_commission: invoiceTotalCommission,
-            net_total: invoiceTotalAmount - invoiceTotalCommission,
+            net_total: invoiceTotalAmount,
+            payment_type: invoicePaymentType,
           })
           .eq("id", editingInvoiceId);
         saveError = error;
@@ -599,7 +604,8 @@ export default function VendorDetailPage({
           job_ids: invoiceJobIds,
           total_amount: invoiceTotalAmount,
           total_commission: invoiceTotalCommission,
-          net_total: invoiceTotalAmount - invoiceTotalCommission,
+          net_total: invoiceTotalAmount,
+          payment_type: invoicePaymentType,
         });
         saveError = error;
       }
@@ -933,7 +939,7 @@ export default function VendorDetailPage({
                 <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-medium text-gray-500">
-                      Total Payable
+                      Total Receivable
                     </h3>
                     <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
                       <Banknote size={20} />
@@ -1052,9 +1058,9 @@ export default function VendorDetailPage({
                         );
                       return (
                         <div className="flex flex-wrap gap-1">
-                          {nums.map((n) => (
+                          {nums.map((n, i) => (
                             <span
-                              key={n}
+                              key={`${n}-${i}`}
                               className="text-xs font-mono text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded"
                             >
                               {n}
@@ -1247,6 +1253,8 @@ export default function VendorDetailPage({
         filteredJobsForInvoice={filteredJobsForInvoice}
         invoiceTotalAmount={invoiceTotalAmount}
         invoiceTotalCommission={invoiceTotalCommission}
+        invoicePaymentType={invoicePaymentType}
+        setInvoicePaymentType={setInvoicePaymentType}
         getStatusLabel={getStatusLabel}
         getJobRemainingAmount={getJobRemainingAmount}
       />

@@ -61,7 +61,7 @@ export default function UserDetailPage({
     role: "USER" as "ADMIN" | "MANAGER" | "USER",
   });
   const [editCommissions, setEditCommissions] = useState<
-    { serviceId: string; percentage: number }[]
+    { serviceId: string; percentage: number; paymentType: string }[]
   >([]);
   const [stats, setStats] = useState({
     totalJobs: 0,
@@ -73,6 +73,12 @@ export default function UserDetailPage({
   const [activeTab, setActiveTab] = useState<"jobs" | "payments">("jobs");
   const [payments, setPayments] = useState<any[]>([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showSalaryModal, setShowSalaryModal] = useState(false);
+  const [salaryForm, setSalaryForm] = useState({
+    amount: "",
+    month: new Date().toISOString().slice(0, 7),
+  });
+  const [salarySubmitting, setSalarySubmitting] = useState(false);
   const [paymentForm, setPaymentForm] = useState({
     amount: "",
     date: new Date().toISOString().split("T")[0],
@@ -82,6 +88,8 @@ export default function UserDetailPage({
   const [paymentStats, setPaymentStats] = useState({
     totalPaid: 0,
     remaining: 0,
+    salaryPaid: 0,
+    advancePaid: 0,
   });
   const [accounts, setAccounts] = useState<
     { id: string; account_name: string; is_default: boolean }[]
@@ -229,9 +237,17 @@ export default function UserDetailPage({
         (sum, p) => sum + Number(p.amount || 0),
         0,
       );
+      const salaryPaid = payments
+        .filter((p) => p.payment_type === "salary")
+        .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      const advancePaid = payments
+        .filter((p) => p.payment_type !== "salary")
+        .reduce((sum, p) => sum + Number(p.amount || 0), 0);
       setPaymentStats({
         totalPaid,
         remaining: stats.totalEarnt - totalPaid,
+        salaryPaid,
+        advancePaid,
       });
     }
   }, [payments, stats, user]);
@@ -313,6 +329,52 @@ export default function UserDetailPage({
     }
   };
 
+  const handleAddSalary = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!salaryForm.amount) return;
+    setSalarySubmitting(true);
+    try {
+      const [year, month] = salaryForm.month.split("-");
+      const monthLabel = new Date(
+        Number(year),
+        Number(month) - 1,
+        1,
+      ).toLocaleString("en-IN", { month: "long", year: "numeric" });
+
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
+
+      const { data, error } = await (supabase.from("staff_payments") as any)
+        .insert({
+          staff_id: id,
+          amount: Number(salaryForm.amount),
+          payment_date: `${salaryForm.month}-01`,
+          note: `Staff Salary - ${monthLabel}`,
+          payment_type: "salary",
+          account_id: paymentForm.account_id || null,
+          created_by: currentUser?.id || null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setPayments([data, ...payments]);
+      setShowSalaryModal(false);
+      setSalaryForm({
+        amount: "",
+        month: new Date().toISOString().slice(0, 7),
+      });
+      showNotification("Salary payment recorded successfully");
+    } catch (error: any) {
+      console.error("Error adding salary:", error);
+      showNotification(error.message || "Failed to record salary", "error");
+    } finally {
+      setSalarySubmitting(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
     fetchPayments();
@@ -335,6 +397,10 @@ export default function UserDetailPage({
 
     fetchServices();
   }, []);
+
+  const isSalaryStaff = commissions.some(
+    (c: any) => c.payment_type === "salary",
+  );
 
   if (loading)
     return (
@@ -397,6 +463,7 @@ export default function UserDetailPage({
       (commissions || []).map((comm) => ({
         serviceId: comm.service_id,
         percentage: Number(comm.commission_percent ?? comm.percentage ?? 0),
+        paymentType: (comm as any).payment_type || "commission",
       })),
     );
     setShowPasswordField(false);
@@ -404,7 +471,10 @@ export default function UserDetailPage({
   };
 
   const handleAddCommission = () => {
-    setEditCommissions([...editCommissions, { serviceId: "", percentage: 0 }]);
+    setEditCommissions([
+      ...editCommissions,
+      { serviceId: "", percentage: 0, paymentType: "commission" },
+    ]);
   };
 
   const handleRemoveCommission = (index: number) => {
@@ -421,6 +491,7 @@ export default function UserDetailPage({
     const next = [...editCommissions];
     if (field === "serviceId") next[index].serviceId = value as string;
     if (field === "percentage") next[index].percentage = Number(value);
+    if (field === "paymentType") next[index].paymentType = value as string;
     setEditCommissions(next);
   };
 
@@ -449,13 +520,14 @@ export default function UserDetailPage({
 
       await supabase.from("staff_service_configs").delete().eq("staff_id", id);
 
-      if (formData.role === "USER" && editCommissions.length > 0) {
+      if (editCommissions.length > 0) {
         const validCommissions = editCommissions
           .filter((c) => c.serviceId !== "")
           .map((c) => ({
             staff_id: id,
             service_id: c.serviceId,
-            percentage: c.percentage,
+            percentage: c.paymentType === "salary" ? 0 : c.percentage,
+            payment_type: c.paymentType || "commission",
           }));
 
         if (validCommissions.length > 0) {
@@ -531,15 +603,24 @@ export default function UserDetailPage({
           {/* Commission Settings Section */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm px-4 py-3">
             <p className="text-sm text-gray-700">
-              <span className="font-medium text-gray-900">Commission : </span>{" "}
+              <span className="font-medium text-gray-900">Services : </span>{" "}
               {commissions.length === 0 ? (
                 <span className="text-gray-500 italic">
-                  No commission settings configured
+                  No services configured
                 </span>
               ) : (
-                commissions.map((comm, index) => (
+                commissions.map((comm: any, index: number) => (
                   <span key={comm.id}>
-                    {comm.services?.name} ({comm.percentage}%)
+                    {comm.services?.name}{" "}
+                    {comm.payment_type === "salary" ? (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-700">
+                        Salary
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">
+                        {comm.percentage}%
+                      </span>
+                    )}
                     {index < commissions.length - 1 && " | "}
                   </span>
                 ))
@@ -603,7 +684,9 @@ export default function UserDetailPage({
                         <th className="px-4 py-3">Due Date</th>
                         <th className="px-4 py-3">Status</th>
                         <th className="px-4 py-3 text-right">Amount</th>
-                        <th className="px-4 py-3 text-right">Commission</th>
+                        {!isSalaryStaff && (
+                          <th className="px-4 py-3 text-right">Commission</th>
+                        )}
                         <th className="px-4 py-3 text-center">Action</th>
                       </tr>
                     </thead>
@@ -662,11 +745,13 @@ export default function UserDetailPage({
                           <td className="px-4 py-3 text-right font-medium text-gray-900">
                             {formatCurrency(job.amount)}
                           </td>
-                          <td className="px-4 py-3 text-right">
-                            <span className="inline-flex items-center px-2 py-0.5 bg-rose-50 text-rose-600 rounded-md border border-rose-100 text-xs font-medium">
-                              {formatCurrency(job.commission_amount)}
-                            </span>
-                          </td>
+                          {!isSalaryStaff && (
+                            <td className="px-4 py-3 text-right">
+                              <span className="inline-flex items-center px-2 py-0.5 bg-rose-50 text-rose-600 rounded-md border border-rose-100 text-xs font-medium">
+                                {formatCurrency(job.commission_amount)}
+                              </span>
+                            </td>
+                          )}
                           <td className="px-4 py-3 text-center">
                             <Tooltip text="View Details" position="left">
                               <button
@@ -691,62 +776,125 @@ export default function UserDetailPage({
             <div className="space-y-6 animate-in fade-in duration-300">
               {/* Payment Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-medium text-gray-500">
-                      Total Payable
-                    </h3>
-                    <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
-                      <Banknote size={20} />
+                {isSalaryStaff ? (
+                  <>
+                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium text-gray-500">
+                          Total Salary Paid
+                        </h3>
+                        <div className="p-2 bg-violet-50 rounded-lg text-violet-600">
+                          <Banknote size={20} />
+                        </div>
+                      </div>
+                      <div className="flex items-baseline">
+                        <span className="text-2xl font-bold text-violet-600">
+                          {formatCurrency(paymentStats.salaryPaid)}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500">
+                          Salary
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-baseline">
-                    <span className="text-2xl font-bold text-gray-900">
-                      {formatCurrency(stats.totalEarnt)}
-                    </span>
-                    <span className="ml-2 text-xs text-gray-500">
-                      Total Earnings
-                    </span>
-                  </div>
-                </div>
 
-                <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-medium text-gray-500">
-                      Total Paid
-                    </h3>
-                    <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
-                      <Wallet size={20} />
+                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium text-gray-500">
+                          Advance Paid
+                        </h3>
+                        <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                          <DollarSign size={20} />
+                        </div>
+                      </div>
+                      <div className="flex items-baseline">
+                        <span className="text-2xl font-bold text-indigo-600">
+                          {formatCurrency(paymentStats.advancePaid)}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500">
+                          Advance
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-baseline">
-                    <span className="text-2xl font-bold text-emerald-600">
-                      {formatCurrency(paymentStats.totalPaid)}
-                    </span>
-                    <span className="ml-2 text-xs text-gray-500">
-                      Disbursed
-                    </span>
-                  </div>
-                </div>
 
-                <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-medium text-gray-500">
-                      Pending Amount
-                    </h3>
-                    <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
-                      <History size={20} />
+                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium text-gray-500">
+                          Total Disbursed
+                        </h3>
+                        <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                          <Wallet size={20} />
+                        </div>
+                      </div>
+                      <div className="flex items-baseline">
+                        <span className="text-2xl font-bold text-emerald-600">
+                          {formatCurrency(paymentStats.totalPaid)}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500">
+                          All Payments
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-baseline">
-                    <span className="text-2xl font-bold text-amber-600">
-                      {formatCurrency(paymentStats.remaining)}
-                    </span>
-                    <span className="ml-2 text-xs text-gray-500">
-                      Remaining
-                    </span>
-                  </div>
-                </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium text-gray-500">
+                          Total Payable
+                        </h3>
+                        <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                          <Banknote size={20} />
+                        </div>
+                      </div>
+                      <div className="flex items-baseline">
+                        <span className="text-2xl font-bold text-gray-900">
+                          {formatCurrency(stats.totalEarnt)}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500">
+                          Total Earnings
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium text-gray-500">
+                          Total Paid
+                        </h3>
+                        <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                          <Wallet size={20} />
+                        </div>
+                      </div>
+                      <div className="flex items-baseline">
+                        <span className="text-2xl font-bold text-emerald-600">
+                          {formatCurrency(paymentStats.totalPaid)}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500">
+                          Disbursed
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium text-gray-500">
+                          Pending Amount
+                        </h3>
+                        <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
+                          <History size={20} />
+                        </div>
+                      </div>
+                      <div className="flex items-baseline">
+                        <span className="text-2xl font-bold text-amber-600">
+                          {formatCurrency(paymentStats.remaining)}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500">
+                          Remaining
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Payments Table */}
@@ -755,13 +903,24 @@ export default function UserDetailPage({
                   <h2 className="text-base font-semibold text-gray-900">
                     Payment History
                   </h2>
-                  <button
-                    onClick={() => setShowPaymentModal(true)}
-                    className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-                  >
-                    <Plus size={16} />
-                    <span>Add Payment</span>
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    {isSalaryStaff && (
+                      <button
+                        onClick={() => setShowSalaryModal(true)}
+                        className="flex items-center space-x-2 bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+                      >
+                        <Banknote size={16} />
+                        <span>Pay Salary</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowPaymentModal(true)}
+                      className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+                    >
+                      <Plus size={16} />
+                      <span>Add Payment</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -809,7 +968,14 @@ export default function UserDetailPage({
                               {formatCurrency(payment.amount)}
                             </td>
                             <td className="px-4 py-3 text-gray-600">
-                              {payment.note || "-"}
+                              <div className="flex items-center space-x-2">
+                                {payment.payment_type === "salary" && (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-700 shrink-0">
+                                    Salary
+                                  </span>
+                                )}
+                                <span>{payment.note || "-"}</span>
+                              </div>
                             </td>
                             <td className="px-4 py-3 text-right">
                               <button
@@ -833,6 +999,123 @@ export default function UserDetailPage({
           )}
         </div>
       </div>
+
+      {/* Salary Modal */}
+      {showSalaryModal && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" />
+          <div className="bg-white w-full max-w-md rounded-lg shadow-xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-9 h-9 bg-violet-100 rounded-lg flex items-center justify-center">
+                  <Banknote size={18} className="text-violet-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Pay Salary
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowSalaryModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddSalary} className="p-6 space-y-4">
+              <div>
+                <label
+                  htmlFor="salary-month"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Month
+                </label>
+                <input
+                  id="salary-month"
+                  type="month"
+                  title="Select month"
+                  value={salaryForm.month}
+                  onChange={(e) =>
+                    setSalaryForm({ ...salaryForm, month: e.target.value })
+                  }
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm h-10 border px-3"
+                  required
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="salary-amount"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Salary Amount
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-gray-500 sm:text-sm">₹</span>
+                  </div>
+                  <input
+                    id="salary-amount"
+                    type="number"
+                    value={salaryForm.amount}
+                    onChange={(e) =>
+                      setSalaryForm({ ...salaryForm, amount: e.target.value })
+                    }
+                    className="block w-full pl-7 rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm h-10 border"
+                    placeholder="0.00"
+                    required
+                    min="1"
+                  />
+                </div>
+              </div>
+
+              {accounts.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Account
+                  </label>
+                  <select
+                    title="Select account"
+                    value={paymentForm.account_id}
+                    onChange={(e) =>
+                      setPaymentForm({
+                        ...paymentForm,
+                        account_id: e.target.value,
+                      })
+                    }
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm h-10 border px-3 bg-white"
+                  >
+                    <option value="">Select account…</option>
+                    {accounts.map((acc) => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.account_name}
+                        {acc.is_default ? " (Default)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="pt-4 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowSalaryModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={salarySubmitting}
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 disabled:opacity-60"
+                >
+                  {salarySubmitting ? "Saving…" : "Record Salary"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* View Modal */}
       {/* Payment Modal */}

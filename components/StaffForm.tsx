@@ -20,7 +20,7 @@ interface StaffFormProps {
   };
   setFormData: (data: any) => void;
   services: Service[];
-  commissions: { serviceId: string; percentage: number }[];
+  commissions: { serviceId: string; percentage: number; paymentType: string }[];
   onAddCommission: () => void;
   onRemoveCommission: (index: number) => void;
   onUpdateCommission: (
@@ -184,31 +184,81 @@ export default function StaffForm({
                 </div>
               </div>
 
-              {formData.role === "USER" && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex justify-between items-center mb-3">
-                    <p className="text-sm font-medium text-gray-900">Service</p>
-                    <button
-                      type="button"
-                      onClick={onAddCommission}
-                      className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center bg-indigo-50 px-2.5 py-1 rounded-md"
-                    >
-                      <Plus size={12} className="mr-1" /> Add Service
-                    </button>
-                  </div>
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex justify-between items-center mb-3">
+                  <p className="text-sm font-medium text-gray-900">Services</p>
+                  <button
+                    type="button"
+                    onClick={onAddCommission}
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center bg-indigo-50 px-2.5 py-1 rounded-md"
+                  >
+                    <Plus size={12} className="mr-1" /> Add Service
+                  </button>
+                </div>
 
-                  {commissions.length === 0 ? (
-                    <div className="border border-dashed border-gray-300 rounded-md p-3 text-center">
-                      <p className="text-sm text-gray-600 font-normal">
-                        No services configured yet.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {commissions.map((comm, index) => (
+                {commissions.length === 0 ? (
+                  <div className="border border-dashed border-gray-300 rounded-md p-3 text-center">
+                    <p className="text-sm text-gray-600 font-normal">
+                      No services configured yet.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {commissions.map((comm, index) => (
+                      <div
+                        key={index}
+                        className="bg-white p-3 rounded-md border border-gray-200 relative min-w-0"
+                      >
+                        {/* Salary / Commission Toggle */}
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-xs text-gray-500 font-medium">
+                            Type:
+                          </span>
+                          <div className="inline-flex rounded-md border border-gray-300 overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                onUpdateCommission(
+                                  index,
+                                  "paymentType",
+                                  "commission",
+                                )
+                              }
+                              className={`px-3 py-1 text-xs font-medium transition-colors ${
+                                (comm.paymentType ?? "commission") ===
+                                "commission"
+                                  ? "bg-indigo-600 text-white"
+                                  : "bg-white text-gray-600 hover:bg-gray-50"
+                              }`}
+                            >
+                              Commission
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                onUpdateCommission(
+                                  index,
+                                  "paymentType",
+                                  "salary",
+                                )
+                              }
+                              className={`px-3 py-1 text-xs font-medium border-l border-gray-300 transition-colors ${
+                                comm.paymentType === "salary"
+                                  ? "bg-indigo-600 text-white"
+                                  : "bg-white text-gray-600 hover:bg-gray-50"
+                              }`}
+                            >
+                              Salary
+                            </button>
+                          </div>
+                        </div>
+
                         <div
-                          key={index}
-                          className="bg-white p-3 rounded-md border border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-3 relative min-w-0"
+                          className={`grid gap-3 ${
+                            (comm.paymentType ?? "commission") === "commission"
+                              ? "grid-cols-1 md:grid-cols-2"
+                              : "grid-cols-1"
+                          }`}
                         >
                           <div className="min-w-0">
                             <AestheticSelect
@@ -222,47 +272,50 @@ export default function StaffForm({
                               options={services}
                             />
                           </div>
-                          <div className="min-w-0">
-                            <label className="block text-sm font-medium text-gray-900 mb-1">
-                              Rate (%)
-                            </label>
-                            <div className="relative">
-                              <input
-                                type="number"
-                                step="0.01"
-                                className="w-full h-9 px-3 pr-8 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none"
-                                value={comm.percentage || ""}
-                                onFocus={(e) => e.target.select()}
-                                onChange={(e) =>
-                                  onUpdateCommission(
-                                    index,
-                                    "percentage",
-                                    e.target.value,
-                                  )
-                                }
-                                required
-                                min="0"
-                                max="100"
-                              />
-                              <Percent
-                                size={10}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400"
-                              />
+                          {(comm.paymentType ?? "commission") ===
+                            "commission" && (
+                            <div className="min-w-0">
+                              <label className="block text-sm font-medium text-gray-900 mb-1">
+                                Rate (%)
+                              </label>
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  className="w-full h-9 px-3 pr-8 text-sm font-normal border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none"
+                                  value={comm.percentage || ""}
+                                  onFocus={(e) => e.target.select()}
+                                  onChange={(e) =>
+                                    onUpdateCommission(
+                                      index,
+                                      "percentage",
+                                      e.target.value,
+                                    )
+                                  }
+                                  required
+                                  min="0"
+                                  max="100"
+                                />
+                                <Percent
+                                  size={10}
+                                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                                />
+                              </div>
                             </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => onRemoveCommission(index)}
-                            className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white shadow-sm border border-gray-200 rounded-full flex items-center justify-center text-gray-500 hover:text-rose-500 transition-all z-10"
-                          >
-                            <X size={10} />
-                          </button>
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                        <button
+                          type="button"
+                          onClick={() => onRemoveCommission(index)}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white shadow-sm border border-gray-200 rounded-full flex items-center justify-center text-gray-500 hover:text-rose-500 transition-all z-10"
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="p-5 border-t border-gray-200 flex justify-end gap-3 bg-gray-50/50 rounded-b-lg">
               <button

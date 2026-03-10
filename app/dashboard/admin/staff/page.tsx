@@ -67,7 +67,7 @@ export default function StaffPage() {
     role: "USER" as "ADMIN" | "MANAGER" | "USER",
   });
   const [commissions, setCommissions] = useState<
-    { serviceId: string; percentage: number }[]
+    { serviceId: string; percentage: number; paymentType: string }[]
   >([]);
   const [showPasswordField, setShowPasswordField] = useState(false);
 
@@ -157,7 +157,10 @@ export default function StaffPage() {
   };
 
   const handleAddCommission = () => {
-    setCommissions([...commissions, { serviceId: "", percentage: 0 }]);
+    setCommissions([
+      ...commissions,
+      { serviceId: "", percentage: 0, paymentType: "commission" },
+    ]);
   };
 
   const handleRemoveCommission = (index: number) => {
@@ -176,6 +179,8 @@ export default function StaffPage() {
       newCommissions[index].serviceId = value as string;
     if (field === "percentage")
       newCommissions[index].percentage = Number(value);
+    if (field === "paymentType")
+      newCommissions[index].paymentType = value as string;
     setCommissions(newCommissions);
   };
 
@@ -215,6 +220,7 @@ export default function StaffPage() {
         data.map((c: any) => ({
           serviceId: c.service_id,
           percentage: Number(c.percentage),
+          paymentType: c.payment_type || "commission",
         })),
       );
     } else {
@@ -294,13 +300,14 @@ export default function StaffPage() {
           .eq("staff_id", editingId);
       }
 
-      if (formData.role === "USER" && commissions.length > 0) {
+      if (commissions.length > 0) {
         const validCommissions = commissions
           .filter((c) => c.serviceId !== "")
           .map((c) => ({
             staff_id: userId,
             service_id: c.serviceId,
-            percentage: c.percentage,
+            percentage: c.paymentType === "salary" ? 0 : c.percentage,
+            payment_type: c.paymentType || "commission",
           }));
 
         if (validCommissions.length > 0) {

@@ -15,6 +15,7 @@ import { supabase } from "@/lib/supabase";
 import { Service, Vendor, User as StaffUser } from "@/types/database";
 import { formatCurrency, calculateCommission } from "@/lib/utils";
 import AestheticSelect from "@/components/AestheticSelect";
+import SearchableSelect from "@/components/SearchableSelect";
 
 export default function EditJobPage() {
   const router = useRouter();
@@ -43,7 +44,7 @@ export default function EditJobPage() {
   const [selectedVendor, setSelectedVendor] = useState("");
   const [selectedStaff, setSelectedStaff] = useState("");
   const [staffPercentage, setStaffPercentage] = useState<number>(0);
-  const [filteredStaffList, setFilteredStaffList] = useState<StaffUser[]>([]);
+  const [filteredStaffList, setFilteredStaffList] = useState<any[]>([]);
 
   // Data States
   const [formData, setFormData] = useState({
@@ -135,38 +136,28 @@ export default function EditJobPage() {
     const fetchStaffByService = async () => {
       if (!selectedService) {
         setFilteredStaffList([]);
-        // Do not reset selectedStaff here on edit load, only if manually changed?
-        // Actually for edit, if service changes, we might want to warn or reset.
-        // But initially on load, selectedService is set, then this runs.
-        // We should ensure we don't wipe selectedStaff if it matches the new list.
         return;
       }
 
-      // Fetch staff who have configuration for this service
-      const { data, error } = await (
-        supabase.from("staff_service_configs") as any
-      )
-        .select(
-          `
-                    staff_id,
-                    percentage,
-                    due_date,
-                    users!staff_id(id, name)
-                `,
-        )
-        .eq("service_id", selectedService);
+      const [usersRes, configRes] = await Promise.all([
+        supabase.from("users").select("id, name").order("name"),
+        (supabase.from("staff_service_configs") as any)
+          .select("staff_id, percentage, due_date")
+          .eq("service_id", selectedService),
+      ]);
 
-      if (!error && data) {
-        const list = data.map((item: any) => ({
-          id: item.users.id,
-          name: item.users.name,
-          default_percentage: item.percentage,
-          default_due_date: item.due_date,
+      if (usersRes.data) {
+        const configMap: Record<string, any> = {};
+        (configRes.data || []).forEach((c: any) => {
+          configMap[c.staff_id] = c;
+        });
+        const list = usersRes.data.map((u: any) => ({
+          id: u.id,
+          name: u.name,
+          default_percentage: configMap[u.id]?.percentage ?? 0,
+          default_due_date: configMap[u.id]?.due_date ?? null,
         }));
         setFilteredStaffList(list);
-
-        // If the currently selected staff is NOT in this new list, maybe we should keep them visible?
-        // For now, standard logic:
       } else {
         setFilteredStaffList([]);
       }
@@ -285,7 +276,7 @@ export default function EditJobPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
-                  <AestheticSelect
+                  <SearchableSelect
                     label="Assign User"
                     heightClass="h-11"
                     required
@@ -301,6 +292,8 @@ export default function EditJobPage() {
                         ? "Select Assigned User..."
                         : "Choose Service First"
                     }
+                    labelStyle="bold"
+                    inputStyle="bold"
                   />
 
                   <div>

@@ -55,7 +55,7 @@ export default function NewJobPage() {
   const [selectedVendor, setSelectedVendor] = useState("");
   const [selectedStaff, setSelectedStaff] = useState("");
   const [staffPercentage, setStaffPercentage] = useState<number>(0);
-  const [filteredStaffList, setFilteredStaffList] = useState<StaffUser[]>([]);
+  const [filteredStaffList, setFilteredStaffList] = useState<any[]>([]);
 
   // Data States
   const [formData, setFormData] = useState({
@@ -110,26 +110,23 @@ export default function NewJobPage() {
         return;
       }
 
-      // Fetch staff who have configuration for this service
-      const { data, error } = await (
-        supabase.from("staff_service_configs") as any
-      )
-        .select(
-          `
-                    staff_id,
-                    percentage,
-                    due_date,
-                    users!staff_id(id, name)
-                `,
-        )
-        .eq("service_id", selectedService);
+      const [usersRes, configRes] = await Promise.all([
+        supabase.from("users").select("id, name").order("name"),
+        (supabase.from("staff_service_configs") as any)
+          .select("staff_id, percentage, due_date")
+          .eq("service_id", selectedService),
+      ]);
 
-      if (!error && data) {
-        const list = data.map((item: any) => ({
-          id: item.users.id,
-          name: item.users.name,
-          default_percentage: item.percentage,
-          default_due_date: item.due_date,
+      if (usersRes.data) {
+        const configMap: Record<string, any> = {};
+        (configRes.data || []).forEach((c: any) => {
+          configMap[c.staff_id] = c;
+        });
+        const list = usersRes.data.map((u: any) => ({
+          id: u.id,
+          name: u.name,
+          default_percentage: configMap[u.id]?.percentage ?? 0,
+          default_due_date: configMap[u.id]?.due_date ?? null,
         }));
         setFilteredStaffList(list);
       } else {
@@ -333,7 +330,7 @@ export default function NewJobPage() {
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-end">
-                  <AestheticSelect
+                  <SearchableSelect
                     label="Assign User"
                     heightClass="h-11"
                     required
@@ -349,6 +346,8 @@ export default function NewJobPage() {
                         ? "Select Assigned User..."
                         : "Choose Service First"
                     }
+                    labelStyle="bold"
+                    inputStyle="bold"
                   />
 
                   <div>
