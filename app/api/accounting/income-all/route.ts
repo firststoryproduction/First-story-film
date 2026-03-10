@@ -48,7 +48,7 @@ export async function GET(request: Request) {
     // ── 1. Manual income transactions ──────────────────────────────────────
     let incQ = supabaseAdmin.from("income_transactions").select(
       `
-        id, income_date, amount, remarks,
+        id, income_date, amount, remarks, created_at,
         account_id,
         accounts(id, account_name),
         income_categories(id, name),
@@ -71,7 +71,7 @@ export async function GET(request: Request) {
     let vpQ = supabaseAdmin
       .from("vendor_payments")
       .select(
-        `id, payment_date, amount, note, vendor_id, account_id, vendors(id, studio_name), accounts(id, account_name)`,
+        `id, payment_date, amount, note, vendor_id, account_id, created_at, vendors(id, studio_name), accounts(id, account_name)`,
       );
     if (dateFrom) vpQ = vpQ.gte("payment_date", dateFrom);
     if (dateTo) vpQ = vpQ.lte("payment_date", dateTo);
@@ -97,6 +97,7 @@ export async function GET(request: Request) {
         ref_name: "",
         deletable: true,
         editable: false,
+        created_at: t.created_at || "",
       }),
     );
 
@@ -113,11 +114,12 @@ export async function GET(request: Request) {
       ref_name: (p.vendors as any)?.studio_name || "—",
       deletable: false,
       editable: false,
+      created_at: p.created_at || "",
     }));
 
-    // Merge all, sort by date descending
+    // Merge all, sort by created_at descending so newest entry always appears first
     const allRows = [...manualRows, ...vendorRows].sort((a, b) =>
-      b.date.localeCompare(a.date),
+      (b.created_at || "").localeCompare(a.created_at || ""),
     );
 
     // Paginate

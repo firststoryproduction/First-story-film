@@ -22,6 +22,7 @@ interface PaymentModalProps {
   recentJobs: any[];
   payments: any[];
   accounts: { id: string; account_name: string; is_default: boolean }[];
+  getInvoicePaidAmount: (invoiceId: string) => number;
 }
 
 export default function PaymentModal({
@@ -33,21 +34,16 @@ export default function PaymentModal({
   savedInvoices,
   payments,
   accounts,
+  getInvoicePaidAmount,
 }: PaymentModalProps) {
   const [invoiceSearch, setInvoiceSearch] = useState("");
   const [showInvoiceDropdown, setShowInvoiceDropdown] = useState(false);
 
   if (!isOpen) return null;
 
-  // Calculate how much has already been paid per invoice
-  const getPaidForInvoice = (invId: string) =>
-    payments
-      .filter((p) => p.invoice_id === invId)
-      .reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
-
-  // Remaining balance = total_amount - already paid
+  // Remaining balance = total_amount - already paid (uses cross-invoice job-based logic)
   const getRemaining = (inv: any) =>
-    Math.max(0, Number(inv.total_amount || 0) - getPaidForInvoice(inv.id));
+    Math.max(0, Number(inv.total_amount || 0) - getInvoicePaidAmount(inv.id));
 
   const selectedInvoices = savedInvoices.filter((i) =>
     paymentForm.invoice_ids.includes(i.id),
@@ -192,6 +188,9 @@ export default function PaymentModal({
                         Invoice
                       </th>
                       <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">
+                        Paid
+                      </th>
+                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-500">
                         Amount
                       </th>
                       <th className="px-3 py-2 text-center text-xs font-medium text-gray-500">
@@ -200,32 +199,49 @@ export default function PaymentModal({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {selectedInvoices.map((inv) => (
-                      <tr key={inv.id} className="bg-white">
-                        <td className="px-3 py-2 text-xs font-medium text-gray-800">
-                          {inv.invoice_number}
-                        </td>
-                        <td className="px-3 py-2 text-right text-xs text-gray-700">
-                          {formatCurrency(getRemaining(inv))}
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          <button
-                            type="button"
-                            title="Remove"
-                            onClick={() => handleRemoveInvoice(inv.id)}
-                            className="p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-all"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {selectedInvoices.map((inv) => {
+                      const alreadyPaid = getInvoicePaidAmount(inv.id);
+                      return (
+                        <tr key={inv.id} className="bg-white">
+                          <td className="px-3 py-2 text-xs font-medium text-gray-800">
+                            {inv.invoice_number}
+                          </td>
+                          <td className="px-3 py-2 text-right text-xs">
+                            <span
+                              className={
+                                alreadyPaid > 0
+                                  ? "text-emerald-600 font-semibold"
+                                  : "text-gray-400"
+                              }
+                            >
+                              {alreadyPaid > 0
+                                ? formatCurrency(alreadyPaid)
+                                : "—"}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 text-right text-xs text-gray-700">
+                            {formatCurrency(getRemaining(inv))}
+                          </td>
+                          <td className="px-3 py-2 text-center">
+                            <button
+                              type="button"
+                              title="Remove"
+                              onClick={() => handleRemoveInvoice(inv.id)}
+                              className="p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-all"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                   <tfoot className="bg-gray-50 border-t border-gray-200">
                     <tr>
                       <td className="px-3 py-2 text-xs font-bold text-gray-700">
                         Total
                       </td>
+                      <td />
                       <td className="px-3 py-2 text-right text-sm font-bold text-indigo-700">
                         {formatCurrency(totalFromInvoices)}
                       </td>

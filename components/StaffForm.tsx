@@ -19,6 +19,8 @@ interface StaffFormProps {
     role: "ADMIN" | "MANAGER" | "USER";
   };
   setFormData: (data: any) => void;
+  paymentType: string;
+  onPaymentTypeChange: (type: string) => void;
   services: Service[];
   commissions: { serviceId: string; percentage: number; paymentType: string }[];
   onAddCommission: () => void;
@@ -40,6 +42,8 @@ export default function StaffForm({
   onShowPasswordField,
   formData,
   setFormData,
+  paymentType,
+  onPaymentTypeChange,
   services,
   commissions,
   onAddCommission,
@@ -182,6 +186,35 @@ export default function StaffForm({
                     ]}
                   />
                 </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-900 mb-2 block">
+                    Payment Type
+                  </label>
+                  <div className="inline-flex rounded-md border border-gray-300 overflow-hidden h-9 w-full">
+                    <button
+                      type="button"
+                      onClick={() => onPaymentTypeChange("commission")}
+                      className={`px-4 text-sm font-medium transition-colors w-full ${
+                        paymentType === "commission"
+                          ? "bg-indigo-600 text-white"
+                          : "bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      Commission
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onPaymentTypeChange("salary")}
+                      className={`px-4 text-sm font-medium border-l border-gray-300 transition-colors w-full ${
+                        paymentType === "salary"
+                          ? "bg-indigo-600 text-white"
+                          : "bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      Salary
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="mt-4 pt-4 border-t border-gray-200">
@@ -209,50 +242,6 @@ export default function StaffForm({
                         key={index}
                         className="bg-white p-3 rounded-md border border-gray-200 relative min-w-0"
                       >
-                        {/* Salary / Commission Toggle */}
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-xs text-gray-500 font-medium">
-                            Type:
-                          </span>
-                          <div className="inline-flex rounded-md border border-gray-300 overflow-hidden">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                onUpdateCommission(
-                                  index,
-                                  "paymentType",
-                                  "commission",
-                                )
-                              }
-                              className={`px-3 py-1 text-xs font-medium transition-colors ${
-                                (comm.paymentType ?? "commission") ===
-                                "commission"
-                                  ? "bg-indigo-600 text-white"
-                                  : "bg-white text-gray-600 hover:bg-gray-50"
-                              }`}
-                            >
-                              Commission
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                onUpdateCommission(
-                                  index,
-                                  "paymentType",
-                                  "salary",
-                                )
-                              }
-                              className={`px-3 py-1 text-xs font-medium border-l border-gray-300 transition-colors ${
-                                comm.paymentType === "salary"
-                                  ? "bg-indigo-600 text-white"
-                                  : "bg-white text-gray-600 hover:bg-gray-50"
-                              }`}
-                            >
-                              Salary
-                            </button>
-                          </div>
-                        </div>
-
                         <div
                           className={`grid gap-3 ${
                             (comm.paymentType ?? "commission") === "commission"
@@ -275,7 +264,7 @@ export default function StaffForm({
                           {(comm.paymentType ?? "commission") ===
                             "commission" && (
                             <div className="min-w-0">
-                              <label className="block text-sm font-medium text-gray-900 mb-1">
+                              <label className="block text-sm font-medium text-gray-900 mb-2">
                                 Rate (%)
                               </label>
                               <div className="relative">

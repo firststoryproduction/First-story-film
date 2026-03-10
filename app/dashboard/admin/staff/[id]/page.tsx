@@ -63,6 +63,7 @@ export default function UserDetailPage({
   const [editCommissions, setEditCommissions] = useState<
     { serviceId: string; percentage: number; paymentType: string }[]
   >([]);
+  const [editPaymentType, setEditPaymentType] = useState("commission");
   const [stats, setStats] = useState({
     totalJobs: 0,
     completedJobs: 0,
@@ -360,6 +361,41 @@ export default function UserDetailPage({
 
       if (error) throw error;
 
+      // Auto-log to accounting under "Salary Payment" category
+      try {
+        const session = await supabase.auth.getSession();
+        const token = session.data.session?.access_token;
+        if (token && paymentForm.account_id) {
+          const catRes = await fetch("/api/accounting/expense-categories", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const catJson = await catRes.json();
+          const salaryCategory = (catJson.data || []).find(
+            (c: any) =>
+              c.name.toLowerCase() === "salary payment" &&
+              c.status === "active",
+          );
+          if (salaryCategory) {
+            await fetch("/api/accounting/expenses", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                expense_date: `${salaryForm.month}-01`,
+                account_id: paymentForm.account_id,
+                expense_category_id: salaryCategory.id,
+                amount: Number(salaryForm.amount),
+                remarks: `Staff Salary - ${user?.name} - ${monthLabel}`,
+              }),
+            });
+          }
+        }
+      } catch (accErr) {
+        console.warn("Could not log salary to accounting:", accErr);
+      }
+
       setPayments([data, ...payments]);
       setShowSalaryModal(false);
       setSalaryForm({
@@ -459,13 +495,13 @@ export default function UserDetailPage({
       password: "",
       role: (user.role || "USER") as "ADMIN" | "MANAGER" | "USER",
     });
-    setEditCommissions(
-      (commissions || []).map((comm) => ({
-        serviceId: comm.service_id,
-        percentage: Number(comm.commission_percent ?? comm.percentage ?? 0),
-        paymentType: (comm as any).payment_type || "commission",
-      })),
-    );
+    const mapped = (commissions || []).map((comm) => ({
+      serviceId: comm.service_id,
+      percentage: Number(comm.commission_percent ?? comm.percentage ?? 0),
+      paymentType: (comm as any).payment_type || "commission",
+    }));
+    setEditCommissions(mapped);
+    setEditPaymentType(mapped[0]?.paymentType ?? "commission");
     setShowPasswordField(false);
     setShowEditModal(true);
   };
@@ -473,8 +509,15 @@ export default function UserDetailPage({
   const handleAddCommission = () => {
     setEditCommissions([
       ...editCommissions,
-      { serviceId: "", percentage: 0, paymentType: "commission" },
+      { serviceId: "", percentage: 0, paymentType: editPaymentType },
     ]);
+  };
+
+  const handleEditPaymentTypeChange = (type: string) => {
+    setEditPaymentType(type);
+    setEditCommissions(
+      editCommissions.map((c) => ({ ...c, paymentType: type })),
+    );
   };
 
   const handleRemoveCommission = (index: number) => {
@@ -588,6 +631,12 @@ export default function UserDetailPage({
                   {formatRole(user.role)}
                 </Badge>
               </div>
+              {isSalaryStaff && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-700 border border-violet-200">
+                  <Banknote size={11} />
+                  Salary Staff
+                </span>
+              )}
             </div>
           </div>
 
@@ -776,125 +825,70 @@ export default function UserDetailPage({
             <div className="space-y-6 animate-in fade-in duration-300">
               {/* Payment Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {isSalaryStaff ? (
-                  <>
-                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-medium text-gray-500">
-                          Total Salary Paid
-                        </h3>
-                        <div className="p-2 bg-violet-50 rounded-lg text-violet-600">
-                          <Banknote size={20} />
-                        </div>
-                      </div>
-                      <div className="flex items-baseline">
-                        <span className="text-2xl font-bold text-violet-600">
-                          {formatCurrency(paymentStats.salaryPaid)}
-                        </span>
-                        <span className="ml-2 text-xs text-gray-500">
-                          Salary
-                        </span>
-                      </div>
+                <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Total Payable
+                    </h3>
+                    <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                      <Banknote size={20} />
                     </div>
+                  </div>
+                  <div className="flex items-baseline">
+                    <span className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(
+                        isSalaryStaff
+                          ? paymentStats.salaryPaid
+                          : stats.totalEarnt,
+                      )}
+                    </span>
+                    <span className="ml-2 text-xs text-gray-500">
+                      {isSalaryStaff ? "Salary" : "Total Earnings"}
+                    </span>
+                  </div>
+                </div>
 
-                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-medium text-gray-500">
-                          Advance Paid
-                        </h3>
-                        <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
-                          <DollarSign size={20} />
-                        </div>
-                      </div>
-                      <div className="flex items-baseline">
-                        <span className="text-2xl font-bold text-indigo-600">
-                          {formatCurrency(paymentStats.advancePaid)}
-                        </span>
-                        <span className="ml-2 text-xs text-gray-500">
-                          Advance
-                        </span>
-                      </div>
+                <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Total Paid
+                    </h3>
+                    <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                      <Wallet size={20} />
                     </div>
+                  </div>
+                  <div className="flex items-baseline">
+                    <span className="text-2xl font-bold text-emerald-600">
+                      {formatCurrency(paymentStats.totalPaid)}
+                    </span>
+                    <span className="ml-2 text-xs text-gray-500">
+                      Disbursed
+                    </span>
+                  </div>
+                </div>
 
-                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-medium text-gray-500">
-                          Total Disbursed
-                        </h3>
-                        <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
-                          <Wallet size={20} />
-                        </div>
-                      </div>
-                      <div className="flex items-baseline">
-                        <span className="text-2xl font-bold text-emerald-600">
-                          {formatCurrency(paymentStats.totalPaid)}
-                        </span>
-                        <span className="ml-2 text-xs text-gray-500">
-                          All Payments
-                        </span>
-                      </div>
+                <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Pending Amount
+                    </h3>
+                    <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
+                      <History size={20} />
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-medium text-gray-500">
-                          Total Payable
-                        </h3>
-                        <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
-                          <Banknote size={20} />
-                        </div>
-                      </div>
-                      <div className="flex items-baseline">
-                        <span className="text-2xl font-bold text-gray-900">
-                          {formatCurrency(stats.totalEarnt)}
-                        </span>
-                        <span className="ml-2 text-xs text-gray-500">
-                          Total Earnings
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-medium text-gray-500">
-                          Total Paid
-                        </h3>
-                        <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
-                          <Wallet size={20} />
-                        </div>
-                      </div>
-                      <div className="flex items-baseline">
-                        <span className="text-2xl font-bold text-emerald-600">
-                          {formatCurrency(paymentStats.totalPaid)}
-                        </span>
-                        <span className="ml-2 text-xs text-gray-500">
-                          Disbursed
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-medium text-gray-500">
-                          Pending Amount
-                        </h3>
-                        <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
-                          <History size={20} />
-                        </div>
-                      </div>
-                      <div className="flex items-baseline">
-                        <span className="text-2xl font-bold text-amber-600">
-                          {formatCurrency(paymentStats.remaining)}
-                        </span>
-                        <span className="ml-2 text-xs text-gray-500">
-                          Remaining
-                        </span>
-                      </div>
-                    </div>
-                  </>
-                )}
+                  </div>
+                  <div className="flex items-baseline">
+                    <span className="text-2xl font-bold text-amber-600">
+                      {formatCurrency(
+                        isSalaryStaff
+                          ? paymentStats.advancePaid
+                          : paymentStats.remaining,
+                      )}
+                    </span>
+                    <span className="ml-2 text-xs text-gray-500">
+                      {isSalaryStaff ? "Advance" : "Remaining"}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* Payments Table */}
@@ -1023,52 +1017,6 @@ export default function UserDetailPage({
             </div>
 
             <form onSubmit={handleAddSalary} className="p-6 space-y-4">
-              <div>
-                <label
-                  htmlFor="salary-month"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Month
-                </label>
-                <input
-                  id="salary-month"
-                  type="month"
-                  title="Select month"
-                  value={salaryForm.month}
-                  onChange={(e) =>
-                    setSalaryForm({ ...salaryForm, month: e.target.value })
-                  }
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm h-10 border px-3"
-                  required
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="salary-amount"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Salary Amount
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-500 sm:text-sm">₹</span>
-                  </div>
-                  <input
-                    id="salary-amount"
-                    type="number"
-                    value={salaryForm.amount}
-                    onChange={(e) =>
-                      setSalaryForm({ ...salaryForm, amount: e.target.value })
-                    }
-                    className="block w-full pl-7 rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm h-10 border"
-                    placeholder="0.00"
-                    required
-                    min="1"
-                  />
-                </div>
-              </div>
-
               {accounts.length > 0 && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1095,6 +1043,51 @@ export default function UserDetailPage({
                   </select>
                 </div>
               )}
+
+              <div>
+                <label
+                  htmlFor="salary-amount"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Salary Amount
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-gray-500 sm:text-sm">₹</span>
+                  </div>
+                  <input
+                    id="salary-amount"
+                    type="number"
+                    value={salaryForm.amount}
+                    onChange={(e) =>
+                      setSalaryForm({ ...salaryForm, amount: e.target.value })
+                    }
+                    className="block w-full pl-7 rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm h-10 border"
+                    placeholder="0.00"
+                    required
+                    min="1"
+                  />
+                </div>
+              </div>
+              <div>
+                <label
+                  htmlFor="salary-month"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Month
+                </label>
+                <input
+                  id="salary-month"
+                  type="month"
+                  title="Select month"
+                  value={salaryForm.month}
+                  onChange={(e) =>
+                    setSalaryForm({ ...salaryForm, month: e.target.value })
+                  }
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm h-10 border px-3"
+                  required
+                />
+              </div>
 
               <div className="pt-4 flex justify-end space-x-3">
                 <button
@@ -1474,6 +1467,8 @@ export default function UserDetailPage({
         onShowPasswordField={() => setShowPasswordField(true)}
         formData={formData}
         setFormData={setFormData}
+        paymentType={editPaymentType}
+        onPaymentTypeChange={handleEditPaymentTypeChange}
         services={services}
         commissions={editCommissions}
         onAddCommission={handleAddCommission}

@@ -82,6 +82,7 @@ type Entry = {
   canDelete: boolean;
   ref_name?: string;
   created_by?: string;
+  created_at?: string;
 };
 type MergedCategory = Category & { type: "income" | "expense" };
 
@@ -206,6 +207,7 @@ function EntriesTab({
         tx.deletable !== false && (!tx.source || tx.source === "manual"),
       ref_name: tx.ref_name || "",
       created_by: tx.created_by || tx.users?.name || "",
+      created_at: tx.created_at || "",
     }));
 
     const expenseItems: Entry[] = (d2.data || []).map((tx: any) => ({
@@ -223,10 +225,11 @@ function EntriesTab({
         tx.deletable !== false && (!tx.source || tx.source === "manual"),
       ref_name: tx.ref_name || "",
       created_by: tx.created_by || tx.users?.name || "",
+      created_at: tx.created_at || "",
     }));
 
     const combined = [...incomeItems, ...expenseItems].sort((a, b) =>
-      b.date.localeCompare(a.date),
+      (b.created_at || "").localeCompare(a.created_at || ""),
     );
     setEntries(combined);
     setAccounts(d3.data || []);

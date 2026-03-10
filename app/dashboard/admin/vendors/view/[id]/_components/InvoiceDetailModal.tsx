@@ -28,6 +28,19 @@ export default function InvoiceDetailModal({
 
   const invoiceJobs = jobs.filter((j) => invoice.job_ids?.includes(j.id));
 
+  const getJobStatus = (job: any): "Paid" | "Partially Paid" | "Pending" => {
+    const paid = Number(job.amount || 0) - getJobRemainingAmount(job.id);
+    if (paid <= 0) return "Pending";
+    if (paid >= Number(job.amount || 0)) return "Paid";
+    return "Partially Paid";
+  };
+
+  const totalPaid = invoiceJobs.reduce(
+    (sum, job) =>
+      sum + (Number(job.amount || 0) - getJobRemainingAmount(job.id)),
+    0,
+  );
+
   return (
     <div
       className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
@@ -163,6 +176,12 @@ export default function InvoiceDetailModal({
                     <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
                       Job Name
                     </th>
+                    <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Status
+                    </th>
+                    <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Paid
+                    </th>
                     <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">
                       Amount
                     </th>
@@ -170,8 +189,15 @@ export default function InvoiceDetailModal({
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {invoiceJobs.map((job) => {
-                    const remaining = getJobRemainingAmount(job.id);
-                    const isPartial = remaining < Number(job.amount || 0);
+                    const paid =
+                      Number(job.amount || 0) - getJobRemainingAmount(job.id);
+                    const status = getJobStatus(job);
+                    const statusStyle =
+                      status === "Paid"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : status === "Partially Paid"
+                          ? "bg-amber-50 text-amber-700 border-amber-200"
+                          : "bg-gray-100 text-gray-500 border-gray-200";
                     return (
                       <tr key={job.id} className="bg-white hover:bg-gray-50">
                         <td className="px-4 py-3">
@@ -192,24 +218,39 @@ export default function InvoiceDetailModal({
                             </p>
                           )}
                         </td>
+                        <td className="px-4 py-3 text-center">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-md border text-xs font-medium ${statusStyle}`}
+                          >
+                            {status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <span
+                            className={`font-semibold text-sm ${
+                              paid > 0 ? "text-emerald-600" : "text-gray-400"
+                            }`}
+                          >
+                            {paid > 0 ? formatCurrency(paid) : "—"}
+                          </span>
+                        </td>
                         <td className="px-4 py-3 text-right">
                           <span className="font-semibold text-gray-800 text-sm">
-                            {formatCurrency(isPartial ? remaining : job.amount)}
+                            {formatCurrency(job.amount)}
                           </span>
-                          {isPartial && (
-                            <span className="ml-1.5 text-xs px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
-                              Partial
-                            </span>
-                          )}
                         </td>
                       </tr>
                     );
                   })}
                 </tbody>
-                <tfoot className="bg-gray-50 border-t border-gray-200">
+                <tfoot className="bg-gray-50 border-t-2 border-gray-200">
                   <tr>
                     <td className="px-4 py-3 text-sm font-bold text-gray-700">
-                      Total
+                      Total Amount
+                    </td>
+                    <td />
+                    <td className="px-4 py-3 text-right font-bold text-emerald-600">
+                      {formatCurrency(totalPaid)}
                     </td>
                     <td className="px-4 py-3 text-right text-base font-bold text-indigo-700">
                       {formatCurrency(invoice.total_amount)}

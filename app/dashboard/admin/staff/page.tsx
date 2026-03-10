@@ -69,6 +69,7 @@ export default function StaffPage() {
   const [commissions, setCommissions] = useState<
     { serviceId: string; percentage: number; paymentType: string }[]
   >([]);
+  const [paymentType, setPaymentType] = useState("commission");
   const [showPasswordField, setShowPasswordField] = useState(false);
 
   // Single initialization effect - runs once on mount
@@ -159,8 +160,13 @@ export default function StaffPage() {
   const handleAddCommission = () => {
     setCommissions([
       ...commissions,
-      { serviceId: "", percentage: 0, paymentType: "commission" },
+      { serviceId: "", percentage: 0, paymentType: paymentType },
     ]);
+  };
+
+  const handlePaymentTypeChange = (type: string) => {
+    setPaymentType(type);
+    setCommissions(commissions.map((c) => ({ ...c, paymentType: type })));
   };
 
   const handleRemoveCommission = (index: number) => {
@@ -195,6 +201,7 @@ export default function StaffPage() {
       role: "USER",
     });
     setCommissions([]);
+    setPaymentType("commission");
     setShowPasswordField(true);
     setShowModal(true);
   };
@@ -216,15 +223,17 @@ export default function StaffPage() {
       .eq("staff_id", member.id);
 
     if (!error && data) {
-      setCommissions(
-        data.map((c: any) => ({
-          serviceId: c.service_id,
-          percentage: Number(c.percentage),
-          paymentType: c.payment_type || "commission",
-        })),
-      );
+      const mapped = data.map((c: any) => ({
+        serviceId: c.service_id,
+        percentage: Number(c.percentage),
+        paymentType: c.payment_type || "commission",
+      }));
+      setCommissions(mapped);
+      // Set global paymentType from first service, default to commission
+      setPaymentType(mapped[0]?.paymentType ?? "commission");
     } else {
       setCommissions([]);
+      setPaymentType("commission");
     }
     setShowPasswordField(false);
     setShowModal(true);
@@ -537,6 +546,8 @@ export default function StaffPage() {
         onShowPasswordField={() => setShowPasswordField(true)}
         formData={formData}
         setFormData={setFormData}
+        paymentType={paymentType}
+        onPaymentTypeChange={handlePaymentTypeChange}
         services={services}
         commissions={commissions}
         onAddCommission={handleAddCommission}

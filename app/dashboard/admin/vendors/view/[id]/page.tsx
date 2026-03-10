@@ -98,8 +98,7 @@ export default function VendorDetailPage({
   const [viewingPayment, setViewingPayment] = useState<any | null>(null);
   const [isSavingInvoice, setIsSavingInvoice] = useState(false);
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
-  const [invoicePaymentType, setInvoicePaymentType] =
-    useState<string>("commission");
+
   const [showPrintInvoiceModal, setShowPrintInvoiceModal] = useState(false);
   const [printInvoiceData, setPrintInvoiceData] = useState<any | null>(null);
   const [confirmDeletePaymentId, setConfirmDeletePaymentId] = useState<
@@ -126,14 +125,12 @@ export default function VendorDetailPage({
     setJobSearchQuery("");
     setShowJobDropdown(false);
     setEditingInvoiceId(null);
-    setInvoicePaymentType("commission");
   };
 
   const openEditInvoiceModal = (inv: any) => {
     setEditingInvoiceId(inv.id);
     setInvoiceJobIds(inv.job_ids || []);
     setInvoiceNote(inv.note || "");
-    setInvoicePaymentType(inv.payment_type || "commission");
     setShowInvoiceModal(true);
   };
 
@@ -308,77 +305,61 @@ export default function VendorDetailPage({
 
   // Calculate payment status for each job based on invoice payments
   // Priority: oldest job (by due date) gets paid first within multi-job invoices
+  // Helper: how much has been paid toward a specific job, across ALL invoices it belongs to
+  const getJobTotalPaid = (jobId: string): number => {
+    const jobInvoices = savedInvoices.filter((inv) =>
+      inv.job_ids?.includes(jobId),
+    );
+    let totalPaidForJob = 0;
+    for (const invoice of jobInvoices) {
+      const invoicePayments = payments.filter(
+        (p) => p.invoice_id === invoice.id,
+      );
+      const totalPaidForInvoice = invoicePayments.reduce(
+        (sum: number, p: any) => sum + Number(p.amount || 0),
+        0,
+      );
+      if (totalPaidForInvoice <= 0) continue;
+      // Distribute oldest-job-first within this invoice
+      const invoiceJobs = recentJobs
+        .filter((j) => invoice.job_ids?.includes(j.id))
+        .sort(
+          (a: any, b: any) =>
+            new Date(a.job_due_date).getTime() -
+            new Date(b.job_due_date).getTime(),
+        );
+      let rem = totalPaidForInvoice;
+      for (const j of invoiceJobs) {
+        const amt = Number(j.amount || 0);
+        if (j.id === jobId) {
+          totalPaidForJob += Math.min(rem, amt);
+          break;
+        }
+        rem -= amt;
+        if (rem < 0) rem = 0;
+      }
+    }
+    return totalPaidForJob;
+  };
+
   const getJobPaymentStatus = (
     jobId: string,
   ): "Paid" | "Partially Paid" | "Pending" => {
-    const invoice = savedInvoices.find((inv) => inv.job_ids?.includes(jobId));
-    if (!invoice) return "Pending";
-
-    const invoicePayments = payments.filter((p) => p.invoice_id === invoice.id);
-    const totalPaid = invoicePayments.reduce(
-      (sum: number, p: any) => sum + Number(p.amount || 0),
-      0,
-    );
-    if (totalPaid <= 0) return "Pending";
-
-    // Sort jobs in invoice oldest-first by due_date
-    const invoiceJobs = recentJobs
-      .filter((j) => invoice.job_ids?.includes(j.id))
-      .sort(
-        (a: any, b: any) =>
-          new Date(a.job_due_date).getTime() -
-          new Date(b.job_due_date).getTime(),
-      );
-
-    let remaining = totalPaid;
-    for (const job of invoiceJobs) {
-      const amt = Number(job.amount || 0);
-      if (job.id === jobId) {
-        if (remaining >= amt) return "Paid";
-        if (remaining > 0) return "Partially Paid";
-        return "Pending";
-      }
-      remaining -= amt;
-      if (remaining < 0) remaining = 0;
-    }
-    return "Pending";
+    const job = recentJobs.find((j) => j.id === jobId);
+    if (!job) return "Pending";
+    const fullAmt = Number(job.amount || 0);
+    const paid = getJobTotalPaid(jobId);
+    if (paid <= 0) return "Pending";
+    if (paid >= fullAmt) return "Paid";
+    return "Partially Paid";
   };
 
-  // Returns the unpaid remaining amount for a job (uses same priority logic)
+  // Returns the unpaid remaining amount for a job across all invoices
   const getJobRemainingAmount = (jobId: string): number => {
     const job = recentJobs.find((j) => j.id === jobId);
     if (!job) return 0;
     const fullAmt = Number(job.amount || 0);
-
-    const invoice = savedInvoices.find((inv) => inv.job_ids?.includes(jobId));
-    if (!invoice) return fullAmt;
-
-    const invoicePayments = payments.filter((p) => p.invoice_id === invoice.id);
-    const totalPaidForInvoice = invoicePayments.reduce(
-      (sum: number, p: any) => sum + Number(p.amount || 0),
-      0,
-    );
-    if (totalPaidForInvoice <= 0) return fullAmt;
-
-    const invoiceJobs = recentJobs
-      .filter((j) => invoice.job_ids?.includes(j.id))
-      .sort(
-        (a: any, b: any) =>
-          new Date(a.job_due_date).getTime() -
-          new Date(b.job_due_date).getTime(),
-      );
-
-    let remaining = totalPaidForInvoice;
-    for (const j of invoiceJobs) {
-      const amt = Number(j.amount || 0);
-      if (j.id === jobId) {
-        const paidForThisJob = Math.min(remaining, amt);
-        return fullAmt - paidForThisJob;
-      }
-      remaining -= amt;
-      if (remaining < 0) remaining = 0;
-    }
-    return fullAmt;
+    return Math.max(0, fullAmt - getJobTotalPaid(jobId));
   };
 
   useEffect(() => {
@@ -580,9 +561,7 @@ export default function VendorDetailPage({
             note: invoiceNote || null,
             job_ids: invoiceJobIds,
             total_amount: invoiceTotalAmount,
-            total_commission: invoiceTotalCommission,
             net_total: invoiceTotalAmount,
-            payment_type: invoicePaymentType,
           })
           .eq("id", editingInvoiceId);
         saveError = error;
@@ -603,9 +582,7 @@ export default function VendorDetailPage({
           note: invoiceNote || null,
           job_ids: invoiceJobIds,
           total_amount: invoiceTotalAmount,
-          total_commission: invoiceTotalCommission,
           net_total: invoiceTotalAmount,
-          payment_type: invoicePaymentType,
         });
         saveError = error;
       }
@@ -687,12 +664,10 @@ export default function VendorDetailPage({
   );
   const filteredJobsForInvoice = recentJobs.filter((j) => {
     const ps = getJobPaymentStatus(j.id);
-    return (
-      ps !== "Paid" &&
-      (j.service?.name || "")
-        .toLowerCase()
-        .includes(jobSearchQuery.toLowerCase())
-    );
+    if (ps === "Paid") return false;
+    return (j.service?.name || "")
+      .toLowerCase()
+      .includes(jobSearchQuery.toLowerCase());
   });
   // For Partially Paid jobs use remaining amount, for others use full amount
   const invoiceTotalAmount = selectedInvoiceJobs.reduce(
@@ -703,6 +678,18 @@ export default function VendorDetailPage({
     (s, j) => s + Number(j.commission_amount || 0),
     0,
   );
+
+  // Returns total paid amount for a specific invoice
+  // Returns how much has been paid toward an invoice, based on each job's paid amount
+  const getInvoicePaidAmount = (invoiceId: string): number => {
+    const inv = savedInvoices.find((i) => i.id === invoiceId);
+    if (!inv) return 0;
+    return (inv.job_ids || []).reduce((sum: number, jobId: string) => {
+      const job = recentJobs.find((j) => j.id === jobId);
+      if (!job) return sum;
+      return sum + getJobTotalPaid(jobId);
+    }, 0);
+  };
 
   // Group payments by payment_number for list view (one row per payment session)
   const groupedPayments = (() => {
@@ -715,6 +702,13 @@ export default function VendorDetailPage({
       const group = p.payment_number
         ? payments.filter((r) => r.payment_number === p.payment_number)
         : [p];
+      const latestTs = Math.max(
+        ...group.map((r) => {
+          const raw = r.created_at || r.payment_date;
+          const ts = raw ? new Date(raw).getTime() : 0;
+          return Number.isNaN(ts) ? 0 : ts;
+        }),
+      );
       result.push({
         ...p,
         _totalAmount: group.reduce((s, r) => s + Number(r.amount || 0), 0),
@@ -722,9 +716,10 @@ export default function VendorDetailPage({
           .map((r) => r.invoice?.invoice_number)
           .filter(Boolean) as string[],
         _allIds: group.map((r) => r.id) as string[],
+        _sortTs: latestTs,
       });
     }
-    return result;
+    return result.sort((a, b) => (b._sortTs || 0) - (a._sortTs || 0));
   })();
   return (
     <div className="min-h-screen bg-[#f1f5f9] text-slate-800 lg:ml-[var(--sidebar-offset)]">
@@ -1131,6 +1126,7 @@ export default function VendorDetailPage({
                     { key: "date", header: "Date" },
                     { key: "jobs", header: "Jobs" },
                     { key: "net_total", header: "Total", align: "right" },
+                    { key: "paid", header: "Paid", align: "right" },
                     { key: "action", header: "Action", align: "right" },
                   ]}
                   data={savedInvoices}
@@ -1168,6 +1164,24 @@ export default function VendorDetailPage({
                           {formatCurrency(inv.total_amount)}
                         </span>
                       );
+                    if (col.key === "paid") {
+                      const paid = getInvoicePaidAmount(inv.id);
+                      const isPaid = paid >= Number(inv.total_amount || 0);
+                      const isPartial = paid > 0 && !isPaid;
+                      return (
+                        <span
+                          className={`font-semibold ${
+                            isPaid
+                              ? "text-emerald-600"
+                              : isPartial
+                                ? "text-amber-600"
+                                : "text-gray-400"
+                          }`}
+                        >
+                          {paid > 0 ? formatCurrency(paid) : "—"}
+                        </span>
+                      );
+                    }
                     if (col.key === "action")
                       return (
                         <div className="flex items-center justify-end space-x-1">
@@ -1253,8 +1267,6 @@ export default function VendorDetailPage({
         filteredJobsForInvoice={filteredJobsForInvoice}
         invoiceTotalAmount={invoiceTotalAmount}
         invoiceTotalCommission={invoiceTotalCommission}
-        invoicePaymentType={invoicePaymentType}
-        setInvoicePaymentType={setInvoicePaymentType}
         getStatusLabel={getStatusLabel}
         getJobRemainingAmount={getJobRemainingAmount}
       />
@@ -1297,6 +1309,7 @@ export default function VendorDetailPage({
         recentJobs={recentJobs}
         payments={payments}
         accounts={accounts}
+        getInvoicePaidAmount={getInvoicePaidAmount}
       />
 
       {/* Edit Vendor Modal */}

@@ -23,8 +23,6 @@ export default function PrintInvoiceModal({
 
     const printJobs = recentJobs.filter((j) => invoice.job_ids?.includes(j.id));
 
-    const isCommission = (invoice.payment_type ?? "commission") !== "salary";
-
     const date = new Date(invoice.created_at).toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "long",
@@ -38,9 +36,8 @@ export default function PrintInvoiceModal({
           <td style="padding:10px 8px;border-bottom:1px solid #f3f4f6;color:#9ca3af;font-size:12px;">${idx + 1}</td>
           <td style="padding:10px 8px;border-bottom:1px solid #f3f4f6;font-weight:600;color:#111827;">
             ${job.service?.name ?? ""}
-            ${!isCommission && job.staff?.name ? `<div style="font-size:11px;color:#6b7280;margin-top:2px;">${job.staff.name}</div>` : ""}
+            ${job.staff?.name ? `<div style="font-size:11px;color:#6b7280;margin-top:2px;">${job.staff.name}</div>` : ""}
           </td>
-          ${isCommission ? `<td style="padding:10px 8px;border-bottom:1px solid #f3f4f6;text-align:right;color:#ef4444;font-size:12px;">${formatCurrency(job.commission_amount || 0)}</td>` : ""}
           <td style="padding:10px 8px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:600;color:#111827;">${formatCurrency(job.amount)}</td>
         </tr>`,
       )
@@ -66,8 +63,8 @@ export default function PrintInvoiceModal({
         <h1 style="font-size:28px;font-weight:800;color:#4f46e5;letter-spacing:2px;">INVOICE</h1>
         <p style="font-size:13px;color:#6b7280;margin-top:6px;">Invoice # <strong style="color:#111;font-family:monospace;">${invoice.invoice_number}</strong></p>
         <p style="font-size:12px;color:#9ca3af;margin-top:4px;">Date: ${date}</p>
-        <span style="display:inline-block;margin-top:8px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.5px;${isCommission ? "background:#ede9fe;color:#6d28d9;" : "background:#d1fae5;color:#065f46;"}">
-          ${isCommission ? "COMMISSION" : "SALARY"}
+        <span style="display:inline-block;margin-top:8px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.5px;background:#d1fae5;color:#065f46;">
+          SALARY
         </span>
       </div>
       <div style="text-align:right;">
@@ -94,8 +91,7 @@ export default function PrintInvoiceModal({
       <thead>
         <tr style="border-bottom:2px solid #e5e7eb;">
           <th style="padding:8px;text-align:left;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">#</th>
-          <th style="padding:8px;text-align:left;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">${isCommission ? "Service Name" : "Service Name / Staff"}</th>
-          ${isCommission ? `<th style="padding:8px;text-align:right;font-size:11px;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:1px;">Commission</th>` : ""}
+          <th style="padding:8px;text-align:left;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Service Name / Staff</th>
           <th style="padding:8px;text-align:right;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Amount</th>
         </tr>
       </thead>
@@ -105,15 +101,7 @@ export default function PrintInvoiceModal({
     <!-- Total -->
     <div style="display:flex;justify-content:flex-end;margin-bottom:24px;">
       <div style="min-width:240px;">
-        ${
-          isCommission && invoice.total_commission > 0
-            ? `
-        <div style="display:flex;justify-content:space-between;font-size:12px;color:#6b7280;padding-bottom:8px;margin-bottom:8px;border-bottom:1px dashed #e5e7eb;">
-          <span>Commission</span>
-          <span style="color:#ef4444;">${formatCurrency(invoice.total_commission)}</span>
-        </div>`
-            : ""
-        }
+
         <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;color:#111;border-top:2px solid #4f46e5;padding-top:12px;">
           <span>Total Amount</span>
           <span style="color:#4f46e5;">${formatCurrency(invoice.total_amount)}</span>

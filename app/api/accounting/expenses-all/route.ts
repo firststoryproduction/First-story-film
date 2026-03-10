@@ -48,7 +48,7 @@ export async function GET(request: Request) {
     // ── 1. Manual expense transactions ──────────────────────────────────────
     let expQ = supabaseAdmin.from("expense_transactions").select(
       `
-        id, expense_date, amount, remarks, source,
+        id, expense_date, amount, remarks, source, created_at,
         account_id,
         accounts(id, account_name),
         expense_categories(id, name),
@@ -74,7 +74,7 @@ export async function GET(request: Request) {
     let spQ = supabaseAdmin
       .from("staff_payments")
       .select(
-        `id, payment_date, amount, note, staff_id, account_id, accounts(id, account_name), users!staff_payments_staff_id_fkey(id, name), creator:users!staff_payments_created_by_fkey(id, name)`,
+        `id, payment_date, amount, note, staff_id, account_id, created_at, payment_type, accounts(id, account_name), users!staff_payments_staff_id_fkey(id, name), creator:users!staff_payments_created_by_fkey(id, name)`,
       );
     if (dateFrom) spQ = spQ.gte("payment_date", dateFrom);
     if (dateTo) spQ = spQ.lte("payment_date", dateTo);
@@ -101,6 +101,7 @@ export async function GET(request: Request) {
       ref_name: "",
       deletable: true,
       editable: false,
+      created_at: t.created_at || "",
     }));
 
     const staffRows = (staffPayments || []).map((p: any) => ({
@@ -111,17 +112,18 @@ export async function GET(request: Request) {
       source: "staff_payment",
       account: (p.accounts as any)?.account_name || "—",
       account_id: p.account_id || null,
-      category: "Staff Payment",
+      category: p.payment_type === "salary" ? "Staff Salary" : "Staff Payment",
       created_by: (p.creator as any)?.name || "—",
       ref_name: (p.users as any)?.name || "—",
       ref_sub: "",
       deletable: false,
       editable: false,
+      created_at: p.created_at || "",
     }));
 
-    // Merge all, sort by date descending
+    // Merge all, sort by created_at descending so newest entry always appears first
     const allRows = [...manualRows, ...staffRows].sort((a, b) =>
-      b.date.localeCompare(a.date),
+      (b.created_at || "").localeCompare(a.created_at || ""),
     );
 
     // Paginate
