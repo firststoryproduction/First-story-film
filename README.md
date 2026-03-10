@@ -1,4 +1,4 @@
-# first story Production - Job Management System
+# first story Production - Job Management System 
 
 A professional job management and commission tracking system for first story Production production studio.
 
