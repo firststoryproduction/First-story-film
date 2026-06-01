@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { X, CheckCircle2, Search, Trash2 } from "lucide-react";
@@ -114,7 +114,7 @@ export default function PaymentModal({
           {/* Invoice Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Link Invoice
+              Link Invoice <span className="text-rose-500">*</span>
               {paymentForm.invoice_ids.length > 0 && (
                 <span className="ml-2 text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
                   {paymentForm.invoice_ids.length} selected
@@ -358,7 +358,14 @@ export default function PaymentModal({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+              disabled={
+                paymentForm.invoice_ids.length === 0 ||
+                !paymentForm.account_id ||
+                !paymentForm.amount ||
+                Number(paymentForm.amount) <= 0 ||
+                !paymentForm.date
+              }
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
             >
               Save Payment
             </button>

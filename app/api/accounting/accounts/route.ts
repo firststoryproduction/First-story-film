@@ -39,14 +39,42 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     const { supabaseAdmin } = auth;
 
-    const { data, error } = await supabaseAdmin
+    const { data: accounts, error } = await supabaseAdmin
       .from("accounts")
       .select("*")
       .order("is_default", { ascending: false })
       .order("account_name");
 
     if (error) throw error;
-    return NextResponse.json({ data });
+
+    // Compute income/expense/balance for each account directly from DB
+    const enriched = await Promise.all(
+      (accounts || []).map(async (acc: any) => {
+        const [
+          { data: iTxs },
+          { data: vPmts },
+          { data: eTxs },
+          { data: sPmts },
+        ] = await Promise.all([
+          supabaseAdmin.from("income_transactions").select("amount").eq("account_id", acc.id),
+          supabaseAdmin.from("vendor_payments").select("amount").eq("account_id", acc.id),
+          supabaseAdmin.from("expense_transactions").select("amount").eq("account_id", acc.id),
+          supabaseAdmin.from("staff_payments").select("amount").eq("account_id", acc.id),
+        ]);
+
+        const income = [...(iTxs || []), ...(vPmts || [])].reduce(
+          (s, t: any) => s + Number(t.amount), 0
+        );
+        const expense = [...(eTxs || []), ...(sPmts || [])].reduce(
+          (s, t: any) => s + Number(t.amount), 0
+        );
+        const computed_balance = Number(acc.opening_balance) + income - expense;
+
+        return { ...acc, income, expense, computed_balance };
+      })
+    );
+
+    return NextResponse.json({ data: enriched });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

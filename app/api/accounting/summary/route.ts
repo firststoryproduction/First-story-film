@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     // Fetch accounts
     const { data: accounts } = await supabaseAdmin
       .from("accounts")
-      .select("id, account_name, opening_balance, status, is_default")
+      .select("id, account_name, opening_balance, current_balance, status, is_default")
       .order("is_default", { ascending: false });
 
     // Income query
@@ -55,18 +55,25 @@ export async function GET(request: Request) {
     if (dateTo) incomeQuery = incomeQuery.lte("income_date", dateTo);
     const { data: incomeData } = await incomeQuery;
 
-    // Vendor payments query (counted as income)
+    // Vendor payments query (counts as INCOME - received from vendors)
     let vpQuery = supabaseAdmin
       .from("vendor_payments")
-      .select("amount, payment_date");
+      .select("amount, account_id, payment_date");
+    if (accountId) vpQuery = vpQuery.eq("account_id", accountId);
     if (dateFrom) vpQuery = vpQuery.gte("payment_date", dateFrom);
     if (dateTo) vpQuery = vpQuery.lte("payment_date", dateTo);
-    // Vendor payments are not tied to an account, so skip accountId filter
-    const { data: vendorPaymentsData } = accountId
-      ? { data: [] as any[] }
-      : await vpQuery;
+    const { data: vendorPaymentsData } = await vpQuery;
 
-    // Expense query
+    // Staff payments query (counts as expense)
+    let spQuery = supabaseAdmin
+      .from("staff_payments")
+      .select("amount, account_id, payment_date");
+    if (accountId) spQuery = spQuery.eq("account_id", accountId);
+    if (dateFrom) spQuery = spQuery.gte("payment_date", dateFrom);
+    if (dateTo) spQuery = spQuery.lte("payment_date", dateTo);
+    const { data: staffPaymentsData } = await spQuery;
+
+    // Expense query (manual)
     let expenseQuery = supabaseAdmin
       .from("expense_transactions")
       .select("amount, account_id, expense_date");
@@ -108,32 +115,43 @@ export async function GET(request: Request) {
       0,
     );
     const totalIncome = totalManualIncome + totalVendorIncome;
-    const totalExpense = (expenseData || []).reduce(
+
+    const totalStaffExpense = (staffPaymentsData || []).reduce(
       (s: number, t: any) => s + Number(t.amount),
       0,
     );
+    const totalManualExpense = (expenseData || []).reduce(
+      (s: number, t: any) => s + Number(t.amount),
+      0,
+    );
+    const totalExpense = totalManualExpense + totalStaffExpense;
     const netProfit = totalIncome - totalExpense;
 
-    // Account balances: opening + income - expense
-    const accountBalances = (accounts || []).map((acc: any) => {
-      const accIncome = (incomeData || [])
-        .filter((t: any) => t.account_id === acc.id)
-        .reduce((s: number, t: any) => s + Number(t.amount), 0);
-      const accExpense = (expenseData || [])
-        .filter((t: any) => t.account_id === acc.id)
-        .reduce((s: number, t: any) => s + Number(t.amount), 0);
-      // For filtered view, use only transaction sum; for no filter, add opening balance
-      const balance =
-        !dateFrom && !dateTo
-          ? Number(acc.opening_balance) + accIncome - accExpense
-          : accIncome - accExpense;
-      return {
-        ...acc,
-        current_balance: balance,
-        income: accIncome,
-        expense: accExpense,
-      };
-    });
+    // Account balances: query per-account directly from DB for guaranteed accuracy
+    const accountBalances = await Promise.all(
+      (accounts || []).map(async (acc: any) => {
+        const [{ data: iTxs }, { data: vPmts }, { data: eTxs }, { data: sPmts }] =
+          await Promise.all([
+            supabaseAdmin.from("income_transactions").select("amount").eq("account_id", acc.id),
+            supabaseAdmin.from("vendor_payments").select("amount").eq("account_id", acc.id),
+            supabaseAdmin.from("expense_transactions").select("amount").eq("account_id", acc.id),
+            supabaseAdmin.from("staff_payments").select("amount").eq("account_id", acc.id),
+          ]);
+
+        const accIncome =
+          [...(iTxs || []), ...(vPmts || [])].reduce((s, t: any) => s + Number(t.amount), 0);
+        const accExpense =
+          [...(eTxs || []), ...(sPmts || [])].reduce((s, t: any) => s + Number(t.amount), 0);
+        const balance = Number(acc.opening_balance) + accIncome - accExpense;
+
+        return {
+          ...acc,
+          current_balance: balance,
+          income: accIncome,
+          expense: accExpense,
+        };
+      })
+    );
 
     // Income by category summary
     const incomeByCategoryMap: Record<
@@ -147,15 +165,8 @@ export async function GET(request: Request) {
         incomeByCategoryMap[catId] = { name: catName, amount: 0 };
       incomeByCategoryMap[catId].amount += Number(t.amount);
     });
-    // Add vendor payments as a synthetic income category
-    if (totalVendorIncome > 0) {
-      incomeByCategoryMap["__vendor_payment__"] = {
-        name: "Vendor Payment",
-        amount: totalVendorIncome,
-      };
-    }
 
-    // Expense by category summary
+    // Add vendor and staff payments as synthetic expense categories
     const expenseByCategoryMap: Record<
       string,
       { name: string; amount: number }
@@ -167,6 +178,19 @@ export async function GET(request: Request) {
         expenseByCategoryMap[catId] = { name: catName, amount: 0 };
       expenseByCategoryMap[catId].amount += Number(t.amount);
     });
+    
+    if (totalVendorExpense > 0) {
+      expenseByCategoryMap["__vendor_payment__"] = {
+        name: "Vendor Payments",
+        amount: totalVendorExpense,
+      };
+    }
+    if (totalStaffExpense > 0) {
+      expenseByCategoryMap["__staff_payment__"] = {
+        name: "Staff Payments",
+        amount: totalStaffExpense,
+      };
+    }
 
     return NextResponse.json({
       totalIncome,

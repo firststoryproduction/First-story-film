@@ -61,15 +61,13 @@ function AccountDetailContent() {
     if (!token || !id) return;
     setLoadingAccount(true);
     const h = { Authorization: `Bearer ${token}` };
-    const [r1, r2] = await Promise.all([
-      fetch(`/api/accounting/accounts/${id}`, { headers: h }),
-      fetch("/api/accounting/summary", { headers: h }),
-    ]);
+    const r1 = await fetch(`/api/accounting/accounts/${id}`, { headers: h });
     const d1 = await r1.json();
-    const d2 = await r2.json();
     setAccount(d1.data || null);
-    const bal = (d2.accountBalances || []).find((a: any) => a.id === id);
-    setCurrentBalance(bal?.current_balance ?? d1.data?.opening_balance ?? 0);
+    // Use computed_balance (income - expense from DB) if available, else fall back to opening_balance
+    setCurrentBalance(
+      d1.data?.computed_balance ?? d1.data?.opening_balance ?? 0
+    );
     setLoadingAccount(false);
   }, [token, id]);
 
@@ -157,6 +155,11 @@ function AccountDetailContent() {
         const merged = [...income, ...expense].sort((a, b) => {
           const da = a.date || a.income_date || a.expense_date || "";
           const db = b.date || b.income_date || b.expense_date || "";
+          if (da === db) {
+            const ca = a.created_at || "";
+            const cb = b.created_at || "";
+            return cb.localeCompare(ca);
+          }
           return db.localeCompare(da);
         });
         setTxs(merged);
@@ -169,7 +172,19 @@ function AccountDetailContent() {
           headers: h,
         });
         const d = await r.json();
-        setTxs((d.data || []).map((t: any) => ({ ...t, _type: typeFilter })));
+        const sorted = (d.data || [])
+          .map((t: any) => ({ ...t, _type: typeFilter }))
+          .sort((a: any, b: any) => {
+            const da = a.date || a.income_date || a.expense_date || "";
+            const db = b.date || b.income_date || b.expense_date || "";
+            if (da === db) {
+              const ca = a.created_at || "";
+              const cb = b.created_at || "";
+              return cb.localeCompare(ca);
+            }
+            return db.localeCompare(da);
+          });
+        setTxs(sorted);
       }
     } finally {
       setLoadingTxs(false);
@@ -217,7 +232,7 @@ function AccountDetailContent() {
           {/* Back button */}
           <button
             onClick={() =>
-              router.push("/dashboard/admin/accounting?section=accounts")
+              router.push("/dashboard/admin/accounting?tab=account")
             }
             className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-slate-500 hover:text-slate-800 hover:border-gray-300 transition-all shadow-sm flex-shrink-0"
           >

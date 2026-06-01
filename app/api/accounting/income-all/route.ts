@@ -67,23 +67,19 @@ export async function GET(request: Request) {
       .order("income_date", { ascending: false })
       .order("created_at", { ascending: false });
 
-    // ── 2. Vendor payments (income received from vendors/clients) ───────────
+    // ── 2. Vendor payments (INCOME — received from vendors) ─────────────────
     let vpQ = supabaseAdmin
       .from("vendor_payments")
       .select(
-        `id, payment_date, amount, note, vendor_id, account_id, created_at, vendors(id, studio_name), accounts(id, account_name)`,
+        `id, payment_date, amount, note, vendor_id, account_id, created_at, accounts(id, account_name), vendors(id, studio_name)`,
       );
     if (dateFrom) vpQ = vpQ.gte("payment_date", dateFrom);
     if (dateTo) vpQ = vpQ.lte("payment_date", dateTo);
     if (accountId) vpQ = vpQ.eq("account_id", accountId);
-    const { data: vendorPayments } =
-      sourceFilter && sourceFilter !== "vendor_payment"
-        ? { data: [] }
-        : await vpQ.order("payment_date", { ascending: false });
+    const { data: vendorPayments } = await vpQ.order("payment_date", { ascending: false });
 
     // ── Build rows ──────────────────────────────────────────────────────────
-    const shouldIncludeManual = !sourceFilter || sourceFilter === "manual";
-    const manualRows = (shouldIncludeManual ? manualTxs || [] : []).map(
+    const manualRows = (manualTxs || []).map(
       (t: any) => ({
         id: t.id,
         date: t.income_date,
@@ -117,7 +113,7 @@ export async function GET(request: Request) {
       created_at: p.created_at || "",
     }));
 
-    // Merge all, sort by created_at descending so newest entry always appears first
+    // Sort by created_at descending
     const allRows = [...manualRows, ...vendorRows].sort((a, b) =>
       (b.created_at || "").localeCompare(a.created_at || ""),
     );

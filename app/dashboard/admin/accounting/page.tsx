@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
   Wallet,
@@ -35,11 +35,10 @@ function Toast({ msg, type }: { msg: string; type: "success" | "error" }) {
   return (
     <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] animate-in fade-in slide-in-from-top-4 duration-300">
       <div
-        className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${
-          type === "success"
+        className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${type === "success"
             ? "bg-emerald-500 border-emerald-400 text-white"
             : "bg-rose-500 border-rose-400 text-white"
-        }`}
+          }`}
       >
         {type === "success" ? (
           <CheckCircle size={18} />
@@ -108,11 +107,10 @@ function TabBar({
         <button
           key={key}
           onClick={() => onChange(key)}
-          className={`flex items-center space-x-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all -mb-px ${
-            active === key
+          className={`flex items-center space-x-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all -mb-px ${active === key
               ? "border-indigo-600 text-indigo-600"
               : "border-transparent text-slate-500 hover:text-slate-700"
-          }`}
+            }`}
         >
           <Ic size={14} />
           <span>{label}</span>
@@ -306,19 +304,19 @@ function EntriesTab({
     const isIncome = showModal === "income";
     const body = isIncome
       ? {
-          income_date: form.date,
-          account_id: form.account_id,
-          income_category_id: form.category_id,
-          amount: parseFloat(form.amount),
-          remarks: form.remarks,
-        }
+        income_date: form.date,
+        account_id: form.account_id,
+        income_category_id: form.category_id,
+        amount: parseFloat(form.amount),
+        remarks: form.remarks,
+      }
       : {
-          expense_date: form.date,
-          account_id: form.account_id,
-          expense_category_id: form.category_id,
-          amount: parseFloat(form.amount),
-          remarks: form.remarks,
-        };
+        expense_date: form.date,
+        account_id: form.account_id,
+        expense_category_id: form.category_id,
+        amount: parseFloat(form.amount),
+        remarks: form.remarks,
+      };
     const url = isIncome
       ? "/api/accounting/income"
       : "/api/accounting/expenses";
@@ -606,11 +604,10 @@ function EntriesTab({
             if (column.key === "type")
               return (
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                    e.entryType === "income"
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${e.entryType === "income"
                       ? "bg-emerald-50 text-emerald-700"
                       : "bg-rose-50 text-rose-700"
-                  }`}
+                    }`}
                 >
                   {e.entryType === "income" ? (
                     <TrendingUp size={10} />
@@ -638,11 +635,10 @@ function EntriesTab({
             if (column.key === "amount")
               return (
                 <span
-                  className={`font-bold ${
-                    e.entryType === "income"
+                  className={`font-bold ${e.entryType === "income"
                       ? "text-emerald-600"
                       : "text-rose-600"
-                  }`}
+                    }`}
                 >
                   {e.entryType === "income" ? "" : ""}
                   {fmt(e.amount)}
@@ -822,11 +818,10 @@ function EntriesTab({
                 type="button"
                 onClick={save}
                 disabled={saving}
-                className={`px-4 py-2.5 text-sm font-medium text-white rounded-md transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 ${
-                  showModal === "income"
+                className={`px-4 py-2.5 text-sm font-medium text-white rounded-md transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 ${showModal === "income"
                     ? "bg-emerald-600 hover:bg-emerald-700"
                     : "bg-rose-600 hover:bg-rose-700"
-                }`}
+                  }`}
               >
                 {saving && <RefreshCw size={14} className="animate-spin" />}
                 Save
@@ -892,15 +887,16 @@ function AccountTab({
     const d1 = await r1.json();
     const d2 = await r2.json();
     setAccounts(d1.data || []);
+    // Stats now come directly from enriched accounts API
     const stats: Record<
       string,
       { income: number; expense: number; current_balance: number }
     > = {};
-    (d2.accountBalances || []).forEach((a: any) => {
+    (d1.data || []).forEach((a: any) => {
       stats[a.id] = {
         income: a.income || 0,
         expense: a.expense || 0,
-        current_balance: a.current_balance || 0,
+        current_balance: a.computed_balance ?? Number(a.opening_balance),
       };
     });
     setAccountStats(stats);
@@ -1094,11 +1090,10 @@ function AccountTab({
             if (column.key === "current_balance")
               return (
                 <span
-                  className={`font-bold ${
-                    stats.current_balance >= 0
+                  className={`font-bold ${stats.current_balance >= 0
                       ? "text-indigo-600"
                       : "text-rose-600"
-                  }`}
+                    }`}
                 >
                   {fmt(stats.current_balance)}
                 </span>
@@ -1460,9 +1455,8 @@ function CategoriesTab({
               return (
                 <div className="flex items-center space-x-2 py-0.5">
                   <div
-                    className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                      c.type === "income" ? "bg-blue-500" : "bg-amber-500"
-                    }`}
+                    className={`w-2 h-2 rounded-full flex-shrink-0 ${c.type === "income" ? "bg-blue-500" : "bg-amber-500"
+                      }`}
                   />
                   <span className="font-semibold text-slate-800">{c.name}</span>
                   {c.description && (
@@ -1637,7 +1631,10 @@ function CategoriesTab({
 // MAIN PAGE — 3-tab layout: Entries | Account | Categories
 // ══════════════════════════════════════════════════════════════════════════
 function AccountingContent() {
-  const [tab, setTab] = useState("entries");
+  const searchParams = useSearchParams();
+  let initTab = searchParams.get("tab") || searchParams.get("section") || "entries";
+  if (initTab === "accounts") initTab = "account";
+  const [tab, setTab] = useState(initTab);
   const [token, setToken] = useState("");
   const [notification, setNotification] = useState<{
     message: string;
