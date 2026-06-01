@@ -680,22 +680,20 @@ export default function UserDetailPage({
           <div className="flex items-center space-x-1 mb-6 bg-white p-1.5 rounded-lg border border-gray-200 w-fit shadow-sm">
             <button
               onClick={() => setActiveTab("jobs")}
-              className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 rounded-md transition-all ${
-                activeTab === "jobs"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
-              }`}
+              className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 rounded-md transition-all ${activeTab === "jobs"
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
+                }`}
             >
               <LayoutList size={16} />
               <span>Job History</span>
             </button>
             <button
               onClick={() => setActiveTab("payments")}
-              className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 rounded-md transition-all ${
-                activeTab === "payments"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
-              }`}
+              className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 rounded-md transition-all ${activeTab === "payments"
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
+                }`}
             >
               <Wallet size={16} />
               <span>Payment History</span>
@@ -912,7 +910,7 @@ export default function UserDetailPage({
                       className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
                     >
                       <Plus size={16} />
-                      <span>Add Payment</span>
+                      <span>Pay</span>
                     </button>
                   </div>
                 </div>

@@ -121,7 +121,7 @@ export async function GET(request: Request) {
       created_at: p.created_at || "",
     }));
 
-    // Merge all, sort by created_at descending so newest entry always appears first
+    // Merge, sort newest first
     const allRows = [...manualRows, ...staffRows].sort((a, b) =>
       (b.created_at || "").localeCompare(a.created_at || ""),
     );

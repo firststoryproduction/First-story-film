@@ -379,22 +379,12 @@ export default function VendorDetailPage({
     if (!paymentForm.amount) return;
 
     try {
-      // Generate payment number: PAY-yyyymmdd-XXXX
-      const _pNow = new Date();
-      const _pYmd =
-        _pNow.getFullYear().toString() +
-        String(_pNow.getMonth() + 1).padStart(2, "0") +
-        String(_pNow.getDate()).padStart(2, "0");
-      const _pSeq = String(payments.length + 1).padStart(4, "0");
-      const paymentNumber = `PAY-${_pYmd}-${_pSeq}`;
-
       let insertRows: {
         vendor_id: string;
         invoice_id?: string;
         amount: number;
         payment_date: string;
         note: string | null;
-        payment_number: string;
         account_id?: string | null;
       }[] = [];
 
@@ -407,8 +397,8 @@ export default function VendorDetailPage({
             const oldestDate =
               jobs.length > 0
                 ? Math.min(
-                    ...jobs.map((j) => new Date(j.job_due_date).getTime()),
-                  )
+                  ...jobs.map((j) => new Date(j.job_due_date).getTime()),
+                )
                 : Infinity;
             return { inv, oldestDate };
           })
@@ -430,7 +420,6 @@ export default function VendorDetailPage({
               amount: allocated,
               payment_date: paymentForm.date,
               note: paymentForm.note || null,
-              payment_number: paymentNumber,
               account_id: paymentForm.account_id || null,
             };
           });
@@ -441,7 +430,6 @@ export default function VendorDetailPage({
             amount: Number(paymentForm.amount),
             payment_date: paymentForm.date,
             note: paymentForm.note || null,
-            payment_number: paymentNumber,
             account_id: paymentForm.account_id || null,
           },
         ];
@@ -563,22 +551,13 @@ export default function VendorDetailPage({
             total_amount: invoiceTotalAmount,
             net_total: invoiceTotalAmount,
           })
-          .eq("id", editingInvoiceId);
-        saveError = error;
+          .eq("id", editingInvoiceId); saveError = error;
       } else {
         // INSERT new invoice
-        const _now = new Date();
-        const _yyyymmdd =
-          _now.getFullYear().toString() +
-          String(_now.getMonth() + 1).padStart(2, "0") +
-          String(_now.getDate()).padStart(2, "0");
-        const _seq = String(savedInvoices.length + 1).padStart(4, "0");
-        invoiceNumber = `INV-${_yyyymmdd}-${_seq}`;
         const { error } = await (
           supabase.from("vendor_invoices") as any
         ).insert({
           vendor_id: id,
-          invoice_number: invoiceNumber,
           note: invoiceNote || null,
           job_ids: invoiceJobIds,
           total_amount: invoiceTotalAmount,
@@ -603,7 +582,7 @@ export default function VendorDetailPage({
         });
         showNotification(
           detail.includes("relation") || detail.includes("does not exist")
-            ? "Table not found ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â run the SQL migration in Supabase first"
+            ? "Table not found ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â  run the SQL migration in Supabase first"
             : detail || "Failed to save invoice",
           "error",
         );
@@ -612,8 +591,8 @@ export default function VendorDetailPage({
       await fetchInvoices();
       showNotification(
         editingInvoiceId
-          ? `Invoice ${invoiceNumber} updated!`
-          : `Invoice ${invoiceNumber} saved!`,
+          ? `Invoice updated successfully!`
+          : `Invoice saved successfully!`,
       );
       closeInvoiceModal();
     } catch (err: any) {
@@ -723,9 +702,9 @@ export default function VendorDetailPage({
   })();
   return (
     <div className="min-h-screen bg-[#f1f5f9] text-slate-800 lg:ml-[var(--sidebar-offset)]">
-      <div className="w-full px-4 py-6 lg:px-6">
+      <div className="w-full px-4 py-4 lg:px-4">
         {/* Header Section */}
-        <div className="mb-6 flex items-center justify-between gap-4">
+        <div className="mb-4 flex items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
             <button
               onClick={() => router.back()}
@@ -773,7 +752,7 @@ export default function VendorDetailPage({
           </button>
         </div>
 
-        <div className="max-w-full mx-auto pb-4 space-y-6">
+        <div className="max-w-full mx-auto pb-4 space-y-4">
           {/* Studio Notes */}
           {vendor.notes && (
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm px-4 py-3">
@@ -791,33 +770,30 @@ export default function VendorDetailPage({
             <div className="flex items-center space-x-1 bg-white p-1.5 rounded-lg border border-gray-200 w-fit shadow-sm">
               <button
                 onClick={() => setActiveTab("jobs")}
-                className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 rounded-md transition-all ${
-                  activeTab === "jobs"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
-                }`}
+                className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 rounded-md transition-all ${activeTab === "jobs"
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
+                  }`}
               >
                 <LayoutList size={16} />
                 <span>Job History</span>
               </button>
               <button
                 onClick={() => setActiveTab("payments")}
-                className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 rounded-md transition-all ${
-                  activeTab === "payments"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
-                }`}
+                className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 rounded-md transition-all ${activeTab === "payments"
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
+                  }`}
               >
                 <Wallet size={16} />
                 <span>Payment</span>
               </button>
               <button
                 onClick={() => setActiveTab("invoice")}
-                className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 rounded-md transition-all ${
-                  activeTab === "invoice"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
-                }`}
+                className={`px-4 py-2 text-sm font-medium flex items-center space-x-2 rounded-md transition-all ${activeTab === "invoice"
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-indigo-600"
+                  }`}
               >
                 <Receipt size={16} />
                 <span>Invoice</span>
@@ -926,9 +902,8 @@ export default function VendorDetailPage({
             </div>
           )}
 
-          {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ PAYMENT TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
           {activeTab === "payments" && (
-            <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="space-y-4 animate-in fade-in duration-300">
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
@@ -1097,7 +1072,7 @@ export default function VendorDetailPage({
 
           {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ INVOICE TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
           {activeTab === "invoice" && (
-            <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="space-y-4 animate-in fade-in duration-300">
               {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Saved Invoices Table ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                 <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
@@ -1170,13 +1145,12 @@ export default function VendorDetailPage({
                       const isPartial = paid > 0 && !isPaid;
                       return (
                         <span
-                          className={`font-semibold ${
-                            isPaid
-                              ? "text-emerald-600"
-                              : isPartial
-                                ? "text-amber-600"
-                                : "text-gray-400"
-                          }`}
+                          className={`font-semibold ${isPaid
+                            ? "text-emerald-600"
+                            : isPartial
+                              ? "text-amber-600"
+                              : "text-gray-400"
+                            }`}
                         >
                           {paid > 0 ? formatCurrency(paid) : "—"}
                         </span>
@@ -1301,7 +1275,16 @@ export default function VendorDetailPage({
       {/* Payment Modal */}
       <PaymentModal
         isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
+        onClose={() => {
+          setShowPaymentModal(false);
+          setPaymentForm({
+            amount: "",
+            date: new Date().toISOString().split("T")[0],
+            note: "",
+            invoice_ids: [],
+            account_id: accounts.find((a) => a.is_default)?.id || accounts[0]?.id || "",
+          });
+        }}
         paymentForm={paymentForm}
         setPaymentForm={setPaymentForm}
         handleAddPayment={handleAddPayment}
@@ -1357,11 +1340,10 @@ export default function VendorDetailPage({
       {notification && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
           <div
-            className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${
-              notification.type === "success"
-                ? "bg-emerald-500 border-emerald-400 text-white"
-                : "bg-rose-500 border-rose-400 text-white"
-            }`}
+            className={`flex items-center space-x-3 px-6 py-3 rounded-2xl shadow-2xl border ${notification.type === "success"
+              ? "bg-emerald-500 border-emerald-400 text-white"
+              : "bg-rose-500 border-rose-400 text-white"
+              }`}
           >
             {notification.type === "success" ? (
               <CheckCircle2 size={18} className="text-white" />
