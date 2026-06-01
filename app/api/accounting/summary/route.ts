@@ -179,10 +179,10 @@ export async function GET(request: Request) {
       expenseByCategoryMap[catId].amount += Number(t.amount);
     });
     
-    if (totalVendorExpense > 0) {
-      expenseByCategoryMap["__vendor_payment__"] = {
+    if (totalVendorIncome > 0) {
+      incomeByCategoryMap["__vendor_payment__"] = {
         name: "Vendor Payments",
-        amount: totalVendorExpense,
+        amount: totalVendorIncome,
       };
     }
     if (totalStaffExpense > 0) {
